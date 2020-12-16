@@ -23,7 +23,7 @@ class InverseConsistentNet(nn.Module):
         self.sz[0] = BATCH_SIZE
         self.spacing = 1.0 / (self.sz[2::] - 1)
 
-        _id = py_utils.identity_map_multiN(self.sz, self.spacing)
+        _id = identity_map_multiN(self.sz, self.spacing)
         self.register_buffer("identityMap", torch.from_numpy(_id))
 
     def forward(self, image_A, image_B):
