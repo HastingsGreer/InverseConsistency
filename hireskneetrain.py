@@ -28,15 +28,15 @@ net_par.train()
 
 
 def make_batch():
-    image = torch.cat([random.choice(knees) for _ in range(4 * BATCH_SIZE)])
-    image = image.reshape(4 * BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE)
+    image = torch.cat([random.choice(knees) for _ in range(2 * BATCH_SIZE)])
+    image = image.reshape(2 * BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE)
     image = image.cuda()
     return image
 
 
 for _ in range(0, 100000):
     optimizer.zero_grad()
-    for subbatch in range(16):
+    for subbatch in range(32):
         moving_image = make_batch()
         fixed_image = make_batch()
         loss, a, b, c = net_par(moving_image, fixed_image)
