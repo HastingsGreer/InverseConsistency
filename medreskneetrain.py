@@ -21,15 +21,15 @@ net.load_state_dict(torch.load("network_weights/lowres_knee_network"))
 knees, medknees = data.get_knees_dataset()
 
 
-net_par = torch.nn.DataParallel(net).cuda()
+net_par = net.cuda()
 optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00005)
 
 net_par.train()
 
 
 def make_batch():
-    image = torch.cat([random.choice(medknees) for _ in range(4 * BATCH_SIZE)])
-    image = image.reshape(4 * BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE)
+    image = torch.cat([random.choice(medknees) for _ in range(1 * BATCH_SIZE)])
+    image = image.reshape(1 * BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE)
     image = image.cuda()
     return image
 
