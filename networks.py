@@ -92,7 +92,7 @@ class UNet(nn.Module):
         self.num_layers = num_layers
         down_channels = np.array(channels[0])
         up_channels_out = np.array(channels[1])
-        up_channels_in = down_channels[1:] + np.concatenate([up_channels[1:], [0]])
+        up_channels_in = down_channels[1:] + np.concatenate([up_channels_out[1:], [0]])
         self.downConvs = nn.ModuleList([])
         self.upConvs = nn.ModuleList([])
         # self.residues = nn.ModuleList([])
@@ -143,11 +143,14 @@ class UNet(nn.Module):
         return x / 10
 
 
-def pad_or_crop(x, shape):
+def pad_or_crop(x, shape, dimension):
     y = x[:, : shape[1]]
     if x.size()[1] < shape[1]:
+        if dimension == 3:
+            y = F.pad(y, (0, 0, 0, 0, 0, 0, shape[1] - x.size()[1], 0))
+        else:
+            y = F.pad(y, (0, 0, 0, 0, shape[1] - x.size()[1], 0))
 
-        y = F.pad(y, (0, 0, 0, 0, shape[1] - x.size()[1], 0))
     assert y.size()[1] == shape[1]
 
     return y
@@ -156,6 +159,7 @@ def pad_or_crop(x, shape):
 class UNet2(nn.Module):
     def __init__(self, num_layers, channels, dimension):
         super(UNet2, self).__init__()
+        self.dimension = dimension
         if dimension == 2:
             self.BatchNorm = nn.BatchNorm2d
             self.Conv = nn.Conv2d
@@ -171,7 +175,7 @@ class UNet2(nn.Module):
         self.num_layers = num_layers
         down_channels = np.array(channels[0])
         up_channels_out = np.array(channels[1])
-        up_channels_in = down_channels[1:] + np.concatenate([up_channels[1:], [0]])
+        up_channels_in = down_channels[1:] + np.concatenate([up_channels_out[1:], [0]])
         self.downConvs = nn.ModuleList([])
         self.upConvs = nn.ModuleList([])
         #        self.residues = nn.ModuleList([])
@@ -212,12 +216,14 @@ class UNet2(nn.Module):
         for depth in range(self.num_layers):
             skips.append(x)
             y = self.downConvs[depth](F.leaky_relu(x))
-            x = y + pad_or_crop(self.avg_pool(x, 2, ceil_mode=True), y.size())
+            x = y + pad_or_crop(
+                self.avg_pool(x, 2, ceil_mode=True), y.size(), self.dimension
+            )
 
         for depth in reversed(range(self.num_layers)):
             y = self.upConvs[depth](F.leaky_relu(x))
             x = y + F.interpolate(
-                pad_or_crop(x, y.size()),
+                pad_or_crop(x, y.size(), self.dimension),
                 scale_factor=2,
                 mode=self.interpolate_mode,
                 align_corners=False,

@@ -69,6 +69,11 @@ class InverseConsistentNet(nn.Module):
         )
         self.all_loss = inverse_consistency_loss + similarity_loss
         return [
-            x.item()
-            for x in (inverse_consistency_loss, similarity_loss, transform_magnitude)
+            x
+            for x in (
+                self.all_loss,
+                inverse_consistency_loss,
+                similarity_loss,
+                transform_magnitude,
+            )
         ]
