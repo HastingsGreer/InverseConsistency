@@ -70,10 +70,7 @@ def get_dataset_triangles(split, data_size=128, hollow=False):
 
 
 def get_knees_dataset():
-    import pickle
-
-    with open("/playpen/tgreer/knees4", "rb") as f:
-        brains = pickle.load(f)
+    brains = torch.load("/playpen/tgreer/kneestorch")
     #    with open("/playpen/tgreer/cartilage_eval_oriented", "rb") as f:
     #        cartilage = pickle.load(f)
 
