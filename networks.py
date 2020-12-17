@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 
+
 class Autoencoder(nn.Module):
     def __init__(self, num_layers, channels):
         super(Autoencoder, self).__init__()
@@ -89,9 +90,9 @@ class UNet(nn.Module):
             self.Conv = nn.Conv3d
             self.ConvTranspose = nn.ConvTranspose3d
         self.num_layers = num_layers
-        down_channels = channels[0]
-        up_channels_out = channels[1]
-        up_channels_in = channels[0, 1:] + np.concatenate([channels[1, 1:], [0]])
+        down_channels = np.array(channels[0])
+        up_channels_out = np.array(channels[1])
+        up_channels_in = down_channels[1:] + np.concatenate([up_channels[1:], [0]])
         self.downConvs = nn.ModuleList([])
         self.upConvs = nn.ModuleList([])
         # self.residues = nn.ModuleList([])
@@ -168,9 +169,9 @@ class UNet2(nn.Module):
             self.avg_pool = F.avg_pool3d
             self.interpolate_mode = "trilinear"
         self.num_layers = num_layers
-        down_channels = channels[0]
-        up_channels_out = channels[1]
-        up_channels_in = channels[2]
+        down_channels = np.array(channels[0])
+        up_channels_out = np.array(channels[1])
+        up_channels_in = down_channels[1:] + np.concatenate([up_channels[1:], [0]])
         self.downConvs = nn.ModuleList([])
         self.upConvs = nn.ModuleList([])
         #        self.residues = nn.ModuleList([])
@@ -252,7 +253,7 @@ class TwoStepNet(nn.Module):
 def tallUNet(dimension=2):
     return UNet(
         5,
-        np.array([[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]]),
+        [[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]],
         dimension,
     )
 
@@ -260,9 +261,7 @@ def tallUNet(dimension=2):
 def tallerUNet2(dimension=2):
     return UNet2(
         7,
-        np.array(
-            [[2, 16, 32, 64, 256, 512, 512, 512], [16, 32, 64, 128, 256, 512, 512]]
-        ),
+        [[2, 16, 32, 64, 256, 512, 512, 512], [16, 32, 64, 128, 256, 512, 512]],
         dimension,
     )
 
