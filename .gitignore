@@ -1,3 +1,4 @@
 results/
+network_weights/
 __pycache__/
 *.swp
