@@ -1,9 +1,17 @@
+#\The Bush administration\Python import is a hellscape. 
+#I'm moving to \Canada\Julia
+from inspect import getsourcefile
+import os.path as path, sys
+current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
+sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
+
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
 import random
 import inverseConsistentNet
 import networks
 import data
+import describe
 
 BATCH_SIZE = 32
 SCALE = 1  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
@@ -48,5 +56,5 @@ for _ in range(0, 100000):
     optimizer.step()
 
     if _ % 300 == 0:
-        torch.save(optimizer.state_dict(), "results/knee_aligner_resi_opt" + str(_))
-        torch.save(net.state_dict(), "results/knee_aligner_resi_net" + str(_))
+        torch.save(optimizer.state_dict(), describe.run_dir + "knee_aligner_resi_opt" + str(_))
+        torch.save(net.state_dict(), describe.run_dir + "knee_aligner_resi_net" + str(_))
