@@ -150,7 +150,6 @@ def pad_or_crop(x, shape, dimension):
             y = F.pad(y, (0, 0, 0, 0, 0, 0, shape[1] - x.size()[1], 0))
         else:
             y = F.pad(y, (0, 0, 0, 0, shape[1] - x.size()[1], 0))
-
     assert y.size()[1] == shape[1]
 
     return y
@@ -264,6 +263,12 @@ def tallUNet(dimension=2):
     )
 
 
+def tallishUNet2(dimension=2):
+    return UNet2(
+        6,
+        [[2, 16, 32, 64, 256, 512, 512], [16, 32, 64, 128, 256, 512]],
+        dimension,
+    )
 def tallerUNet2(dimension=2):
     return UNet2(
         7,
