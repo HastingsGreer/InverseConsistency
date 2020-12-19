@@ -1,10 +1,5 @@
-#\The Bush administration\Python import is a hellscape. 
-#I'm moving to \Canada\Julia
-from inspect import getsourcefile
-import os.path as path, sys
-current_dir = path.dirname(path.abspath(getsourcefile(lambda:0)))
-sys.path.insert(0, current_dir[:current_dir.rfind(path.sep)])
-
+import parent
+import torch.nn.functional as F
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
 import random
@@ -13,21 +8,20 @@ import networks
 import data
 import describe
 
-BATCH_SIZE = 32
-SCALE = 1  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
+BATCH_SIZE = 4
+SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 working_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
 
 net = inverseConsistentNet.InverseConsistentNet(
-    networks.tallUNet(dimension=3),
+    networks.tallerUNet2(dimension=3),
     lmbda=512,
     input_shape=working_shape,
     random_sampling=False,
 )
-net.load_state_dict(torch.load("network_weights/lowres_knee_network"))
 
 knees, medknees = data.get_knees_dataset()
-
+knees = torch.gt
 
 net_par = net.cuda()
 optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00005)

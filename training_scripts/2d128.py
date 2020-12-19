@@ -1,4 +1,4 @@
-import data
+from .. import data
 import networks
 import visualize
 import train
