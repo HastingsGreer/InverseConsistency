@@ -12,6 +12,8 @@ with open(run_dir + "info.txt", "w") as f:
     f.write(" ".join(sys.argv) + "\n")
     f.write("System:\n")
     f.write(subprocess.check_output(["hostname"]).decode())
+    f.write("Python:\n")
+    f.write(subprocess.check_output(["which", "python"]).decode())
     f.write("Git Hash:\n")
     f.write(subprocess.check_output(["git", "describe", "--always"]).strip().decode() + "\n")
     f.write("Uncommitted changes:\n")

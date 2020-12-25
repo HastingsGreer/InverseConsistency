@@ -14,11 +14,10 @@ def train2d(net, optimizer, d1, d2, epochs=400):
                 image_A = A[0].cuda()
                 image_B = B[0].cuda()
                 optimizer.zero_grad()
-                inverse_consistency_loss, similarity_loss, transform_magnitude = net(
+                loss, inverse_consistency_loss, similarity_loss, transform_magnitude = net(
                     image_A, image_B
                 )
 
-                loss = net.all_loss
                 loss.backward()
                 optimizer.step()
         du = (net.phi_AB[:, :, 1:, :-1] - net.phi_AB[:, :, :-1, :-1]).detach().cpu()
@@ -27,9 +26,9 @@ def train2d(net, optimizer, d1, d2, epochs=400):
 
         loss_history.append(
             [
-                inverse_consistency_loss,
-                similarity_loss,
-                transform_magnitude,
+                inverse_consistency_loss.item(),
+                similarity_loss.item(),
+                transform_magnitude.item(),
                 torch.log(torch.sum(dA < 0) + 0.1),
             ]
         )
