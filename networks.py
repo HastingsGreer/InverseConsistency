@@ -391,17 +391,18 @@ class RegisNet(nn.Module):
 
 
 class FCNet(nn.Module):
-    def __init__(self):
+    def __init__(self, size=28):
         super(FCNet, self).__init__()
-        self.dense1 = nn.Linear(28 * 28 * 2, 8000)
+        self.size=size
+        self.dense1 = nn.Linear(size *size  * 2, 8000)
         self.dense2 = nn.Linear(8000, 3000)
-        self.dense3 = nn.Linear(3000, 28 * 28 * 2)
+        self.dense3 = nn.Linear(3000, size * size * 2)
         torch.nn.init.zeros_(self.dense3.weight)
 
     def forward(self, x, y):
-        x = torch.reshape(torch.cat([x, y], 1), (-1, 2 * 28 * 28))
+        x = torch.reshape(torch.cat([x, y], 1), (-1, 2 * self.size * self.size))
         x = F.relu(self.dense1(x))
         x = F.relu(self.dense2(x))
         x = self.dense3(x)
-        x = torch.reshape(x, (-1, 2, 28, 28))
+        x = torch.reshape(x, (-1, 2, self.size, self.size))
         return x

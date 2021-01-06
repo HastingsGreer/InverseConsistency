@@ -34,15 +34,15 @@ def get_dataset_mnist(split, number=5):
     return d1, d2
 
 
-def get_dataset_triangles(split, data_size=128, hollow=False):
+def get_dataset_triangles(split, data_size=128, hollow=False, samples=6000):
     x, y = np.mgrid[0 : 1 : data_size * 1j, 0 : 1 : data_size * 1j]
     x = np.reshape(x, (1, data_size, data_size))
     y = np.reshape(y, (1, data_size, data_size))
-    cx = np.random.random((6000, 1, 1)) * 0.3 + 0.4
-    cy = np.random.random((6000, 1, 1)) * 0.3 + 0.4
-    r = np.random.random((6000, 1, 1)) * 0.2 + 0.2
-    theta = np.random.random((6000, 1, 1)) * np.pi * 2
-    isTriangle = np.random.random((6000, 1, 1)) > 0.5
+    cx = np.random.random((samples, 1, 1)) * 0.3 + 0.4
+    cy = np.random.random((samples, 1, 1)) * 0.3 + 0.4
+    r = np.random.random((samples, 1, 1)) * 0.2 + 0.2
+    theta = np.random.random((samples, 1, 1)) * np.pi * 2
+    isTriangle = np.random.random((samples, 1, 1)) > 0.5
 
     triangles = np.sqrt((x - cx) ** 2 + (y - cy) ** 2) - r * np.cos(np.pi / 3) / np.cos(
         (np.arctan2(x - cx, y - cy) + theta) % (2 * np.pi / 3) - np.pi / 3

@@ -57,9 +57,19 @@ class InverseConsistentNet(nn.Module):
             )
             + D_BA_epsilon
         )
+        D_AB_epsilon = compute_warped_image_multiNC(
+            self.D_AB, Iepsilon, self.spacing, 1
+        )
+
+        self.approximate_identity2 = (
+            compute_warped_image_multiNC(
+                self.D_BA, D_AB_epsilon + Iepsilon, self.spacing, 1
+            )
+            + D_AB_epsilon
+        )
 
         inverse_consistency_loss = self.lmbda * torch.mean(
-            (self.approximate_identity) ** 2
+            (self.approximate_identity) ** 2 + (self.approximate_identity2)**2
         )
         similarity_loss = torch.mean((self.warped_image_A - image_B) ** 2) + torch.mean(
             (self.warped_image_B - image_A) ** 2
