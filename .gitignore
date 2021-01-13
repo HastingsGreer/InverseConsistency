@@ -2,3 +2,4 @@ results/
 network_weights/
 __pycache__/
 *.swp
+notebooks/.ipynb_checkpoints/

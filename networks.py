@@ -155,7 +155,7 @@ def pad_or_crop(x, shape, dimension):
     return y
 
 class UNet2(nn.Module):
-    def __init__(self, num_layers, channels, dimension):
+    def __init__(self, num_layers, channels, dimension, input_channels=2):
         super(UNet2, self).__init__()
         self.dimension = dimension
         if dimension == 2:
@@ -320,8 +320,26 @@ class UNet3(nn.Module):
 
 
 class TwoStepNet(nn.Module):
-    def __init__(self, primaryNet, secondaryNet, scale, primaryNetWeights=None):
+    def __init__(self, primaryNet, secondaryNet, primaryNetWeights=None):
         super(TwoSetpNet, self).__init()
+        self.primaryNet = primaryNet()
+        self.secondaryNet = secondaryNet(input_channels=3)
+        if primaryNetWeights:
+            self.primaryNet.load_state_dict(primaryNetWeights)
+    def setSpacing(self, spacing):
+        self.spacing = spacing
+
+    def forward(self, x, y):
+        self.approxPhi = primaryNet(x, y)
+        resampledy = compute_warped_image_multiNC(y, approxPhi, self.spacing, 1) 
+        self.phi = secondaryNet(x, approxPhi, resampledy)
+        return self.phi + self.approxPhi
+
+
+
+class ScaledTwoStepNet(nn.Module):
+    def __init__(self, primaryNet, secondaryNet, scale, primaryNetWeights=None):
+        super(ScaledTwoSetpNet, self).__init()
         self.primaryNet = primaryNet()
         self.secondaryNet = secondaryNet()
         self.scale = scale
@@ -338,7 +356,7 @@ class TwoStepNet(nn.Module):
             approxPhi = F.interpolate(approxPhi)
 
 
-def tallUNet(dimension=2):
+def tallUNet(dimension=2, input_channels=2):
     return UNet(
         5,
         [[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]],
@@ -360,11 +378,12 @@ def tallerUNet2(dimension=2):
     )
 
 
-def tallUNet2(dimension=2):
+def tallUNet2(dimension=2, input_channels=2):
     return UNet2(
         5,
         np.array([[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]]),
         dimension,
+        input_channels=input_channels
     )
 
 

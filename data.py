@@ -68,6 +68,29 @@ def get_dataset_triangles(split, data_size=128, hollow=False, samples=6000):
     )
     return d1, d2
 
+def get_dataset_sunnyside(split):
+    import pickle
+    with open("/playpen/tgreer/sunnyside.pickle", "rb") as f:
+        array = pickle.load(f)
+    if split == "train":
+        array = array[1000:]
+    elif split == "test":
+        array = array[:1000]
+    else:
+        raise ArgumentError()
+
+    array = array[:, :, :, 0]
+    array = np.expand_dims(array, 1)
+    ds = torch.utils.data.TensorDataset(torch.Tensor(array))
+    d1, d2 = (
+        torch.utils.data.DataLoader(
+            ds,
+            batch_size=128,
+            shuffle=True,
+        )
+        for _ in (1, 1)
+    )
+    return d1, d2
 
 def get_knees_dataset():
     brains = torch.load("/playpen/tgreer/kneestorch")

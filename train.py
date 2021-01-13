@@ -6,7 +6,7 @@ def train2d(net, optimizer, d1, d2, epochs=400):
     loss_history = []
     print("[", end="")
     for epoch in range(epochs):
-        print("-", end="")
+        print("-", end="", flush=True)
         if (epoch + 1) % 50 == 0:
             print("]", end="\n[")
         for A, B in list(zip(d1, d2)):
