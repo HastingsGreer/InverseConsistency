@@ -68,7 +68,7 @@ def get_dataset_triangles(split, data_size=128, hollow=False, samples=6000):
     )
     return d1, d2
 
-def get_dataset_sunnyside(split):
+def get_dataset_sunnyside(split, scale=1):
     import pickle
     with open("/playpen/tgreer/sunnyside.pickle", "rb") as f:
         array = pickle.load(f)
@@ -81,6 +81,7 @@ def get_dataset_sunnyside(split):
 
     array = array[:, :, :, 0]
     array = np.expand_dims(array, 1)
+    array = array * scale
     ds = torch.utils.data.TensorDataset(torch.Tensor(array))
     d1, d2 = (
         torch.utils.data.DataLoader(

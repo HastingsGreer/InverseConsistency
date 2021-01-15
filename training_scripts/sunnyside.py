@@ -13,10 +13,10 @@ import os
 import describe
 
 
-d1, d2 = data.get_dataset_sunnyside("train"
+d1, d2 = data.get_dataset_sunnyside("train", scale=.7
 )
 
-d1_t, d2_t = data.get_dataset_sunnyside("test"
+d1_t, d2_t = data.get_dataset_sunnyside("test", scale=.7
 )
 network = networks.tallUNet2
 
@@ -35,7 +35,7 @@ optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 net.train()
 xs = []
 for _ in range(40):
-    y = np.array(train.train2d(net, optimizer, d1, d2, epochs=50))
+    y = np.array(train.train2d(net, optimizer, d1, d2, epochs=5))
     xs.append(y)
     x = np.concatenate(xs)
     plt.title(
