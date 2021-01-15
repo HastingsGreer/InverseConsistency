@@ -94,7 +94,6 @@ class InverseConsistentNet(nn.Module):
                 transform_magnitude,
             )
         ]
-
 class MapToFunctionNet(nn.Module):
     def __init__(self, network, input_shape):
        pass 
