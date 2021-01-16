@@ -82,16 +82,17 @@ def get_dataset_sunnyside(split, scale=1):
     array = array[:, :, :, 0]
     array = np.expand_dims(array, 1)
     array = array * scale
-    ds = torch.utils.data.TensorDataset(torch.Tensor(array))
-    d1, d2 = (
-        torch.utils.data.DataLoader(
-            ds,
-            batch_size=128,
-            shuffle=True,
-        )
-        for _ in (1, 1)
+    array1 = array[::2]
+    array2 = array[1::2]
+    array12 = np.concatenate([array2, array1])
+    array21 = np.concatenate([array1, array2])
+    ds = torch.utils.data.TensorDataset(torch.Tensor(array21), torch.Tensor(array12))
+    ds = torch.utils.data.DataLoader(
+        ds,
+        batch_size=128,
+        shuffle=True,
     )
-    return d1, d2
+    return ds
 
 def get_knees_dataset():
     brains = torch.load("/playpen/tgreer/kneestorch")

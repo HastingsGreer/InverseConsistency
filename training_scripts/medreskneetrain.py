@@ -8,14 +8,14 @@ import networks
 import data
 import describe
 
-BATCH_SIZE = 4
+BATCH_SIZE =8 
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 working_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
 GPUS = 4 
 
 net = inverseConsistentNet.InverseConsistentNet(
-    networks.tallishUNet2(dimension=3),
+    networks.tallUNet2(dimension=3),
     lmbda=512,
     input_shape=working_shape,
     random_sampling=False,
@@ -41,7 +41,7 @@ def make_batch():
 loss_curve = []
 for _ in range(0, 100000):
     optimizer.zero_grad()
-    for subbatch in range(8):
+    for subbatch in range(4):
         moving_image = make_batch()
         fixed_image = make_batch()
         loss, a, b, c = net_par(moving_image, fixed_image)
