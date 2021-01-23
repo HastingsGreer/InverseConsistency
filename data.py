@@ -34,7 +34,7 @@ def get_dataset_mnist(split, number=5):
     return d1, d2
 
 
-def get_dataset_triangles(split, data_size=128, hollow=False, samples=6000):
+def get_dataset_triangles(split, data_size=128, hollow=False, samples=6000, batch_size=128):
     x, y = np.mgrid[0 : 1 : data_size * 1j, 0 : 1 : data_size * 1j]
     x = np.reshape(x, (1, data_size, data_size))
     y = np.reshape(y, (1, data_size, data_size))
@@ -61,7 +61,7 @@ def get_dataset_triangles(split, data_size=128, hollow=False, samples=6000):
     d1, d2 = (
         torch.utils.data.DataLoader(
             ds,
-            batch_size=128,
+            batch_size=batch_size,
             shuffle=True,
         )
         for _ in (1, 1)

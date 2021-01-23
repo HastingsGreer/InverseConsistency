@@ -238,11 +238,12 @@ class UNet2(nn.Module):
 
 
 class UNet3(nn.Module):
-    def __init__(self, num_layers, channels, dimension):
+    def __init__(self, num_layers, channels, dimension, normalization):
         super(UNet3, self).__init__()
+
         self.dimension = dimension
         if dimension == 2:
-            self.GroupNorm = nn.GroupNorm2d
+            self.BatchNorm = nn.BatchNorm2d
             self.Conv = nn.Conv2d
             self.ConvTranspose = nn.ConvTranspose2d
             self.avg_pool = F.avg_pool2d
@@ -260,12 +261,21 @@ class UNet3(nn.Module):
         self.downConvs = nn.ModuleList([])
         self.upConvs = nn.ModuleList([])
         #        self.residues = nn.ModuleList([])
-        self.batchNorms = nn.ModuleList(
-            [
-                self.BatchNorm(num_features=up_channels_out[_])
-                for _ in range(self.num_layers)
-            ]
-        )
+        self.normalization = normalization
+        if self.normalization == "batchnorm":
+            self.batchNorms = nn.ModuleList(
+                [
+                    self.BatchNorm(num_features=up_channels_out[_])
+                    for _ in range(self.num_layers)
+                ]
+            )
+        if self.normalization == "groupnorm":
+            self.groupNorms = nn.ModuleList(
+                [
+                    nn.GroupNorm(max(16, up_channels_out[depth]), up_channels_out[depth])
+                    for depth in range(self.num_layers)
+                ]
+            )
         for depth in range(self.num_layers):
             self.downConvs.append(
                 self.Conv(
@@ -311,13 +321,15 @@ class UNet3(nn.Module):
                 align_corners=False,
             )
             # x = self.residues[depth](x)
-            x = self.batchNorms[depth](x)
+            if self.normalization == "batchnorm":
+               x = self.batchNorms[depth](x)
 
+            if self.normalization == "groupnorm":
+               x = self.groupNorms[depth](x)
             x = x[:, :, : skips[depth].size()[2], : skips[depth].size()[3]]
             x = torch.cat([x, skips[depth]], 1)
         x = self.lastConv(x)
         return x / 10
-
 
 class TwoStepNet(nn.Module):
     def __init__(self, primaryNet, secondaryNet, primaryNetWeights=None):
@@ -384,6 +396,13 @@ def tallUNet2(dimension=2, input_channels=2):
         np.array([[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]]),
         dimension,
         input_channels=input_channels
+    )
+def tallUNet3(normalization="batchnorm", dimension=2):
+    return UNet3(
+        5,
+        np.array([[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]]),
+        dimension,
+        normalization=normalization
     )
 
 

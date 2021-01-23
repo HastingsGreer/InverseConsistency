@@ -15,7 +15,7 @@ with open(run_dir + "info.txt", "w") as f:
     f.write("Python:\n")
     f.write(subprocess.check_output(["which", "python"]).decode())
     f.write("Git Hash:\n")
-    f.write(subprocess.check_output(["git", "describe", "--always", "--", ".", ":(exclude)*.ipynb"]).strip().decode() + "\n")
+    f.write(subprocess.check_output(["git", "describe", "--always"]).strip().decode() + "\n")
     f.write("Uncommitted changes:\n")
     f.write(subprocess.check_output(["git", "diff", "HEAD"]).decode())
     
