@@ -50,8 +50,9 @@ def visualizeRegistration(net, image_A, image_B, N, path):
     plt.title("Composition of Transforms")
     show_as_grid(
         (
-            compute_warped_image_multiNC(net.D_BA, net.phi_AB, net.spacing, 1)
-            + net.phi_AB
+            compute_warped_image_multiNC(
+                net.phi_BA[:, :2], net.phi_AB[:, :2], net.spacing, 1
+            )
         )[N]
     )
 

@@ -440,3 +440,40 @@ class FCNet(nn.Module):
         x = self.dense3(x)
         x = torch.reshape(x, (-1, 2, self.size, self.size))
         return x
+
+
+class DenseMatrixNet(nn.Module):
+    def __init__(self, size=28, dimension=2):
+        super(DenseMatrixNet, self).__init__()
+        self.dimension = dimension
+        self.size = size
+        self.dense1 = nn.Linear(size * size * 2, 800)
+        self.dense2 = nn.Linear(800, 300)
+        self.dense3 = nn.Linear(300, 6 if self.dimension == 2 else 12)
+        torch.nn.init.zeros_(self.dense3.weight)
+
+    def forward(self, x, y):
+        x = torch.reshape(torch.cat([x, y], 1), (-1, 2 * self.size * self.size))
+        x = F.relu(self.dense1(x))
+        x = F.relu(self.dense2(x))
+        x = self.dense3(x)
+        if self.dimension == 3:
+            x = torch.reshape(x, (-1, 3, 4))
+            x = torch.cat(
+                [x, torch.Tensor([[[0, 0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+            )
+            x = (
+                x
+                + torch.Tensor(
+                    [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
+                ).cuda()
+            )
+        elif self.dimension == 2:
+            x = torch.reshape(x, (-1, 2, 3))
+            x = torch.cat(
+                [x, torch.Tensor([[[0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+            )
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).cuda()
+        else:
+            raise ArgumentError()
+        return x
