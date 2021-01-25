@@ -14,9 +14,12 @@ def train2d(net, optimizer, d1, d2, epochs=400):
                 image_A = A[0].cuda()
                 image_B = B[0].cuda()
                 optimizer.zero_grad()
-                loss, inverse_consistency_loss, similarity_loss, transform_magnitude = net(
-                    image_A, image_B
-                )
+                (
+                    loss,
+                    inverse_consistency_loss,
+                    similarity_loss,
+                    transform_magnitude,
+                ) = net(image_A, image_B)
 
                 loss.backward()
                 optimizer.step()

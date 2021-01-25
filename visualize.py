@@ -60,8 +60,9 @@ def visualizeRegistration(net, image_A, image_B, N, path):
 
     plt.imshow(dA[N])
     plt.colorbar()
-    plt.savefig(path)
-    plt.clf()
+    if path:
+        plt.savefig(path)
+        plt.clf()
     print("Diffeomorphism Failures per batch")
     print(torch.sum(dA < 0))
 

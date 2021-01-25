@@ -16,11 +16,11 @@ import describe
 d1_triangles, d2_triangles = data.get_dataset_triangles(
     "train", data_size=50, hollow=True, samples=128
 )
-#d1_triangles_test, d2_triangles_test = data.get_dataset_triangles(
+# d1_triangles_test, d2_triangles_test = data.get_dataset_triangles(
 #    "test", data_size=50, hollow=True, samples=256
-#)
+# )
 
-d1_triangles_test, d2_triangles_test =d1_triangles, d2_triangles
+d1_triangles_test, d2_triangles_test = d1_triangles, d2_triangles
 network = networks.tallUNet2
 
 d1, d2, d1_t, d2_t = (d1_triangles, d2_triangles, d1_triangles_test, d2_triangles_test)

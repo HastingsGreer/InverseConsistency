@@ -23,20 +23,17 @@ d1_triangles, d2_triangles = data.get_dataset_triangles(
 
 network = networks.FCNet
 
-d1, d2= (d1_triangles, d2_triangles)
-lmbda =2048 
+d1, d2 = (d1_triangles, d2_triangles)
+lmbda = 2048
 image_A, image_B = (x[0].cuda() for x in next(zip(d1, d2)))
 image_A = image_A[:1].cuda()
 image_B = image_B[:1].cuda()
 print("=" * 50)
 print(network, lmbda)
-net = inverseConsistentNet.InverseConsistentNet(
-    network(), lmbda, image_A.size()
-)
+net = inverseConsistentNet.InverseConsistentNet(network(), lmbda, image_A.size())
 net.cuda()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.00001)
 net.train()
-
 
 
 def train2d(net, optimizer, image_A, image_B, epochs=400):
@@ -89,4 +86,3 @@ for _ in range(400):
 
 torch.save(net.state_dict(), describe.run_dir + "network.trch")
 torch.save(optimizer.state_dict(), describe.run_dir + "opt.trch")
-

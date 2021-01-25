@@ -8,11 +8,11 @@ import networks
 import data
 import describe
 
-BATCH_SIZE =8 
+BATCH_SIZE = 8
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 working_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
-GPUS = 4 
+GPUS = 4
 
 net = inverseConsistentNet.InverseConsistentNet(
     networks.tallUNet2(dimension=3),
@@ -38,6 +38,7 @@ def make_batch():
     image = image.cuda()
     return image
 
+
 loss_curve = []
 for _ in range(0, 100000):
     optimizer.zero_grad()
@@ -55,9 +56,14 @@ for _ in range(0, 100000):
     if _ % 300 == 0:
         try:
             import pickle
+
             with open(describe.run_dir + "loss_curve", "wb") as f:
                 pickle.dump(loss_curve, f)
         except:
             pass
-        torch.save(optimizer.state_dict(), describe.run_dir + "knee_aligner_resi_opt" + str(_))
-        torch.save(net.state_dict(), describe.run_dir + "knee_aligner_resi_net" + str(_))
+        torch.save(
+            optimizer.state_dict(), describe.run_dir + "knee_aligner_resi_opt" + str(_)
+        )
+        torch.save(
+            net.state_dict(), describe.run_dir + "knee_aligner_resi_net" + str(_)
+        )

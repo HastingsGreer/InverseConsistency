@@ -2,7 +2,8 @@ import parent
 import data
 import networks
 import visualize
-#import train
+
+# import train
 import inverseConsistentNet
 import numpy as np
 import torch
@@ -11,6 +12,7 @@ import random
 import os
 
 import describe
+
 
 def train2d(net, optimizer, d1, epochs=400):
 
@@ -25,9 +27,12 @@ def train2d(net, optimizer, d1, epochs=400):
                 image_A = A[0].cuda()
                 image_B = A[1].cuda()
                 optimizer.zero_grad()
-                loss, inverse_consistency_loss, similarity_loss, transform_magnitude = net(
-                    image_A, image_B
-                )
+                (
+                    loss,
+                    inverse_consistency_loss,
+                    similarity_loss,
+                    transform_magnitude,
+                ) = net(image_A, image_B)
 
                 loss.backward()
                 optimizer.step()
@@ -46,11 +51,10 @@ def train2d(net, optimizer, d1, epochs=400):
     print("]")
     return loss_history
 
-d1 = data.get_dataset_sunnyside("train", scale=.7
-)
 
-d1_t = data.get_dataset_sunnyside("test", scale=.7
-)
+d1 = data.get_dataset_sunnyside("train", scale=0.7)
+
+d1_t = data.get_dataset_sunnyside("test", scale=0.7)
 network = networks.tallUNet2
 
 lmbda = 2048

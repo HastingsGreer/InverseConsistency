@@ -14,6 +14,7 @@ import pickle
 import describe
 
 import argparse
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--batches", help="sequential or parallel")
 parser.add_argument("--normalization", help="batchnorm or groupnorm or none")
@@ -51,6 +52,7 @@ net.cuda()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 net.train()
 
+
 def train2d(net, optimizer, d1, d2, epochs=400):
 
     loss_history = []
@@ -59,18 +61,21 @@ def train2d(net, optimizer, d1, d2, epochs=400):
         print("-", end="", flush=True)
         if (epoch + 1) % 50 == 0:
             print("]", end="\n[")
-        for index, AB  in enumerate(zip(d1, d2)):
+        for index, AB in enumerate(zip(d1, d2)):
             A, B = AB
             if A[0].size()[0] == batch_size:
                 image_A = A[0].cuda()
                 image_B = B[0].cuda()
-                loss, inverse_consistency_loss, similarity_loss, transform_magnitude = net(
-                    image_A, image_B
-                )
+                (
+                    loss,
+                    inverse_consistency_loss,
+                    similarity_loss,
+                    transform_magnitude,
+                ) = net(image_A, image_B)
                 loss.backward()
-                if index % 16 == 0 or args.batches == "parallel": 
+                if index % 16 == 0 or args.batches == "parallel":
                     optimizer.step()
-                    
+
                     optimizer.zero_grad()
         du = (net.phi_AB[:, :, 1:, :-1] - net.phi_AB[:, :, :-1, :-1]).detach().cpu()
         dv = (net.phi_AB[:, :, :-1, 1:] - net.phi_AB[:, :, :-1, :-1]).detach().cpu()
@@ -86,6 +91,7 @@ def train2d(net, optimizer, d1, d2, epochs=400):
         )
     print("]")
     return loss_history
+
 
 xs = []
 for _ in range(40):

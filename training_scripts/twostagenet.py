@@ -1,4 +1,3 @@
-
 import parent
 import data
 import networks
@@ -21,7 +20,7 @@ d1_triangles_test, d2_triangles_test = data.get_dataset_triangles(
     "test", data_size=50, hollow=True, samples=256
 )
 
-#d1_triangles_test, d2_triangles_test =d1_triangles, d2_triangles
+# d1_triangles_test, d2_triangles_test =d1_triangles, d2_triangles
 network1 = networks.tallUNet2()
 network2 = networks.tallUNet2()
 

@@ -154,6 +154,7 @@ def pad_or_crop(x, shape, dimension):
 
     return y
 
+
 class UNet2(nn.Module):
     def __init__(self, num_layers, channels, dimension, input_channels=2):
         super(UNet2, self).__init__()
@@ -236,7 +237,6 @@ class UNet2(nn.Module):
         return x / 10
 
 
-
 class UNet3(nn.Module):
     def __init__(self, num_layers, channels, dimension, normalization):
         super(UNet3, self).__init__()
@@ -260,6 +260,11 @@ class UNet3(nn.Module):
         up_channels_in = down_channels[1:] + np.concatenate([up_channels_out[1:], [0]])
         self.downConvs = nn.ModuleList([])
         self.upConvs = nn.ModuleList([])
+
+        # More traditional residual structure
+        #       self.down_1x1s = nn.ModuleList([])
+        #       self.up_1x1s = nn.ModuleList([])
+
         #        self.residues = nn.ModuleList([])
         self.normalization = normalization
         if self.normalization == "batchnorm":
@@ -272,7 +277,9 @@ class UNet3(nn.Module):
         if self.normalization == "groupnorm":
             self.groupNorms = nn.ModuleList(
                 [
-                    nn.GroupNorm(max(16, up_channels_out[depth]), up_channels_out[depth])
+                    nn.GroupNorm(
+                        max(16, up_channels_out[depth]), up_channels_out[depth]
+                    )
                     for depth in range(self.num_layers)
                 ]
             )
@@ -286,6 +293,15 @@ class UNet3(nn.Module):
                     stride=2,
                 )
             )
+            #           self.down_1x1s.append(
+            #               self.Conv(
+            #                   down_channels[depth + 1],
+            #                   down_channels[depth + 1],
+            #                   kernel_size=3,
+            #                   padding=1,
+            #                   stride=1,
+            #               )
+            #           )
             self.upConvs.append(
                 self.ConvTranspose(
                     up_channels_in[depth],
@@ -295,6 +311,16 @@ class UNet3(nn.Module):
                     stride=2,
                 )
             )
+        #           self.up_1x1s.append(
+        #               self.Conv(
+        #                   up_channels_out[depth],
+        #                   up_channels_out[depth],
+        #                   kernel_size=3,
+        #                   padding=1,
+        #                   stride=1,
+        #               )
+        #           )
+
         #            self.residues.append(
         #                Residual(up_channels_out[depth])
         #            )
@@ -307,6 +333,7 @@ class UNet3(nn.Module):
         for depth in range(self.num_layers):
             skips.append(x)
             y = self.downConvs[depth](F.leaky_relu(x))
+            #            y = self.down_1x1s[depth](F.leaky_relu(y))
             x = y + pad_or_crop(
                 self.avg_pool(x, 2, ceil_mode=True), y.size(), self.dimension
             )
@@ -314,6 +341,7 @@ class UNet3(nn.Module):
 
         for depth in reversed(range(self.num_layers)):
             y = self.upConvs[depth](F.leaky_relu(x))
+            #           y = self.up_1x1s[depth](F.leaky_relu(y))
             x = y + F.interpolate(
                 pad_or_crop(x, y.size(), self.dimension),
                 scale_factor=2,
@@ -322,50 +350,14 @@ class UNet3(nn.Module):
             )
             # x = self.residues[depth](x)
             if self.normalization == "batchnorm":
-               x = self.batchNorms[depth](x)
+                x = self.batchNorms[depth](x)
 
             if self.normalization == "groupnorm":
-               x = self.groupNorms[depth](x)
+                x = self.groupNorms[depth](x)
             x = x[:, :, : skips[depth].size()[2], : skips[depth].size()[3]]
             x = torch.cat([x, skips[depth]], 1)
         x = self.lastConv(x)
         return x / 10
-
-class TwoStepNet(nn.Module):
-    def __init__(self, primaryNet, secondaryNet, primaryNetWeights=None):
-        super(TwoSetpNet, self).__init()
-        self.primaryNet = primaryNet()
-        self.secondaryNet = secondaryNet(input_channels=3)
-        if primaryNetWeights:
-            self.primaryNet.load_state_dict(primaryNetWeights)
-    def setSpacing(self, spacing):
-        self.spacing = spacing
-
-    def forward(self, x, y):
-        self.approxPhi = primaryNet(x, y)
-        resampledy = compute_warped_image_multiNC(y, approxPhi, self.spacing, 1) 
-        self.phi = secondaryNet(x, approxPhi, resampledy)
-        return self.phi + self.approxPhi
-
-
-
-class ScaledTwoStepNet(nn.Module):
-    def __init__(self, primaryNet, secondaryNet, scale, primaryNetWeights=None):
-        super(ScaledTwoSetpNet, self).__init()
-        self.primaryNet = primaryNet()
-        self.secondaryNet = secondaryNet()
-        self.scale = scale
-        if primaryNetWeights:
-            self.primaryNet.load_state_dict(primaryNetWeights)
-
-    def forward(self, x, y):
-        if scale != 1:
-            smolx, smoly = F.av
-        else:
-            approxPhi = primaryNet(x, y)
-
-        if scale != 1:
-            approxPhi = F.interpolate(approxPhi)
 
 
 def tallUNet(dimension=2, input_channels=2):
@@ -382,6 +374,8 @@ def tallishUNet2(dimension=2):
         [[2, 16, 32, 64, 256, 512, 512], [16, 32, 64, 128, 256, 512]],
         dimension,
     )
+
+
 def tallerUNet2(dimension=2):
     return UNet2(
         7,
@@ -395,14 +389,16 @@ def tallUNet2(dimension=2, input_channels=2):
         5,
         np.array([[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]]),
         dimension,
-        input_channels=input_channels
+        input_channels=input_channels,
     )
+
+
 def tallUNet3(normalization="batchnorm", dimension=2):
     return UNet3(
         5,
         np.array([[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]]),
         dimension,
-        normalization=normalization
+        normalization=normalization,
     )
 
 
@@ -431,8 +427,8 @@ class RegisNet(nn.Module):
 class FCNet(nn.Module):
     def __init__(self, size=28):
         super(FCNet, self).__init__()
-        self.size=size
-        self.dense1 = nn.Linear(size *size  * 2, 8000)
+        self.size = size
+        self.dense1 = nn.Linear(size * size * 2, 8000)
         self.dense2 = nn.Linear(8000, 3000)
         self.dense3 = nn.Linear(3000, size * size * 2)
         torch.nn.init.zeros_(self.dense3.weight)

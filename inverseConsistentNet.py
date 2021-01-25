@@ -27,14 +27,14 @@ class InverseConsistentNet(nn.Module):
         self.register_buffer("identityMap", torch.from_numpy(_id))
 
     def forward(self, image_A, image_B):
-        #Compute Displacement Maps
+        # Compute Displacement Maps
         self.D_AB = self.regis_net(image_A, image_B)
         self.phi_AB = self.D_AB + self.identityMap
 
         self.D_BA = self.regis_net(image_B, image_A)
         self.phi_BA = self.D_BA + self.identityMap
 
-        #Compute Image similarity
+        # Compute Image similarity
 
         self.warped_image_A = compute_warped_image_multiNC(
             image_A, self.phi_AB, self.spacing, 1
@@ -47,9 +47,9 @@ class InverseConsistentNet(nn.Module):
         similarity_loss = torch.mean((self.warped_image_A - image_B) ** 2) + torch.mean(
             (self.warped_image_B - image_A) ** 2
         )
-        
-        #Compute Inverse Consistency
-        #One way
+
+        # Compute Inverse Consistency
+        # One way
 
         Iepsilon = (
             self.identityMap
@@ -66,7 +66,7 @@ class InverseConsistentNet(nn.Module):
             )
             + D_BA_epsilon
         )
-        #And the Other
+        # And the Other
         D_AB_epsilon = compute_warped_image_multiNC(
             self.D_AB, Iepsilon, self.spacing, 1
         )
@@ -79,7 +79,7 @@ class InverseConsistentNet(nn.Module):
         )
 
         inverse_consistency_loss = self.lmbda * torch.mean(
-            (self.approximate_identity) ** 2 + (self.approximate_identity2)**2
+            (self.approximate_identity) ** 2 + (self.approximate_identity2) ** 2
         )
         transform_magnitude = self.lmbda * torch.mean(
             (self.identityMap - self.phi_AB) ** 2
@@ -94,6 +94,8 @@ class InverseConsistentNet(nn.Module):
                 transform_magnitude,
             )
         ]
+
+
 class MapToFunctionNet(nn.Module):
     def __init__(self, network, input_shape):
-       pass 
+        pass
