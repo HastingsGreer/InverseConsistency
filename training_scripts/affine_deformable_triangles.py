@@ -26,7 +26,7 @@ image_A, image_B = (x[0].cuda() for x in next(zip(d1, d2)))
 net = inverseConsistentNet.InverseConsistentAffineDeformableNet(
     networks.DenseMatrixNet(size=data_size),
     networks.tallUNet3(normalization="groupnorm"),
-    2048,
+    100,
     next(iter(d1))[0].size(),
 )
 pretrained_weights = torch.load("results/affinte_triangle_pretrain/network.trch")
@@ -37,7 +37,7 @@ net.cuda()
 
 import train
 
-optim = torch.optim.Adam(net.parameters(), lr=0.00001)
+optim = torch.optim.Adam(net.parameters(), lr=0.0001)
 net.train().cuda()
 
 

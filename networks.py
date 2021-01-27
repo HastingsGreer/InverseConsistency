@@ -477,3 +477,54 @@ class DenseMatrixNet(nn.Module):
         else:
             raise ArgumentError()
         return x
+class ConvolutionalMatrixNet(nn.Module):
+    def __init__(self, size=28, dimension=2):
+        super(ConvolutionalMatrixNet, self).__init__()
+        self.dimension = dimension
+        self.size = size
+         
+        if dimension == 2:
+            self.Conv = nn.Conv2d
+            self.avg_pool = F.avg_pool2d
+        else:
+            self.Conv = nn.Conv3d
+            self.avg_pool = F.avg_pool3d
+        
+        self.features = [2, 16, 32, 64, 128, 256, 512]
+        self.convs = nn.ModuleList([])
+        for depth in range(len(self.features) - 1):
+           self.convs.append(self.Conv(self.features[depth], self.features[depth + 1], kernel_size=3, padding=0)) 
+        self.dense2 = nn.Linear(512, 300)
+        self.dense3 = nn.Linear(300, 6 if self.dimension == 2 else 12)
+        torch.nn.init.zeros_(self.dense3.weight)
+
+    def forward(self, x, y):
+        x = torch.cat([x, y], 1)
+        for depth in range(len(self.features) - 1):
+            x = F.relu(x)
+            x = self.convs[depth](x)
+            x = self.avg_pool(x, 2)
+        print(x.shape) 
+        x = F.relu(self.dense1(x))
+        x = F.relu(self.dense2(x))
+        x = self.dense3(x)
+        if self.dimension == 3:
+            x = torch.reshape(x, (-1, 3, 4))
+            x = torch.cat(
+                [x, torch.Tensor([[[0, 0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+            )
+            x = (
+                x
+                + torch.Tensor(
+                    [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
+                ).cuda()
+            )
+        elif self.dimension == 2:
+            x = torch.reshape(x, (-1, 2, 3))
+            x = torch.cat(
+                [x, torch.Tensor([[[0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+            )
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).cuda()
+        else:
+            raise ArgumentError()
+        return x
