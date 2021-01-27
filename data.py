@@ -1,4 +1,5 @@
 import torch
+import tqdm
 import random
 import torchvision
 import numpy as np
@@ -104,7 +105,9 @@ def get_knees_dataset():
     #    with open("/playpen/tgreer/cartilage_eval_oriented", "rb") as f:
     #        cartilage = pickle.load(f)
 
-    medbrains = [F.avg_pool3d(b, 4) for b in brains]
+    medbrains = []
+    for b in tqdm.tqdm(brains):
+        medbrains.append(F.avg_pool3d(b, 4))
 
     return brains, medbrains
 

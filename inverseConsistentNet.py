@@ -123,10 +123,11 @@ class InverseConsistentAffineNet(nn.Module):
 
     def forward(self, image_A, image_B):
         # Compute Displacement Maps
-
-        batch_matrix_multiply = "ijkl,imj->imkl"
+        if len(self.spacing) == 2:
+            batch_matrix_multiply = "ijkl,imj->imkl"
+        else:
+            batch_matrix_multiply = "ijkln,imj->imkln"
         self.matrix_AB = self.regis_net(image_A, image_B)
-
         self.phi_AB = torch.einsum(
             batch_matrix_multiply, self.identityMapProjective, self.matrix_AB
         )
@@ -140,11 +141,11 @@ class InverseConsistentAffineNet(nn.Module):
         # Compute Image similarity
 
         self.warped_image_A = compute_warped_image_multiNC(
-            image_A, self.phi_AB[:, :2], self.spacing, 1
+            image_A, self.phi_AB[:, :len(self.spacing)], self.spacing, 1
         )
 
         self.warped_image_B = compute_warped_image_multiNC(
-            image_B, self.phi_BA[:, :2], self.spacing, 1
+            image_B, self.phi_BA[:, :len(self.spacing)], self.spacing, 1
         )
 
         similarity_loss = torch.mean((self.warped_image_A - image_B) ** 2) + torch.mean(
@@ -155,11 +156,11 @@ class InverseConsistentAffineNet(nn.Module):
         # One way
 
         self.approximate_zero = (
-            torch.einsum(batch_matrix_multiply, self.phi_AB, self.matrix_BA)[:, :2]
+            torch.einsum(batch_matrix_multiply, self.phi_AB, self.matrix_BA)[:, :len(self.spacing)]
             - self.identityMap
         )
         self.approximate_zero2 = (
-            torch.einsum(batch_matrix_multiply, self.phi_BA, self.matrix_AB)[:, :2]
+            torch.einsum(batch_matrix_multiply, self.phi_BA, self.matrix_AB)[:, :len(self.spacing)]
             - self.identityMap
         )
 
@@ -167,7 +168,7 @@ class InverseConsistentAffineNet(nn.Module):
             (self.approximate_zero) ** 2 + (self.approximate_zero2) ** 2
         )
         transform_magnitude = self.lmbda * torch.mean(
-            (self.identityMap - self.phi_AB[:, :2]) ** 2
+            (self.identityMap - self.phi_AB[:, :len(self.spacing)]) ** 2
         )
         self.all_loss = inverse_consistency_loss + similarity_loss
         return [

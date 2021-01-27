@@ -8,20 +8,19 @@ import networks
 import data
 import describe
 
-BATCH_SIZE = 32
+BATCH_SIZE = 32 
 SCALE = 1  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 working_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
 GPUS = 4
 
 net = inverseConsistentNet.InverseConsistentAffineNet(
-    networks.ConvolutionalMatrixNet,
+    networks.ConvolutionalMatrixNet(dimension=3),
     lmbda=100,
     input_shape=working_shape,
 )
 
-knees, medknees = data.get_knees_dataset()
-knees = [F.avg_pool3d(knee, 4) for knee in knees]
+_, knees = data.get_knees_dataset()
 if GPUS == 1:
     net_par = net.cuda()
 else:
