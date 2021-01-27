@@ -14,7 +14,7 @@ working_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
 GPUS = 4
 
-net = inverseConsistentNet.InverseConsistentAffineNet(
+net = inverseConsistentNet.InverseConsistentAffineBothNet(
     networks.ConvolutionalMatrixNet(dimension=3),
     lmbda=100,
     input_shape=working_shape,

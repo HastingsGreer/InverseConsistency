@@ -30,7 +30,13 @@ net = inverseConsistentNet.InverseConsistentAffineDeformableNet(
     next(iter(d1))[0].size(),
 )
 pretrained_weights = torch.load("results/affinte_triangle_pretrain/network.trch")
-pretrained_weights = OrderedDict([(a.split("regis_net.")[1], b) for a, b in pretrained_weights.items() if "regis_net" in a])
+pretrained_weights = OrderedDict(
+    [
+        (a.split("regis_net.")[1], b)
+        for a, b in pretrained_weights.items()
+        if "regis_net" in a
+    ]
+)
 
 net.affine_regis_net.load_state_dict(pretrained_weights)
 net.cuda()

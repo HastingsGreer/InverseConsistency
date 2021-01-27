@@ -477,22 +477,31 @@ class DenseMatrixNet(nn.Module):
         else:
             raise ArgumentError()
         return x
+
+
 class ConvolutionalMatrixNet(nn.Module):
     def __init__(self, dimension=2):
         super(ConvolutionalMatrixNet, self).__init__()
         self.dimension = dimension
-         
+
         if dimension == 2:
             self.Conv = nn.Conv2d
             self.avg_pool = F.avg_pool2d
         else:
             self.Conv = nn.Conv3d
             self.avg_pool = F.avg_pool3d
-        
+
         self.features = [2, 16, 32, 64, 128, 256, 512]
         self.convs = nn.ModuleList([])
         for depth in range(len(self.features) - 1):
-           self.convs.append(self.Conv(self.features[depth], self.features[depth + 1], kernel_size=3, padding=1)) 
+            self.convs.append(
+                self.Conv(
+                    self.features[depth],
+                    self.features[depth + 1],
+                    kernel_size=3,
+                    padding=1,
+                )
+            )
         self.dense2 = nn.Linear(512, 300)
         self.dense3 = nn.Linear(300, 6 if self.dimension == 2 else 12)
         torch.nn.init.zeros_(self.dense3.weight)

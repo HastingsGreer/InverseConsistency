@@ -141,11 +141,11 @@ class InverseConsistentAffineNet(nn.Module):
         # Compute Image similarity
 
         self.warped_image_A = compute_warped_image_multiNC(
-            image_A, self.phi_AB[:, :len(self.spacing)], self.spacing, 1
+            image_A, self.phi_AB[:, : len(self.spacing)], self.spacing, 1
         )
 
         self.warped_image_B = compute_warped_image_multiNC(
-            image_B, self.phi_BA[:, :len(self.spacing)], self.spacing, 1
+            image_B, self.phi_BA[:, : len(self.spacing)], self.spacing, 1
         )
 
         similarity_loss = torch.mean((self.warped_image_A - image_B) ** 2) + torch.mean(
@@ -156,11 +156,15 @@ class InverseConsistentAffineNet(nn.Module):
         # One way
 
         self.approximate_zero = (
-            torch.einsum(batch_matrix_multiply, self.phi_AB, self.matrix_BA)[:, :len(self.spacing)]
+            torch.einsum(batch_matrix_multiply, self.phi_AB, self.matrix_BA)[
+                :, : len(self.spacing)
+            ]
             - self.identityMap
         )
         self.approximate_zero2 = (
-            torch.einsum(batch_matrix_multiply, self.phi_BA, self.matrix_AB)[:, :len(self.spacing)]
+            torch.einsum(batch_matrix_multiply, self.phi_BA, self.matrix_AB)[
+                :, : len(self.spacing)
+            ]
             - self.identityMap
         )
 
@@ -168,7 +172,7 @@ class InverseConsistentAffineNet(nn.Module):
             (self.approximate_zero) ** 2 + (self.approximate_zero2) ** 2
         )
         transform_magnitude = self.lmbda * torch.mean(
-            (self.identityMap - self.phi_AB[:, :len(self.spacing)]) ** 2
+            (self.identityMap - self.phi_AB[:, : len(self.spacing)]) ** 2
         )
         self.all_loss = inverse_consistency_loss + similarity_loss
         return [
