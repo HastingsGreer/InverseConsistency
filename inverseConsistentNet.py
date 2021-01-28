@@ -215,7 +215,7 @@ class InverseConsistentAffineDeformableNet(nn.Module):
         _id = identity_map_multiN(self.sz, self.spacing)
         self.register_buffer("identityMap", torch.from_numpy(_id))
 
-        _id_projective = np.concatenate([_id, np.ones(input_shape)], axis=1)
+        _id_projective = np.concatenate([_id, np.ones(self.sz)], axis=1)
         self.register_buffer(
             "identityMapProjective", torch.from_numpy(_id_projective).float()
         )
@@ -225,8 +225,10 @@ class InverseConsistentAffineDeformableNet(nn.Module):
 
         if len(self.spacing) == 2:
             batch_matrix_multiply = "ijkl,imj->imkl"
+            padding_array = (0, 0, 0, 0, 0, 1)
         else:
             batch_matrix_multiply = "ijkln,imj->imkln"
+            padding_array =  (0, 0, 0, 0, 0, 0, 0, 1)
         
         self.matrix_AB = self.affine_regis_net(image_A, image_B)
 
@@ -263,12 +265,12 @@ class InverseConsistentAffineDeformableNet(nn.Module):
         )
 
         self.D_AB = nn.functional.pad(
-            self.regis_net(image_A, self.affine_warped_image_B), (0, 0, 0, 0, 0, 0, 0, 1)
+            self.regis_net(image_A, self.affine_warped_image_B), padding_array
         )
         self.phi_AB = self.phi_AB_affine + self.D_AB
 
         self.D_BA = nn.functional.pad(
-            self.regis_net(image_B, self.affine_warped_image_A), (0, 0, 0, 0, 0, 0, 0, 1)
+            self.regis_net(image_B, self.affine_warped_image_A), padding_array
         )
         self.phi_BA = self.phi_BA_affine + self.D_BA
 
