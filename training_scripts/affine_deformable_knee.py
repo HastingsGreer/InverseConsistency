@@ -1,4 +1,5 @@
 import parent
+from collections import OrderedDict
 import torch.nn.functional as F
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
@@ -8,24 +9,39 @@ import networks
 import data
 import describe
 
-BATCH_SIZE = 32
+BATCH_SIZE = 24
 SCALE = 1  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 working_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
 GPUS = 4
 
-net = inverseConsistentNet.InverseConsistentAffineBothNet(
+net = inverseConsistentNet.InverseConsistentAffineDeformableNet(
     networks.ConvolutionalMatrixNet(dimension=3),
+    networks.tallUNet2(dimension=3),
     lmbda=100,
     input_shape=working_shape,
 )
+
+pretrained_weights = torch.load("results/affine_knee_lambdaserver_2/knee_aligner_resi_net87000")
+pretrained_weights = OrderedDict(
+    [
+        (a.split("regis_net.")[1], b)
+        for a, b in pretrained_weights.items()
+        if "regis_net" in a
+    ]
+)
+
+net.affine_regis_net.load_state_dict(pretrained_weights)
+
+for p in net.affine_regis_net.parameters():
+    p.requires_grad = False
 
 _, knees = data.get_knees_dataset()
 if GPUS == 1:
     net_par = net.cuda()
 else:
     net_par = torch.nn.DataParallel(net).cuda()
-optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00005)
+optimizer = torch.optim.Adam((p for p in net_par.parameters() if p.requires_grad), lr=0.00005)
 
 net_par.train()
 

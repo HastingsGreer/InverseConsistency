@@ -106,7 +106,7 @@ def get_knees_dataset():
     #        cartilage = pickle.load(f)
 
     medbrains = []
-    for b in tqdm.tqdm(brains):
+    for b in brains:
         medbrains.append(F.avg_pool3d(b, 4))
 
     return brains, medbrains
