@@ -477,7 +477,14 @@ class DenseMatrixNet(nn.Module):
         else:
             raise ArgumentError()
         return x
-
+class DownscaleConvolutionalMatrixNet(nn.Module):
+    def __init__(self, dimension=2):
+        super(DownscaleConvolutionalMatrixNet, self).__init__()
+        self.net = ConvolutionalMatrixNet(dimension)
+    def forward(self, x, y):
+        x = self.net.avg_pool(x, 2)
+        y = self.net.avg_pool(y, 2)
+        return self.net(x, y)
 
 class ConvolutionalMatrixNet(nn.Module):
     def __init__(self, dimension=2):
