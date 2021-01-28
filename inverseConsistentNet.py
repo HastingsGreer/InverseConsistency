@@ -223,7 +223,11 @@ class InverseConsistentAffineDeformableNet(nn.Module):
     def forward(self, image_A, image_B):
         # Compute Displacement Maps
 
-        batch_matrix_multiply = "ijkl,imj->imkl"
+        if len(self.spacing) == 2:
+            batch_matrix_multiply = "ijkl,imj->imkl"
+        else:
+            batch_matrix_multiply = "ijkln,imj->imkln"
+        
         self.matrix_AB = self.affine_regis_net(image_A, image_B)
 
         self.phi_AB_affine = torch.einsum(
@@ -251,31 +255,31 @@ class InverseConsistentAffineDeformableNet(nn.Module):
         # resample using affine for deformable step. Use inverse to get residue in correct coordinate space
 
         self.affine_warped_image_B = compute_warped_image_multiNC(
-            image_B, self.phi_AB_affine_inv[:, :2], self.spacing, 1
+            image_B, self.phi_AB_affine_inv[:, :len(self.spacing)], self.spacing, 1
         )
 
         self.affine_warped_image_A = compute_warped_image_multiNC(
-            image_A, self.phi_BA_affine_inv[:, :2], self.spacing, 1
+            image_A, self.phi_BA_affine_inv[:, :len(self.spacing)], self.spacing, 1
         )
 
         self.D_AB = nn.functional.pad(
-            self.regis_net(image_A, self.affine_warped_image_B), (0, 0, 0, 0, 0, 1)
+            self.regis_net(image_A, self.affine_warped_image_B), (0, 0, 0, 0, 0, 0, 0, 1)
         )
         self.phi_AB = self.phi_AB_affine + self.D_AB
 
         self.D_BA = nn.functional.pad(
-            self.regis_net(image_B, self.affine_warped_image_A), (0, 0, 0, 0, 0, 1)
+            self.regis_net(image_B, self.affine_warped_image_A), (0, 0, 0, 0, 0, 0, 0, 1)
         )
         self.phi_BA = self.phi_BA_affine + self.D_BA
 
         # Compute Image similarity
 
         self.warped_image_A = compute_warped_image_multiNC(
-            image_A, self.phi_AB[:, :2], self.spacing, 1
+            image_A, self.phi_AB[:, :len(self.spacing)], self.spacing, 1
         )
 
         self.warped_image_B = compute_warped_image_multiNC(
-            image_B, self.phi_BA[:, :2], self.spacing, 1
+            image_B, self.phi_BA[:, :len(self.spacing)], self.spacing, 1
         )
 
         similarity_loss = torch.mean((self.warped_image_A - image_B) ** 2) + torch.mean(
@@ -286,16 +290,16 @@ class InverseConsistentAffineDeformableNet(nn.Module):
         # One way
 
         self.approximate_zero = (
-            torch.einsum(batch_matrix_multiply, self.phi_AB, self.matrix_BA)[:, :2]
+            torch.einsum(batch_matrix_multiply, self.phi_AB, self.matrix_BA)[:, :len(self.spacing)]
             + compute_warped_image_multiNC(
-                self.D_BA[:, :2], self.phi_AB[:, :2], self.spacing, 1
+                self.D_BA[:, :len(self.spacing)], self.phi_AB[:, :len(self.spacing)], self.spacing, 1
             )
             - self.identityMap
         )
         self.approximate_zero2 = (
-            torch.einsum(batch_matrix_multiply, self.phi_BA, self.matrix_AB)[:, :2]
+            torch.einsum(batch_matrix_multiply, self.phi_BA, self.matrix_AB)[:, :len(self.spacing)]
             + compute_warped_image_multiNC(
-                self.D_AB[:, :2], self.phi_BA[:, :2], self.spacing, 1
+                self.D_AB[:, :len(self.spacing)], self.phi_BA[:, :len(self.spacing)], self.spacing, 1
             )
             - self.identityMap
         )
@@ -303,7 +307,7 @@ class InverseConsistentAffineDeformableNet(nn.Module):
             (self.approximate_zero) ** 2 + (self.approximate_zero2) ** 2
         )
         transform_magnitude = self.lmbda * torch.mean(
-            (self.identityMap - self.phi_AB[:, :2]) ** 2
+            (self.identityMap - self.phi_AB[:, :len(self.spacing)]) ** 2
         )
         self.all_loss = inverse_consistency_loss + similarity_loss
         return [
