@@ -22,7 +22,9 @@ net = inverseConsistentNet.InverseConsistentAffineDeformableNet(
     input_shape=working_shape,
 )
 
-pretrained_weights = torch.load("results/affine_knee_lambdaserver_2/knee_aligner_resi_net87000")
+pretrained_weights = torch.load(
+    "results/affine_knee_lambdaserver_2/knee_aligner_resi_net87000"
+)
 pretrained_weights = OrderedDict(
     [
         (a.split("regis_net.")[1], b)
@@ -41,7 +43,9 @@ if GPUS == 1:
     net_par = net.cuda()
 else:
     net_par = torch.nn.DataParallel(net).cuda()
-optimizer = torch.optim.Adam((p for p in net_par.parameters() if p.requires_grad), lr=0.00005)
+optimizer = torch.optim.Adam(
+    (p for p in net_par.parameters() if p.requires_grad), lr=0.00005
+)
 
 net_par.train()
 

@@ -98,9 +98,12 @@ def get_dataset_sunnyside(split, scale=1):
         shuffle=True,
     )
     return ds
+
+
 def get_cartilage_dataset():
     cartilage = torch.load("/playpen/tgreer/cartilage_uint8s.trch")
     return cartilage
+
 
 def get_knees_dataset():
     brains = torch.load("/playpen/tgreer/kneestorch")

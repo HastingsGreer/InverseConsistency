@@ -23,7 +23,7 @@ d1_t, d2_t = data.get_dataset_triangles(
 image_A, image_B = (x[0].cuda() for x in next(zip(d1, d2)))
 
 net = inverseConsistentNet.InverseConsistentAffineNet(
-    networks.DenseMatrixNet(size=data_size), 100, next(iter(d1))[0].size()
+    networks.ConvolutionalMatrixNet(), 100, next(iter(d1))[0].size()
 )
 net.cuda()
 
@@ -34,7 +34,7 @@ net.train().cuda()
 
 
 xs = []
-for _ in range(40):
+for _ in range(240):
     y = np.array(train.train2d(net, optim, d1, d2, epochs=50))
     xs.append(y)
     x = np.concatenate(xs)

@@ -477,14 +477,18 @@ class DenseMatrixNet(nn.Module):
         else:
             raise ArgumentError()
         return x
+
+
 class DownscaleConvolutionalMatrixNet(nn.Module):
     def __init__(self, dimension=2):
         super(DownscaleConvolutionalMatrixNet, self).__init__()
         self.net = ConvolutionalMatrixNet(dimension)
+
     def forward(self, x, y):
         x = self.net.avg_pool(x, 2)
         y = self.net.avg_pool(y, 2)
         return self.net(x, y)
+
 
 class ConvolutionalMatrixNet(nn.Module):
     def __init__(self, dimension=2):
@@ -519,7 +523,7 @@ class ConvolutionalMatrixNet(nn.Module):
             x = F.relu(x)
             x = self.convs[depth](x)
             x = self.avg_pool(x, 2, ceil_mode=True)
-        x = self.avg_pool(x, (1, 2, 2), ceil_mode=True)
+        x = self.avg_pool(x, x.shape[2:], ceil_mode=True)
         x = torch.reshape(x, (-1, 512))
         x = F.relu(self.dense2(x))
         x = self.dense3(x)
