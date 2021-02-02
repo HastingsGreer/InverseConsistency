@@ -339,7 +339,7 @@ except:
 
 class InverseConsistentAffineDeformableLNCCNet(nn.Module):
     def __init__(self, affine_network, network, lmbda, input_shape):
-        super(InverseConsistentAffineDeformableNet, self).__init__()
+        super(InverseConsistentAffineDeformableLNCCNet, self).__init__()
 
         self.sz = np.array(input_shape)
         self.spacing = 1.0 / (self.sz[2::] - 1)
@@ -348,7 +348,7 @@ class InverseConsistentAffineDeformableLNCCNet(nn.Module):
         #LNCC setup
         lncc_params = mermaid.module_parameters.ParameterDict()
         self.similarity_measure = mermaid.similarity_measure_factory.LNCCSimilarity(self.spacing, lncc_params)
-                
+        self.similarity_measure.cuda() 
 
         _id = identity_map_multiN(self.sz, self.spacing)
         self.register_buffer("identityMap", torch.from_numpy(_id))
@@ -444,7 +444,7 @@ class InverseConsistentAffineDeformableLNCCNet(nn.Module):
         #similarity_loss = torch.mean((self.warped_image_A - image_B) ** 2) + torch.mean(
         #    (self.warped_image_B - image_A) ** 2
         #)
-        similarity_loss = -torch.mean(self.similarity_measure(self.warped_image_A, image_B) + self.similarity_measure(self.warped_image_B, image_A))
+        similarity_loss = -torch.mean(self.similarity_measure.compute_similarity_multiNC(self.warped_image_A, image_B) + self.similarity_measure.compute_similarity_multiNC(self.warped_image_B, image_A))
         # Compute Inverse Consistency
         # One way
 
