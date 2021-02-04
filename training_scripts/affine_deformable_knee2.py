@@ -53,7 +53,6 @@ net_par.train()
 
 def make_batch():
     image = torch.cat([random.choice(knees) for _ in range(GPUS * BATCH_SIZE)])
-    image = image[:, None]
     image = image.cuda()
     return image
 

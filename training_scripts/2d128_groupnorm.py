@@ -14,10 +14,10 @@ import describe
 
 
 d1_triangles, d2_triangles = data.get_dataset_triangles(
-    "train", data_size=50, hollow=True
+    "train", data_size=128, hollow=False
 )
 d1_triangles_test, d2_triangles_test = data.get_dataset_triangles(
-    "test", data_size=50, hollow=True
+    "test", data_size=128, hollow=False
 )
 
 network = networks.tallUNet2
