@@ -31,7 +31,10 @@ len(train_pair_paths[0].split())
 
 train_paths = set()
 
-[[train_paths.add(p) for p in [pp.split()[0], pp.split()[1]]] for pp in train_pair_paths]
+[
+    [train_paths.add(p) for p in [pp.split()[0], pp.split()[1]]]
+    for pp in train_pair_paths
+]
 0
 
 len(train_paths)
@@ -65,6 +68,7 @@ import torch
 
 import itk
 import tqdm
+
 ds = []
 for tt in tqdm.tqdm(test_pair_paths):
     tt = tt.replace("playpen", "playpen-raid")
@@ -79,21 +83,20 @@ for tt in tqdm.tqdm(test_pair_paths):
         else:
             raise FuckityError()
         data.append(image)
-    
+
     iA, iB, cA, cB = data
     iA = iA[None, None, :, :, :]
     iB = iB[None, None, :, :, :]
-    
+
     iA = torch.nn.functional.avg_pool3d(iA, 4)
     iB = torch.nn.functional.avg_pool3d(iB, 4)
-    
+
     cA = cA[None, None, :, :, :]
     cB = cB[None, None, :, :, :]
     cA = cA.byte()
     cB = cB.byte()
-    
+
     ds.append([iA, iB, cA, cB])
-    
 
 
 # In[ ]:
@@ -105,12 +108,4 @@ torch.save(ds, "/playpen/tgreer/knees_real_train_set")
 # In[91]:
 
 
-
-
-
 # In[ ]:
-
-
-
-
-

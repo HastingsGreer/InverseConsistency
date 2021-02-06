@@ -20,7 +20,7 @@ net = inverseConsistentNet.InverseConsistentAffineNet(
     input_shape=working_shape,
 )
 
-#_, knees = data.get_knees_dataset()
+# _, knees = data.get_knees_dataset()
 knees = torch.load("/playpen/tgreer/knees_big_train_set")
 if GPUS == 1:
     net_par = net.cuda()
@@ -29,7 +29,8 @@ else:
 optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00005)
 
 net_par.train()
-#net.load_state_dict(torch.load("results/ttsplit_affine/knee_aligner_resi_net99900"))
+# net.load_state_dict(torch.load("results/ttsplit_affine/knee_aligner_resi_net99900"))
+
 
 def make_batch():
     image = torch.cat([random.choice(knees) for _ in range(GPUS * BATCH_SIZE)])

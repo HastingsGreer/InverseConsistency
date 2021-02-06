@@ -331,11 +331,14 @@ class InverseConsistentAffineDeformableNet(nn.Module):
                 transform_magnitude,
             )
         ]
+
+
 try:
     import mermaid.similarity_measure_factory
     import mermaid.module_parameters
 except:
     print("mermaid unavailable, no LNCC")
+
 
 class InverseConsistentAffineDeformableLNCCNet(nn.Module):
     def __init__(self, affine_network, network, lmbda, input_shape):
@@ -343,12 +346,13 @@ class InverseConsistentAffineDeformableLNCCNet(nn.Module):
 
         self.sz = np.array(input_shape)
         self.spacing = 1.0 / (self.sz[2::] - 1)
-        
 
-        #LNCC setup
+        # LNCC setup
         lncc_params = mermaid.module_parameters.ParameterDict()
-        self.similarity_measure = mermaid.similarity_measure_factory.LNCCSimilarity(self.spacing, lncc_params)
-        self.similarity_measure.cuda() 
+        self.similarity_measure = mermaid.similarity_measure_factory.LNCCSimilarity(
+            self.spacing, lncc_params
+        )
+        self.similarity_measure.cuda()
 
         _id = identity_map_multiN(self.sz, self.spacing)
         self.register_buffer("identityMap", torch.from_numpy(_id))
@@ -441,10 +445,17 @@ class InverseConsistentAffineDeformableLNCCNet(nn.Module):
             image_B, self.phi_BA[:, : len(self.spacing)], self.spacing, 1
         )
 
-        #similarity_loss = torch.mean((self.warped_image_A - image_B) ** 2) + torch.mean(
+        # similarity_loss = torch.mean((self.warped_image_A - image_B) ** 2) + torch.mean(
         #    (self.warped_image_B - image_A) ** 2
-        #)
-        similarity_loss = -torch.mean(self.similarity_measure.compute_similarity_multiNC(self.warped_image_A, image_B) + self.similarity_measure.compute_similarity_multiNC(self.warped_image_B, image_A))
+        # )
+        similarity_loss = -torch.mean(
+            self.similarity_measure.compute_similarity_multiNC(
+                self.warped_image_A, image_B
+            )
+            + self.similarity_measure.compute_similarity_multiNC(
+                self.warped_image_B, image_A
+            )
+        )
         # Compute Inverse Consistency
         # One way
 

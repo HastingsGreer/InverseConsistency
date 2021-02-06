@@ -13,7 +13,10 @@ len(train_pair_paths[0].split())
 
 train_paths = set()
 
-[[train_paths.add(p) for p in [pp.split()[0], pp.split()[1]]] for pp in train_pair_paths]
+[
+    [train_paths.add(p) for p in [pp.split()[0], pp.split()[1]]]
+    for pp in train_pair_paths
+]
 0
 
 len(train_paths)
@@ -47,6 +50,7 @@ import torch
 
 import itk
 import tqdm
+
 ds = []
 for tt in tqdm.tqdm(list(iter(train_paths))):
     tt = tt.replace("playpen", "playpen-raid")
@@ -56,12 +60,12 @@ for tt in tqdm.tqdm(list(iter(train_paths))):
     elif "LEFT" in tt:
         pass
     else:
-        raise FuckityError()
-    
+        raise AssertionError()
+
     iA = image[None, None, :, :, :]
-    
+
     iA = torch.nn.functional.avg_pool3d(iA, 4)
-    
+
     ds.append(iA)
 
 torch.save(ds, "/playpen/tgreer/knees_big_train_set")
@@ -70,12 +74,4 @@ torch.save(ds, "/playpen/tgreer/knees_big_train_set")
 # In[91]:
 
 
-
-
-
 # In[ ]:
-
-
-
-
-

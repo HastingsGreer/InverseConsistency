@@ -22,9 +22,7 @@ net = inverseConsistentNet.InverseConsistentAffineDeformableNet(
     input_shape=working_shape,
 )
 
-pretrained_weights = torch.load(
-    "results/ttsplit_affine/knee_aligner_resi_net99900"
-)
+pretrained_weights = torch.load("results/ttsplit_affine/knee_aligner_resi_net99900")
 pretrained_weights = OrderedDict(
     [
         (a.split("regis_net.")[1], b)
@@ -38,7 +36,7 @@ net.affine_regis_net.load_state_dict(pretrained_weights)
 for p in net.affine_regis_net.parameters():
     p.requires_grad = False
 
-#_, knees = data.get_knees_dataset()
+# _, knees = data.get_knees_dataset()
 knees = torch.load("/playpen/tgreer/knees_big_train_set")
 if GPUS == 1:
     net_par = net.cuda()
