@@ -538,12 +538,28 @@ class ConvolutionalMatrixNet(nn.Module):
                     [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
                 ).cuda()
             )
+            x = torch.matmul(
+                torch.Tensor(
+                    [[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 0.5], [0, 0, 0, 1]]
+                ).cuda(),
+                x,
+            )
+            x = torch.matmul(
+                x,
+                torch.Tensor(
+                    [[1, 0, 0, -0.5], [0, 1, 0, -0.5], [0, 0, 1, -0.5], [0, 0, 0, 1]]
+                ).cuda(),
+            )
         elif self.dimension == 2:
             x = torch.reshape(x, (-1, 2, 3))
             x = torch.cat(
                 [x, torch.Tensor([[[0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
             )
             x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).cuda()
+            x = torch.matmul(
+                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).cuda(), x
+            )
+            x = torch.matmul(x, torch.Tensor([[1, 0, -.5], [0, 1, -.5], [0, 0 ,1]]).cuda())
         else:
             raise ArgumentError()
         return x
