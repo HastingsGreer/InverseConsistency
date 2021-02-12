@@ -16,7 +16,7 @@ GPUS = 4
 
 net = inverseConsistentNet.InverseConsistentAffineNet(
     networks.ConvolutionalMatrixNet(dimension=3),
-    lmbda=20,
+    lmbda=100,
     input_shape=working_shape,
 )
 

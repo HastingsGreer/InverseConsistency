@@ -559,7 +559,15 @@ class ConvolutionalMatrixNet(nn.Module):
             x = torch.matmul(
                 torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).cuda(), x
             )
-            x = torch.matmul(x, torch.Tensor([[1, 0, -.5], [0, 1, -.5], [0, 0 ,1]]).cuda())
+            x = torch.matmul(
+                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).cuda()
+            )
         else:
             raise ArgumentError()
         return x
+
+
+class BlurNet(nn.Module):
+    def __init__(self, dimension, radius):
+        self.dimension = dimension
+        self.radius = radius

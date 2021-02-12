@@ -225,10 +225,10 @@ class InverseConsistentAffineDeformableNet(nn.Module):
 
         if len(self.spacing) == 2:
             batch_matrix_multiply = "ijkl,imj->imkl"
-            padding_array = (0, 0, 0, 0, 0, 1)
+            pad_dim_for_projective = (0, 0, 0, 0, 0, 1)
         else:
             batch_matrix_multiply = "ijkln,imj->imkln"
-            padding_array = (0, 0, 0, 0, 0, 0, 0, 1)
+            pad_dim_for_projective = (0, 0, 0, 0, 0, 0, 0, 1)
 
         self.matrix_AB = self.affine_regis_net(image_A, image_B)
 
@@ -265,12 +265,12 @@ class InverseConsistentAffineDeformableNet(nn.Module):
         )
 
         self.D_AB = nn.functional.pad(
-            self.regis_net(image_A, self.affine_warped_image_B), padding_array
+            self.regis_net(image_A, self.affine_warped_image_B), pad_dim_for_projective
         )
         self.phi_AB = self.phi_AB_affine + self.D_AB
 
         self.D_BA = nn.functional.pad(
-            self.regis_net(image_B, self.affine_warped_image_A), padding_array
+            self.regis_net(image_B, self.affine_warped_image_A), pad_dim_for_projective
         )
         self.phi_BA = self.phi_BA_affine + self.D_BA
 
@@ -386,10 +386,10 @@ class InverseConsistentAffineDeformableLNCCNet(nn.Module):
 
         if len(self.spacing) == 2:
             batch_matrix_multiply = "ijkl,imj->imkl"
-            padding_array = (0, 0, 0, 0, 0, 1)
+            pad_dim_for_projective = (0, 0, 0, 0, 0, 1)
         else:
             batch_matrix_multiply = "ijkln,imj->imkln"
-            padding_array = (0, 0, 0, 0, 0, 0, 0, 1)
+            pad_dim_for_projective = (0, 0, 0, 0, 0, 0, 0, 1)
 
         self.matrix_AB = self.affine_regis_net(image_A, image_B)
 
@@ -426,12 +426,12 @@ class InverseConsistentAffineDeformableLNCCNet(nn.Module):
         )
 
         self.D_AB = nn.functional.pad(
-            self.regis_net(image_A, self.affine_warped_image_B), padding_array
+            self.regis_net(image_A, self.affine_warped_image_B), pad_dim_for_projective
         )
         self.phi_AB = self.phi_AB_affine + self.D_AB
 
         self.D_BA = nn.functional.pad(
-            self.regis_net(image_B, self.affine_warped_image_A), padding_array
+            self.regis_net(image_B, self.affine_warped_image_A), pad_dim_for_projective
         )
         self.phi_BA = self.phi_BA_affine + self.D_BA
 
