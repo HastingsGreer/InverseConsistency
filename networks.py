@@ -627,3 +627,8 @@ class BlurNet(nn.Module):
     def __init__(self, dimension, radius):
         self.dimension = dimension
         self.radius = radius
+
+class DoubleAffineNet(nn.Module):
+    def __init(self, netA, netB, identityMap):
+        super(DoubleAffineNet, self).__init__()
+        self.netA
