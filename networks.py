@@ -567,6 +567,62 @@ class ConvolutionalMatrixNet(nn.Module):
         return x
 
 
+class AffineFromUNet(nn.Module):
+    def __init__(self, unet, identityMap, dimension=2):
+        super(AffineFromUNet, self).__init__()
+        self.unet = unet
+        self.dimension = dimension
+        self.register_buffer("identityMapCentered", identityMap - 0.5)
+        self.register_buffer(
+            "Minv",
+            torch.inverse(
+                torch.sum(
+                    torch.sum(
+                        torch.einsum(
+                            "imjk,injk->imnjk",
+                            self.identityMapCentered,
+                            self.identityMapCentered,
+                        ),
+                        axis=-1,
+                    ),
+                    axis=-1,
+                )
+            ),
+        )
+
+    def forward(self, x, y):
+        D = self.unet(x, y)
+        if self.dimension == 2:
+            b = torch.mean(torch.mean(D, axis=-1), axis=-1)
+            A = torch.einsum(
+                "imjk,injk->imnjk",
+                D,
+                self.identityMapCentered,
+            ) + torch.einsum(
+                "imjk,injk->imnjk",
+                self.identityMapCentered,
+                D,
+            )
+            A = torch.sum(A, axis=-1)
+            A = torch.sum(A, axis=-1)
+            A = torch.matmul(A, self.Minv)
+
+            b = torch.reshape(b, (-1, 2, 1))
+            x = torch.cat([A, b], axis=-1)
+
+            x = torch.cat(
+                [x, torch.Tensor([[[0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+            )
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).cuda()
+            x = torch.matmul(
+                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).cuda(), x
+            )
+            x = torch.matmul(
+                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).cuda()
+            )
+            return x
+
+
 class BlurNet(nn.Module):
     def __init__(self, dimension, radius):
         self.dimension = dimension
