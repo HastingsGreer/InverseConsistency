@@ -629,6 +629,16 @@ class BlurNet(nn.Module):
         self.radius = radius
 
 class DoubleAffineNet(nn.Module):
-    def __init(self, netA, netB, identityMap):
+    def __init(self, netPhi, netPsi, identityMap):
         super(DoubleAffineNet, self).__init__()
-        self.netA
+        self.netPsi = netPsi
+        self.netPhi = netPhi
+        self.register_buffer("identityMap", identityMap)
+
+        shape = list(identityMap.shape)
+        shape[1] = 1
+        _id_projective = torch.cat([identityMap, torch.ones(shape)], axis=1)
+        self.register_buffer(
+            "identityMapProjective", torch.from_numpy(_id_projective).float()
+        )
+    
