@@ -1,4 +1,5 @@
 import torch
+from networks import multiply_matrix_vectorfield
 from torch import nn
 import numpy as np
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
@@ -122,20 +123,13 @@ class InverseConsistentAffineNet(nn.Module):
         self.register_buffer("identityMap", torch.from_numpy(_id))
 
     def forward(self, image_A, image_B):
-        # Compute Displacement Maps
-        if len(self.spacing) == 2:
-            batch_matrix_multiply = "ijkl,imj->imkl"
-        else:
-            batch_matrix_multiply = "ijkln,imj->imkln"
         self.matrix_AB = self.regis_net(image_A, image_B)
-        self.phi_AB = torch.einsum(
-            batch_matrix_multiply, self.identityMapProjective, self.matrix_AB
+        self.phi_AB = multiply_matrix_vectorfield(
+            self.matrix_AB, self.identityMapProjective
         )
-
         self.matrix_BA = self.regis_net(image_B, image_A)
-
-        self.phi_BA = torch.einsum(
-            batch_matrix_multiply, self.identityMapProjective, self.matrix_BA
+        self.phi_BA = multiply_matrix_vectorfield(
+            self.matrix_BA, self.identityMapProjective
         )
 
         # Compute Image similarity
@@ -156,13 +150,13 @@ class InverseConsistentAffineNet(nn.Module):
         # One way
 
         self.approximate_zero = (
-            torch.einsum(batch_matrix_multiply, self.phi_AB, self.matrix_BA)[
+            multiply_matrix_vectorfield(self.matrix_BA, self.phi_AB)[
                 :, : len(self.spacing)
             ]
             - self.identityMap
         )
         self.approximate_zero2 = (
-            torch.einsum(batch_matrix_multiply, self.phi_BA, self.matrix_AB)[
+            multiply_matrix_vectorfield(self.matrix_AB, self.phi_BA)[
                 :, : len(self.spacing)
             ]
             - self.identityMap
@@ -224,34 +218,30 @@ class InverseConsistentAffineDeformableNet(nn.Module):
         # Compute Displacement Maps
 
         if len(self.spacing) == 2:
-            batch_matrix_multiply = "ijkl,imj->imkl"
             pad_dim_for_projective = (0, 0, 0, 0, 0, 1)
         else:
-            batch_matrix_multiply = "ijkln,imj->imkln"
             pad_dim_for_projective = (0, 0, 0, 0, 0, 0, 0, 1)
 
         self.matrix_AB = self.affine_regis_net(image_A, image_B)
 
-        self.phi_AB_affine = torch.einsum(
-            batch_matrix_multiply, self.identityMapProjective, self.matrix_AB
+        self.phi_AB_affine = multiply_matrix_vectorfield(
+            self.matrix_AB, self.identityMapProjective
         )
 
-        self.phi_AB_affine_inv = torch.einsum(
-            batch_matrix_multiply,
-            self.identityMapProjective,
+        self.phi_AB_affine_inv = multiply_matrix_vectorfield(
             torch.inverse(self.matrix_AB),
+            self.identityMapProjective,
         )
 
         self.matrix_BA = self.affine_regis_net(image_B, image_A)
 
-        self.phi_BA_affine = torch.einsum(
-            batch_matrix_multiply, self.identityMapProjective, self.matrix_BA
+        self.phi_BA_affine = multiply_matrix_vectorfield(
+            self.matrix_BA, self.identityMapProjective
         )
 
-        self.phi_BA_affine_inv = torch.einsum(
-            batch_matrix_multiply,
-            self.identityMapProjective,
+        self.phi_BA_affine_inv = multiply_matrix_vectorfield(
             torch.inverse(self.matrix_BA),
+            self.identityMapProjective,
         )
 
         # resample using affine for deformable step. Use inverse to get residue in correct coordinate space
@@ -292,7 +282,7 @@ class InverseConsistentAffineDeformableNet(nn.Module):
         # One way
 
         self.approximate_zero = (
-            torch.einsum(batch_matrix_multiply, self.phi_AB, self.matrix_BA)[
+            multiply_matrix_vectorfield(self.matrix_BA, self.phi_AB)[
                 :, : len(self.spacing)
             ]
             + compute_warped_image_multiNC(
@@ -304,7 +294,7 @@ class InverseConsistentAffineDeformableNet(nn.Module):
             - self.identityMap
         )
         self.approximate_zero2 = (
-            torch.einsum(batch_matrix_multiply, self.phi_BA, self.matrix_AB)[
+            multiply_matrix_vectorfield(self.matrix_AB, self.phi_BA)[
                 :, : len(self.spacing)
             ]
             + compute_warped_image_multiNC(
@@ -343,7 +333,7 @@ except:
 class InverseConsistentAffineDeformableLNCCNet(nn.Module):
     def __init__(self, affine_network, network, lmbda, input_shape):
         super(InverseConsistentAffineDeformableLNCCNet, self).__init__()
-
+        print("FIX MATRIX MULTIPLY" * 20)
         self.sz = np.array(input_shape)
         self.spacing = 1.0 / (self.sz[2::] - 1)
 

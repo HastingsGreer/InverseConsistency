@@ -5,6 +5,17 @@ import numpy as np
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 
 
+def multiply_matrix_vectorfield(matrix, vectorfield):
+    dimension = len(vectorfield.shape) - 2
+
+    if dimension == 2:
+        batch_matrix_multiply = "ijkl,imj->imkl"
+    else:
+        batch_matrix_multiply = "ijkln,imj->imkln"
+
+    return torch.einsum(batch_matrix_multiply, vectorfield, matrix)
+
+
 class Autoencoder(nn.Module):
     def __init__(self, num_layers, channels):
         super(Autoencoder, self).__init__()
@@ -628,8 +639,9 @@ class BlurNet(nn.Module):
         self.dimension = dimension
         self.radius = radius
 
+
 class DoubleAffineNet(nn.Module):
-    def __init(self, netPhi, netPsi, identityMap):
+    def __init__(self, netPhi, netPsi, identityMap, spacing):
         super(DoubleAffineNet, self).__init__()
         self.netPsi = netPsi
         self.netPhi = netPhi
@@ -639,6 +651,21 @@ class DoubleAffineNet(nn.Module):
         shape[1] = 1
         _id_projective = torch.cat([identityMap, torch.ones(shape)], axis=1)
         self.register_buffer(
-            "identityMapProjective", torch.from_numpy(_id_projective).float()
+            "identityMapProjective", _id_projective.float()
         )
-    
+        self.spacing = spacing
+
+    def forward(self, x, y):
+        phi = self.netPsi(x, y)
+        phi_inv_map = multiply_matrix_vectorfield(
+            torch.inverse(phi), self.identityMapProjective
+        )
+        y_comp_phi_inv = compute_warped_image_multiNC(y, phi_inv_map[:,:len(self.spacing),:,:], self.spacing, 1)
+        psi = self.netPhi(x, y_comp_phi_inv)
+        if len(self.spacing) == 2:
+            identityM = torch.tensor([[[1, 0, 0], [0, 1, 0], [0, 0, 1]]])
+        elif len(self.spacing) == 3:
+            identityM = torch.tensor(
+                [[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]]
+            )
+        return phi + psi - identityM.cuda()
