@@ -15,24 +15,38 @@ working_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
 GPUS = 4
 
-net = inverseConsistentNet.InverseConsistentAffineDeformableNet(
+tmp_affine_net = inverseConsistentNet.InverseConsistentAffineNet(
     networks.ConvolutionalMatrixNet(dimension=3),
+    lmbda=100,
+    input_shape=working_shape,
+)
+
+phi = networks.StumpyConvolutionalMatrixNet(dimension=3)
+psi = networks.StumpyConvolutionalMatrixNet(dimension=3)
+affine_net = networks.DoubleAffineNet(
+    phi, psi, tmp_affine_net.identityMap, tmp_affine_net.spacing
+)
+
+net = inverseConsistentNet.InverseConsistentAffineDeformableNet(
+    affine_net,
     networks.tallUNet2(dimension=3),
     lmbda=100,
     input_shape=working_shape,
 )
 
-pretrained_weights = torch.load("results/ttsplit_affine/knee_aligner_resi_net99900")
+pretrained_weights = torch.load(
+    "results/affine_knee_double_stumpy10/knee_aligner_resi_net35400"
+)
 pretrained_weights = OrderedDict(
     [
         (a.split("regis_net.")[1], b)
         for a, b in pretrained_weights.items()
-        if "regis_net" in a
+        if ("regis_net" in a and not ("identityMap$" in a + "$"))
     ]
 )
-
+net.adjust_batch_size(32)
 net.affine_regis_net.load_state_dict(pretrained_weights)
-
+net.adjust_batch_size(24)
 for p in net.affine_regis_net.parameters():
     p.requires_grad = False
 

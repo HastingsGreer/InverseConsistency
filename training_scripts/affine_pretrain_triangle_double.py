@@ -27,7 +27,9 @@ tmpnet = inverseConsistentNet.InverseConsistentAffineNet(
     phi, 100, next(iter(d1))[0].size()
 )
 net = inverseConsistentNet.InverseConsistentAffineNet(
-    networks.DoubleAffineNet(phi, psi, tmpnet.identityMap, tmpnet.spacing), 100, next(iter(d1))[0].size()
+    networks.DoubleAffineNet(phi, psi, tmpnet.identityMap, tmpnet.spacing),
+    100,
+    next(iter(d1))[0].size(),
 )
 
 net.cuda()

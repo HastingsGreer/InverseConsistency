@@ -213,6 +213,9 @@ class InverseConsistentAffineDeformableNet(nn.Module):
         self.register_buffer(
             "identityMapProjective", torch.from_numpy(_id_projective).float()
         )
+        self.affine_regis_net.register_buffer(
+            "identityMapProjective", torch.from_numpy(_id_projective).float()
+        )
 
     def forward(self, image_A, image_B):
         # Compute Displacement Maps

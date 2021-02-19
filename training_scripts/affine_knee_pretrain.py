@@ -14,10 +14,21 @@ working_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
 GPUS = 4
 
-net = inverseConsistentNet.InverseConsistentAffineNet(
+
+tmpnet = inverseConsistentNet.InverseConsistentAffineNet(
     networks.ConvolutionalMatrixNet(dimension=3),
     lmbda=100,
     input_shape=working_shape,
+)
+
+
+phi = networks.StumpyConvolutionalMatrixNet(dimension=3)
+psi = networks.StumpyConvolutionalMatrixNet(dimension=3)
+
+net = inverseConsistentNet.InverseConsistentAffineNet(
+    networks.DoubleAffineNet(phi, psi, tmpnet.identityMap, tmpnet.spacing),
+    100,
+    working_shape,
 )
 
 # _, knees = data.get_knees_dataset()
