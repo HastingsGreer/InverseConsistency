@@ -463,8 +463,8 @@ class UNet3(nn.Module):
         return x / 10
 
 
-def tallUNet(dimension=2, input_channels=2):
-    return UNet(
+def tallUNet(unet=UNet, dimension=2, input_channels=2):
+    return unet(
         5,
         [[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]],
         dimension,
@@ -838,3 +838,40 @@ class DoubleAffineNet(nn.Module):
                 [[[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]]
             )
         return phi + psi - identityM.cuda()
+
+
+class DoubleDeformableNet(nn.Module):
+    def __init__(self, netPhi, netPsi, identityMap, spacing):
+        super(DoubleDeformableNet, self).__init__()
+        self.netPsi = netPsi
+        self.netPhi = netPhi
+        self.register_buffer("identityMap", identityMap)
+        self.spacing = spacing
+        
+    def forward(self, x, y):
+        phi_displacement = self.netPhi(x, y) 
+        phi = phi_displacement + self.identityMap
+        x_comp_phi = compute_warped_image_multiNC(x, phi, self.spacing, 1)
+        psi = self.netPsi(x_comp_phi, y) + self.identityMap
+
+        ret = compute_warped_image_multiNC(phi_displacement, psi, self.spacing, 1)
+        return ret
+
+def DownsampleNet(nn.Module):
+    def __init__(self, net, dimension):
+        super(DownsampleNet, self)
+        self.net = net
+        if dimension == 2:
+            self.avg_pool = F.avg_pool2d
+            self.interpolate_mode = "bilinear"
+        else:
+            self.avg_pool = F.avg_pool3d
+            self.interpolate_mode = "trilinear"
+        self.dimension = dimension
+    def forward(self, x, y):
+        
+        x = self.avg_pool(x, 2, ceil_mode=True)
+        y = self.avg_pool(y, 2, ceil_mode=True)
+        phi = self.net(x, y)
+
+        phi = F.interpolate(phi, scale_factor=2, interpolate_mode=self.interpolate_mode, align_corners=False) 
