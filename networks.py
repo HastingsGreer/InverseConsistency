@@ -219,6 +219,7 @@ class UNet2(nn.Module):
         #            )
         self.lastConv = self.Conv(18, dimension, kernel_size=3, padding=1)
         torch.nn.init.zeros_(self.lastConv.weight)
+        torch.nn.init.zeros_(self.lastConv.bias)
 
     def forward(self, x, y):
         x = torch.cat([x, y], 1)
@@ -583,9 +584,9 @@ class DenseMatrixNet(nn.Module):
 
 
 class DownscaleConvolutionalMatrixNet(nn.Module):
-    def __init__(self, dimension=2):
+    def __init__(self, net):
         super(DownscaleConvolutionalMatrixNet, self).__init__()
-        self.net = ConvolutionalMatrixNet(dimension)
+        self.net = net
 
     def forward(self, x, y):
         x = self.net.avg_pool(x, 2)
@@ -857,7 +858,7 @@ class DoubleDeformableNet(nn.Module):
         ret = compute_warped_image_multiNC(phi_displacement, psi, self.spacing, 1)
         return ret
 
-def DownsampleNet(nn.Module):
+class DownsampleNet(nn.Module):
     def __init__(self, net, dimension):
         super(DownsampleNet, self)
         self.net = net
