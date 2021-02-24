@@ -848,15 +848,16 @@ class DoubleDeformableNet(nn.Module):
         self.netPhi = netPhi
         self.register_buffer("identityMap", identityMap)
         self.spacing = spacing
-        
+
     def forward(self, x, y):
-        phi_displacement = self.netPhi(x, y) 
+        phi_displacement = self.netPhi(x, y)
         phi = phi_displacement + self.identityMap
         x_comp_phi = compute_warped_image_multiNC(x, phi, self.spacing, 1)
         psi = self.netPsi(x_comp_phi, y) + self.identityMap
 
         ret = compute_warped_image_multiNC(phi_displacement, psi, self.spacing, 1)
         return ret
+
 
 class DownsampleNet(nn.Module):
     def __init__(self, net, dimension):
@@ -869,10 +870,16 @@ class DownsampleNet(nn.Module):
             self.avg_pool = F.avg_pool3d
             self.interpolate_mode = "trilinear"
         self.dimension = dimension
+
     def forward(self, x, y):
-        
+
         x = self.avg_pool(x, 2, ceil_mode=True)
         y = self.avg_pool(y, 2, ceil_mode=True)
         phi = self.net(x, y)
 
-        phi = F.interpolate(phi, scale_factor=2, interpolate_mode=self.interpolate_mode, align_corners=False) 
+        phi = F.interpolate(
+            phi,
+            scale_factor=2,
+            interpolate_mode=self.interpolate_mode,
+            align_corners=False,
+        )
