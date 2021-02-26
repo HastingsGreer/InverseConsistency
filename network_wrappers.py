@@ -57,7 +57,6 @@ class FunctionFromMatrix(nn.Module):
             input_homogeneous = torch.cat([input_, torch.ones(shape, device=input_.device)], axis=1)
             return multiply_matrix_vectorfield(matrix_phi, input_homogeneous)[:, :-1]
         return ret
-            
 
 
 class DoubleAffineNet(nn.Module):
@@ -95,7 +94,7 @@ class DoubleNet(nn.Module):
 
         phi = self.netPhi(x, y)
         phi_vectorfield = phi(self.identityMap)
-        x_comp_phi = compute_warped_image_multiNC(x, phi, self.spacing, 1)
+        x_comp_phi = compute_warped_image_multiNC(x, phi_vectorfield, self.spacing, 1)
         psi = self.netPsi(x_comp_phi, y)
 
         ret = lambda input_: phi(psi(input_))

@@ -3,6 +3,7 @@ from collections import OrderedDict
 import torch
 import numpy as np
 import networks
+import network_wrappers
 import visualize
 import inverseConsistentNet
 import data
@@ -15,30 +16,39 @@ import pickle
 batch_size = 128
 data_size = 50
 d1, d2 = data.get_dataset_triangles(
-    "train", data_size=data_size, hollow=True, batch_size=batch_size
+    "train", data_size=data_size, hollow=False, batch_size=batch_size
 )
 d1_t, d2_t = data.get_dataset_triangles(
-    "test", data_size=data_size, hollow=True, batch_size=batch_size
+    "test", data_size=data_size, hollow=False, batch_size=batch_size
 )
 
 image_A, image_B = (x[0].cuda() for x in next(zip(d1, d2)))
 
-net = inverseConsistentNet.InverseConsistentAffineDeformableNet(
-    networks.DenseMatrixNet(size=data_size),
-    networks.tallUNet3(normalization="groupnorm"),
-    100,
-    next(iter(d1))[0].size(),
-)
-pretrained_weights = torch.load("results/affinte_triangle_pretrain/network.trch")
-pretrained_weights = OrderedDict(
-    [
-        (a.split("regis_net.")[1], b)
-        for a, b in pretrained_weights.items()
-        if "regis_net" in a
-    ]
+net = inverseConsistentNet.InverseConsistentNet(
+    network_wrappers.DoubleNet(
+        network_wrappers.FunctionFromMatrix(
+            networks.ConvolutionalMatrixNet(dimension=2),
+        ),
+        network_wrappers.FunctionFromVectorField(
+            networks.tallUNet2(dimension=2)
+        )
+    ),
+    lambda x, y: torch.mean((x - y) ** 2),
+    700,
 )
 
-net.affine_regis_net.load_state_dict(pretrained_weights)
+input_shape = next(iter(d1))[0].size()
+network_wrappers.assignIdentityMap(net, input_shape)
+#pretrained_weights = torch.load("results/affine_triangle_pretrain/epoch000case0.png")
+#pretrained_weights = OrderedDict(
+#    [
+#        (a.split("regis_net.")[1], b)
+#        for a, b in pretrained_weights.items()
+#        if "regis_net" in a
+#    ]
+#)
+
+#net.affine_regis_net.load_state_dict(pretrained_weights)
 net.cuda()
 
 import train
