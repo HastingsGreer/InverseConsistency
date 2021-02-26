@@ -4,6 +4,15 @@ import torch.nn.functional as F
 import numpy as np
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 
+def multiply_matrix_vectorfield(matrix, vectorfield):
+    dimension = len(vectorfield.shape) - 2
+
+    if dimension == 2:
+        batch_matrix_multiply = "ijkl,imj->imkl"
+    else:
+        batch_matrix_multiply = "ijkln,imj->imkln"
+
+    return torch.einsum(batch_matrix_multiply, vectorfield, matrix)
 
 def assignIdentityMap(module, input_shape):
     module.input_shape = np.array(input_shape)
@@ -43,18 +52,6 @@ class FunctionFromMatrix(nn.Module):
         matrix_phi = self.net(x, y)
         return lambda x: multiply_matrix_vectorfield(matrix_phi, x)
 
-
-class DownscaleConvolutionalMatrixNet(nn.Module):
-    def __init__(self, net):
-        super(DownscaleConvolutionalMatrixNet, self).__init__()
-        self.net = net
-        # The following affects the behavior of assignIdentityMap
-        self.downscale_factor = 2
-
-    def forward(self, x, y):
-        x = self.net.avg_pool(x, 2)
-        y = self.net.avg_pool(y, 2)
-        return self.net(x, y)
 
 
 class DoubleAffineNet(nn.Module):
@@ -116,15 +113,7 @@ class DownsampleNet(nn.Module):
 
         x = self.avg_pool(x, 2, ceil_mode=True)
         y = self.avg_pool(y, 2, ceil_mode=True)
-        phi = self.net(x, y)
-
-        phi = F.interpolate(
-            phi,
-            scale_factor=2,
-            interpolate_mode=self.interpolate_mode,
-            align_corners=False,
-        )
-
+        return self.net(x, y)
 
 class AffineFromUNet(nn.Module):
     def __init__(self, unet, identityMap, dimension=2):

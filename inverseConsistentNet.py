@@ -25,7 +25,7 @@ class InverseConsistentFunctionNet(nn.Module):
             image_A, self.phi_AB_vectorfield, self.spacing, 1
         )
         self.warped_image_B = compute_warped_image_multiNC(
-            image_A, self.phi_BA_vectorfield, self.spacing, 1
+            image_B, self.phi_BA_vectorfield, self.spacing, 1
         )
 
         similarity_loss = self.similarity(

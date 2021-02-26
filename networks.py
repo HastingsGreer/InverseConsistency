@@ -5,17 +5,6 @@ import numpy as np
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 
 
-def multiply_matrix_vectorfield(matrix, vectorfield):
-    dimension = len(vectorfield.shape) - 2
-
-    if dimension == 2:
-        batch_matrix_multiply = "ijkl,imj->imkl"
-    else:
-        batch_matrix_multiply = "ijkln,imj->imkln"
-
-    return torch.einsum(batch_matrix_multiply, vectorfield, matrix)
-
-
 class Autoencoder(nn.Module):
     def __init__(self, num_layers, channels):
         super(Autoencoder, self).__init__()
