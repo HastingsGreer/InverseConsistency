@@ -1,6 +1,6 @@
 How to run on triangles and circles dataset, from the beginning
 
-1:Install pytorch
+1: Install pytorch
 
 2:
 ```
