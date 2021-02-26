@@ -1,4 +1,4 @@
-pytorch
 gitpython
+torchvision
 tqdm
 matplotlib
