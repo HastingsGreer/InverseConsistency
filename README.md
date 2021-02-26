@@ -5,9 +5,9 @@ How to run on triangles and circles dataset, from the beginning
 2:
 ```
 git clone https://github.com/HastingsGreer/InverseConsistency
+cd InverseConsistency
 
 conda create -n inverseConsistency python==3.7
-
 conda activate inverseConsistency
 
 conda install pytorch
