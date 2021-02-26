@@ -29,9 +29,7 @@ net = inverseConsistentNet.InverseConsistentNet(
         network_wrappers.FunctionFromMatrix(
             networks.ConvolutionalMatrixNet(dimension=2),
         ),
-        network_wrappers.FunctionFromVectorField(
-            networks.tallUNet2(dimension=2)
-        )
+        network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=2)),
     ),
     lambda x, y: torch.mean((x - y) ** 2),
     700,
@@ -39,16 +37,16 @@ net = inverseConsistentNet.InverseConsistentNet(
 
 input_shape = next(iter(d1))[0].size()
 network_wrappers.assignIdentityMap(net, input_shape)
-#pretrained_weights = torch.load("results/affine_triangle_pretrain/epoch000case0.png")
-#pretrained_weights = OrderedDict(
+# pretrained_weights = torch.load("results/affine_triangle_pretrain/epoch000case0.png")
+# pretrained_weights = OrderedDict(
 #    [
 #        (a.split("regis_net.")[1], b)
 #        for a, b in pretrained_weights.items()
 #        if "regis_net" in a
 #    ]
-#)
+# )
 
-#net.affine_regis_net.load_state_dict(pretrained_weights)
+# net.affine_regis_net.load_state_dict(pretrained_weights)
 net.cuda()
 
 import train

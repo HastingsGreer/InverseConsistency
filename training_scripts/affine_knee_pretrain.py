@@ -5,33 +5,32 @@ import torch
 import random
 import inverseConsistentNet
 import networks
+import network_wrappers
 import data
 import describe
 
 BATCH_SIZE = 32
 SCALE = 1  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
-working_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
+input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
 GPUS = 4
 
 
-tmpnet = inverseConsistentNet.InverseConsistentAffineNet(
-    networks.ConvolutionalMatrixNet(dimension=3),
-    lmbda=100,
-    input_shape=working_shape,
+phi = network_wrappers.FunctionFromMatrix(
+    networks.StumpyConvolutionalMatrixNet(dimension=3)
+)
+psi = network_wrappers.FunctionFromMatrix(
+    networks.StumpyConvolutionalMatrixNet(dimension=3)
 )
 
-
-phi = networks.StumpyConvolutionalMatrixNet(dimension=3)
-psi = networks.StumpyConvolutionalMatrixNet(dimension=3)
-
-net = inverseConsistentNet.InverseConsistentAffineNet(
-    networks.DoubleAffineNet(phi, psi, tmpnet.identityMap, tmpnet.spacing),
+net = inverseConsistentNet.InverseConsistentNet(
+    network_wrappers.DoubleNet(phi, psi),
+    lambda x, y: torch.mean((x - y) ** 2),
     100,
-    working_shape,
 )
 
-# _, knees = data.get_knees_dataset()
+network_wrappers.assignIdentityMap(net, input_shape)
+
 knees = torch.load("/playpen/tgreer/knees_big_train_set")
 if GPUS == 1:
     net_par = net.cuda()

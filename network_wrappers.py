@@ -51,11 +51,15 @@ class FunctionFromMatrix(nn.Module):
 
     def forward(self, x, y):
         matrix_phi = self.net(x, y)
+
         def ret(input_):
             shape = list(input_.shape)
             shape[1] = 1
-            input_homogeneous = torch.cat([input_, torch.ones(shape, device=input_.device)], axis=1)
+            input_homogeneous = torch.cat(
+                [input_, torch.ones(shape, device=input_.device)], axis=1
+            )
             return multiply_matrix_vectorfield(matrix_phi, input_homogeneous)[:, :-1]
+
         return ret
 
 
@@ -68,7 +72,9 @@ class DoubleAffineNet(nn.Module):
     def forward(self, x, y):
         shape = list(self.identityMap.shape)
         shape[1] = 1
-        id_homogeneous = torch.cat([self.identityMap, torch.ones(shape, device=torch.cuda)], axis=1)
+        id_homogeneous = torch.cat(
+            [self.identityMap, torch.ones(shape, device=torch.cuda)], axis=1
+        )
         phi = self.netPsi(x, y)
         phi_inv_map = multiply_matrix_vectorfield(torch.inverse(phi), id_homogeneous)
         y_comp_phi_inv = compute_warped_image_multiNC(
