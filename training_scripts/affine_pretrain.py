@@ -1,4 +1,5 @@
 import parent
+import network_wrappers
 import torch
 import numpy as np
 import networks
@@ -22,9 +23,12 @@ d1_t, d2_t = data.get_dataset_triangles(
 
 image_A, image_B = (x[0].cuda() for x in next(zip(d1, d2)))
 
-net = inverseConsistentNet.InverseConsistentAffineNet(
-    networks.ConvolutionalMatrixNet(), 100, next(iter(d1))[0].size()
+net = inverseConsistentNet.InverseConsistentNet(
+    network_wrappers.FunctionFromMatrix(networks.ConvolutionalMatrixNet()),
+    lambda x, y: torch.mean((x - y) ** 2),
+    100,
 )
+network_wrappers.assignIdentityMap(net, image_A.shape)
 net.cuda()
 
 import train

@@ -1,14 +1,13 @@
 import torch
-from networks import multiply_matrix_vectorfield
 from torch import nn
 import numpy as np
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 
 
-class InverseConsistentFunctionNet(nn.Module):
+class InverseConsistentNet(nn.Module):
     def __init__(self, network, similarity, lmbda):
 
-        super(InverseConsistentFunctionNet, self).__init__()
+        super(InverseConsistentNet, self).__init__()
 
         self.regis_net = network
         self.lmbda = lmbda

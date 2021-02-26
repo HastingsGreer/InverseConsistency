@@ -34,7 +34,7 @@ torch.manual_seed(1)
 torch.cuda.manual_seed(1)
 np.random.seed(1)
 print("=" * 50)
-net = inverseConsistentNet.InverseConsistentFunctionNet(
+net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=2)),
     lambda x, y: torch.mean((x - y) ** 2),
     lmbda,

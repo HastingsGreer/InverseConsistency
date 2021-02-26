@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import numpy as np
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 
+
 def multiply_matrix_vectorfield(matrix, vectorfield):
     dimension = len(vectorfield.shape) - 2
 
@@ -11,8 +12,8 @@ def multiply_matrix_vectorfield(matrix, vectorfield):
         batch_matrix_multiply = "ijkl,imj->imkl"
     else:
         batch_matrix_multiply = "ijkln,imj->imkln"
-
     return torch.einsum(batch_matrix_multiply, vectorfield, matrix)
+
 
 def assignIdentityMap(module, input_shape):
     module.input_shape = np.array(input_shape)
@@ -45,13 +46,18 @@ class FunctionFromVectorField(nn.Module):
 
 class FunctionFromMatrix(nn.Module):
     def __init__(self, net):
-        super(FunctionFromVectorField, self).__init__()
+        super(FunctionFromMatrix, self).__init__()
         self.net = net
 
     def forward(self, x, y):
         matrix_phi = self.net(x, y)
-        return lambda x: multiply_matrix_vectorfield(matrix_phi, x)
-
+        def ret(input_):
+            shape = list(input_.shape)
+            shape[1] = 1
+            input_homogeneous = torch.cat([input_, torch.ones(shape, device=input_.device)], axis=1)
+            return multiply_matrix_vectorfield(matrix_phi, input_homogeneous)[:, :-1]
+        return ret
+            
 
 
 class DoubleAffineNet(nn.Module):
@@ -63,7 +69,7 @@ class DoubleAffineNet(nn.Module):
     def forward(self, x, y):
         shape = list(self.identityMap.shape)
         shape[1] = 1
-        id_homogeneous = torch.cat([self.identityMap, torch.ones(shape)], axis=1)
+        id_homogeneous = torch.cat([self.identityMap, torch.ones(shape, device=torch.cuda)], axis=1)
         phi = self.netPsi(x, y)
         phi_inv_map = multiply_matrix_vectorfield(torch.inverse(phi), id_homogeneous)
         y_comp_phi_inv = compute_warped_image_multiNC(
@@ -114,6 +120,7 @@ class DownsampleNet(nn.Module):
         x = self.avg_pool(x, 2, ceil_mode=True)
         y = self.avg_pool(y, 2, ceil_mode=True)
         return self.net(x, y)
+
 
 class AffineFromUNet(nn.Module):
     def __init__(self, unet, identityMap, dimension=2):
