@@ -31,12 +31,9 @@ affine_net = networks.DownscaleConvolutionalMatrixNet(
 
 deformable_phi = networks.DownsampleNet(networks.tallUNet2(dimension=3), dimension=3)
 deformable_psi = networks.tallUnet2(dimension=3)
-deformable_net = networks.DoubleDeformableNet(deformable_phi, deformable_psi, tmp 
+deformable_net = networks.DoubleDeformableNet(deformable_phi, deformable_psi, tmp)
 net = inverseConsistentNet.InverseConsistentAffineDeformableNet(
-    affine_net,
-    networks.tallUNet2(dimension=3),
-    lmbda=100,
-    input_shape=working_shape,
+    affine_net, networks.tallUNet2(dimension=3), lmbda=100, input_shape=working_shape
 )
 
 pretrained_weights = torch.load(

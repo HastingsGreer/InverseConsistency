@@ -23,8 +23,8 @@ def train2d(net, optimizer, d1, d2, epochs=400):
 
                 loss.backward()
                 optimizer.step()
-        du = (net.phi_AB[:, :, 1:, :-1] - net.phi_AB[:, :, :-1, :-1]).detach().cpu()
-        dv = (net.phi_AB[:, :, :-1, 1:] - net.phi_AB[:, :, :-1, :-1]).detach().cpu()
+        du = (net.phi_AB_vectorfield[:, :, 1:, :-1] - net.phi_AB_vectorfield[:, :, :-1, :-1]).detach().cpu()
+        dv = (net.phi_AB_vectorfield[:, :, :-1, 1:] - net.phi_AB_vectorfield[:, :, :-1, :-1]).detach().cpu()
         dA = du[:, 0] * dv[:, 1] - du[:, 1] * dv[:, 0]
 
         loss_history.append(
