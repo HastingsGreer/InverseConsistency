@@ -9,5 +9,5 @@ cd InverseConsistency
 
 pip install -r requirements.txt
 
-python training_scripts/triangle_example.py
+python training_scripts/2d_triangles_example.py
 ```
