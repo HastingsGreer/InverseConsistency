@@ -16,10 +16,10 @@ import pickle
 batch_size = 128
 data_size = 50
 d1, d2 = data.get_dataset_triangles(
-    "train", data_size=data_size, hollow=False, batch_size=batch_size
+    "train", data_size=data_size, hollow=True, batch_size=batch_size
 )
 d1_t, d2_t = data.get_dataset_triangles(
-    "test", data_size=data_size, hollow=False, batch_size=batch_size
+    "test", data_size=data_size, hollow=True, batch_size=batch_size
 )
 
 image_A, image_B = (x[0].cuda() for x in next(zip(d1, d2)))
@@ -56,7 +56,7 @@ net.train().cuda()
 
 
 xs = []
-for _ in range(40):
+for _ in range(240):
     y = np.array(train.train2d(net, optim, d1, d2, epochs=50))
     xs.append(y)
     x = np.concatenate(xs)

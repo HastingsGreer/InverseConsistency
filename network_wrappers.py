@@ -100,8 +100,8 @@ class DoubleNet(nn.Module):
 
         phi = self.netPhi(x, y)
         phi_vectorfield = phi(self.identityMap)
-        x_comp_phi = compute_warped_image_multiNC(x, phi_vectorfield, self.spacing, 1)
-        psi = self.netPsi(x_comp_phi, y)
+        self.x_comp_phi = compute_warped_image_multiNC(x, phi_vectorfield, self.spacing, 1)
+        psi = self.netPsi(self.x_comp_phi, y)
 
         ret = lambda input_: phi(psi(input_))
         return ret
