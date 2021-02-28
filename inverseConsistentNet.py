@@ -14,6 +14,10 @@ class InverseConsistentNet(nn.Module):
         self.similarity = similarity
 
     def forward(self, image_A, image_B):
+        # Tag used elsewhere for optimization. 
+        # Must be set at beginning of forward b/c not preserved by .cuda() etc
+        self.identityMap.isIdentity = True
+
         self.phi_AB = self.regis_net(image_A, image_B)
         self.phi_BA = self.regis_net(image_B, image_A)
 
