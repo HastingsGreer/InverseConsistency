@@ -58,6 +58,7 @@ class FunctionFromVectorField(nn.Module):
                 return input_ + compute_warped_image_multiNC(
                     vectorfield_phi, input_, self.spacing, 1
                 )
+        return ret
 
 
 class FunctionFromMatrix(nn.Module):
