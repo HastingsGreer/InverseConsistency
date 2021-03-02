@@ -42,7 +42,7 @@ def assignIdentityMap(module, input_shape):
 def adjust_batch_size(model, size):
     shape = model.input_shape
     shape[0] = size
-    network_wrappers.assignIdentityMap(model, shape)
+    assignIdentityMap(model, shape)
 
 class FunctionFromVectorField(nn.Module):
     def __init__(self, net):
@@ -78,6 +78,15 @@ class FunctionFromMatrix(nn.Module):
             return multiply_matrix_vectorfield(matrix_phi, input_homogeneous)[:, :-1]
 
         return ret
+
+class RandomShift(nn.Module):
+    def __init__(self, stddev):
+        super(RandomShift, self).__init__()
+        self.stddev = stddev
+    def forward(self, x, y):
+        shift_shape = (x.shape[0], len(x.shape - 2))
+        shift = self.stddev * torch.randn(shift_shape, device=x.device)
+        return lambda input_: input_ + shift
 
 
 class DoubleNet(nn.Module):
@@ -117,3 +126,84 @@ class DownsampleNet(nn.Module):
         y = self.avg_pool(y, 2, ceil_mode=True)
         return self.net(x, y)
 
+class AffineFromUNet(nn.Module):
+    def __init__(self, unet, dimension=2):
+        super(AffineFromUNet, self).__init__()
+        self.unet = unet
+        self.dimension = dimension
+
+    def forward(self, x, y):
+        identityMapCentered = self.identityMap - 0.5
+        Minv = torch.inverse(
+                torch.sum(
+                    torch.sum(
+                        torch.einsum(
+                            "imjk,injk->imnjk",
+                            self.identityMapCentered,
+                            self.identityMapCentered,
+                        ),
+                        axis=-1,
+                    ),
+                    axis=-1,
+                )
+            )
+        D = self.unet(x, y)
+        if self.dimension == 2:
+            b = torch.mean(torch.mean(D, axis=-1), axis=-1)
+            A = torch.einsum(
+                "imjk,injk->imnjk",
+                D,
+                identityMapCentered,
+            ) + torch.einsum(
+                "imjk,injk->imnjk",
+                identityMapCentered,
+                D,
+            )
+            A = torch.sum(A, axis=-1)
+            A = torch.sum(A, axis=-1)
+            A = torch.matmul(A, Minv)
+
+            b = torch.reshape(b, (-1, 2, 1))
+            x = torch.cat([A, b], axis=-1)
+
+            x = torch.cat(
+                [x, torch.Tensor([[[0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+            )
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).cuda()
+            x = torch.matmul(
+                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).cuda(), x
+            )
+            x = torch.matmul(
+                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).cuda()
+            )
+            return x
+        if self.dimension == 3:
+            b = torch.mean(torch.mean(torch.mean(D, axis=-1), axis=-1), axis=-1)
+            A = torch.einsum(
+                "imjkq,injkq->imnjkq",
+                D,
+                identityMapCentered,
+            ) + torch.einsum(
+                "imjkq,injkq->imnjkq",
+                identityMapCentered,
+                D,
+            )
+            A = torch.sum(A, axis=-1)
+            A = torch.sum(A, axis=-1)
+            A = torch.sum(A, axis=-1)
+            A = torch.matmul(A, Minv)
+
+            b = torch.reshape(b, (-1, 3, 1))
+            x = torch.cat([A, b], axis=-1)
+
+            x = torch.cat(
+                [x, torch.Tensor([[[0, 0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1, -1)], 1
+            )
+            x = x + torch.Tensor([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]).cuda()
+            x = torch.matmul(
+                torch.Tensor([[1, 0, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).cuda(), x
+            )
+            x = torch.matmul(
+                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).cuda()
+            )
+            return x
