@@ -24,7 +24,7 @@ def assignIdentityMap(module, input_shape):
 
     if "downscale_factor" in vars(module):
         child_shape = np.concatenate(
-            [module.input_shape[:2], module.input_shape[2:] / module.downscale_factor]
+            [module.input_shape[:2], module.input_shape[2:] // module.downscale_factor]
         )
     else:
         child_shape = module.input_shape
@@ -109,7 +109,7 @@ class DoubleNet(nn.Module):
 
 class DownsampleNet(nn.Module):
     def __init__(self, net, dimension):
-        super(DownsampleNet, self)
+        super(DownsampleNet, self).__init__()
         self.net = net
         if dimension == 2:
             self.avg_pool = F.avg_pool2d
@@ -118,6 +118,10 @@ class DownsampleNet(nn.Module):
             self.avg_pool = F.avg_pool3d
             self.interpolate_mode = "trilinear"
         self.dimension = dimension
+        # This member variable is read by assignIdentityMap when 
+        # walking the network tree and assigning identityMaps 
+        # to know that all children of this module operate at a lower
+        # resolution.
         self.downscale_factor = 2
 
     def forward(self, x, y):
