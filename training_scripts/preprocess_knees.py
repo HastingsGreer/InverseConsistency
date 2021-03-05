@@ -88,8 +88,8 @@ for tt in tqdm.tqdm(test_pair_paths):
     iA = iA[None, None, :, :, :]
     iB = iB[None, None, :, :, :]
 
-    iA = torch.nn.functional.avg_pool3d(iA, 4)
-    iB = torch.nn.functional.avg_pool3d(iB, 4)
+    iA = torch.nn.functional.avg_pool3d(iA, 2)
+    iB = torch.nn.functional.avg_pool3d(iB, 2)
 
     cA = cA[None, None, :, :, :]
     cB = cB[None, None, :, :, :]
@@ -102,7 +102,7 @@ for tt in tqdm.tqdm(test_pair_paths):
 # In[ ]:
 
 
-torch.save(ds, "/playpen/tgreer/knees_real_train_set")
+torch.save(ds, "/playpen/tgreer/knees_real_train_set_hires")
 
 
 # In[91]:

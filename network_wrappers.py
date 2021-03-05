@@ -52,7 +52,7 @@ class FunctionFromVectorField(nn.Module):
     def forward(self, x, y):
         vectorfield_phi = self.net(x, y)
         def ret(input_):
-            if hasattr(input_, "isIdentity"):
+            if False and hasattr(input_, "isIdentity") and vectorfield_phi.shape == input_.shape:
                 return input_ + vectorfield_phi
             else:
                 return input_ + compute_warped_image_multiNC(

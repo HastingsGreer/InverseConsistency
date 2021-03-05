@@ -9,7 +9,7 @@ import network_wrappers
 import data
 import describe
 
-BATCH_SIZE = 32
+BATCH_SIZE = 12
 SCALE = 1  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
@@ -31,15 +31,25 @@ net = inverseConsistentNet.InverseConsistentNet(
 
 network_wrappers.assignIdentityMap(net, input_shape)
 
+#load weights
+net_weights = torch.load("results/double_deformable_knee3/knee_aligner_resi_net26400")
+opt_weights = torch.load("results/double_deformable_knee3/knee_aligner_resi_opt26400")
+
+network_wrappers.adjust_batch_size(net, 32)
+net.load_state_dict(net_weights)
+network_wrappers.adjust_batch_size(net, BATCH_SIZE)
+
 knees = torch.load("/playpen/tgreer/knees_big_train_set")
+
 if GPUS == 1:
     net_par = net.cuda()
 else:
     net_par = torch.nn.DataParallel(net).cuda()
-optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00005)
+optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00001)
+
 
 net_par.train()
-# net.load_state_dict(torch.load("results/ttsplit_affine/knee_aligner_resi_net99900"))
+optimizer.load_state_dict(opt_weights)
 
 
 def make_batch():
@@ -50,12 +60,15 @@ def make_batch():
 
 loss_curve = []
 for _ in range(0, 100000):
-    optimizer.zero_grad()
-    moving_image = make_batch()
-    fixed_image = make_batch()
-    loss, a, b, c = net_par(moving_image, fixed_image)
-    loss = torch.mean(loss)
-    loss.backward()
+    if net.lmbda < 400:
+        net.lmbda += .1
+    for subbatch in range(3):
+        optimizer.zero_grad()
+        moving_image = make_batch()
+        fixed_image = make_batch()
+        loss, a, b, c = net_par(moving_image, fixed_image)
+        loss = torch.mean(loss) / 3
+        loss.backward()
 
     loss_curve.append([torch.mean(l.detach().cpu()).item() for l in (a, b, c)])
     print(loss_curve[-1])

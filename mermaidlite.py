@@ -8,14 +8,15 @@ from torch.nn import Module
 import numpy as np
 
 
-def scale_map(map, spacing):
+def scale_map(map, sz, spacing):
     """
     Scales the map to the [-1,1]^d format
     :param map: map in BxCxXxYxZ format
-    :param spacing: spacing in XxYxZ format
+    :param sz: size of image being interpolated in XxYxZ format
+    :param spacing: spacing of image in XxYxZ format
     :return: returns the scaled map
     """
-    sz = map.size()
+
     map_scaled = torch.zeros_like(map)
     ndim = len(spacing)
 
@@ -27,6 +28,7 @@ def scale_map(map, spacing):
         if sz[d + 2] > 1:
             map_scaled[:, d, ...] = (
                 map[:, d, ...] * (2.0 / (sz[d + 2] - 1.0) / spacing[d]) - 1.0
+                # map[:, d, ...] * 2.0 - 1.0
             )
         else:
             map_scaled[:, d, ...] = map[:, d, ...]
@@ -116,7 +118,7 @@ class STNFunction_ND_BCXYZ(Module):
         assert len(self.spacing) + 2 == len(input2.size())
         if self.using_01_input:
             output = self.forward_stn(
-                input1, scale_map(input2, self.spacing), self.ndim
+                input1, scale_map(input2, input1.shape, self.spacing), self.ndim
             )
         else:
             output = self.forward_stn(input1, input2, self.ndim)
