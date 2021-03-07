@@ -26,12 +26,12 @@ net = inverseConsistentNet.InverseConsistentNet(
         network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
     ),
     lambda x, y: torch.mean((x - y) ** 2),
-    200
+    1200 
 )
 
 network_wrappers.assignIdentityMap(net, input_shape)
 
-weights = torch.load("results/hires_finetune7/knee_aligner_resi_net20100")
+weights = torch.load("results/knees_l400_hires_ramp_lmbda4/knee_aligner_resi_net7200")
 net.load_state_dict(weights)
 
 
@@ -42,9 +42,9 @@ if GPUS == 1:
     net_par = net.cuda()
 else:
     net_par = torch.nn.DataParallel(net).cuda()
-optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00002)
+optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00006)
 
-optimizer_state = torch.load("results/hires_finetune7/knee_aligner_resi_opt20100")
+optimizer_state = torch.load("results/knees_l400_hires_ramp_lmbda4/knee_aligner_resi_opt7200")
 
 optimizer.load_state_dict(optimizer_state)
 
@@ -59,8 +59,8 @@ def make_batch():
 
 loss_curve = []
 for _ in range(0, 100000):
-    if net.lmbda < 800:
-        net.lmbda += .05
+    if net.lmbda < 2000:
+        net.lmbda += .15
     optimizer.zero_grad()
     moving_image = make_batch()
     fixed_image = make_batch()
