@@ -19,9 +19,7 @@ GPUS = 4
 phi = network_wrappers.FunctionFromVectorField(
     networks.tallUNet(unet=networks.UNet2ChunkyMiddle, dimension=3)
 )
-psi = network_wrappers.FunctionFromVectorField(
-    networks.tallUNet2(dimension=3)
-)
+psi = network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3))
 
 net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.DoubleNet(phi, psi),
@@ -31,7 +29,7 @@ net = inverseConsistentNet.InverseConsistentNet(
 
 network_wrappers.assignIdentityMap(net, input_shape)
 
-#load weights
+# load weights
 net_weights = torch.load("results/double_deformable_knee3/knee_aligner_resi_net26400")
 opt_weights = torch.load("results/double_deformable_knee3/knee_aligner_resi_opt26400")
 
@@ -61,7 +59,7 @@ def make_batch():
 loss_curve = []
 for _ in range(0, 100000):
     if net.lmbda < 400:
-        net.lmbda += .1
+        net.lmbda += 0.1
     for subbatch in range(3):
         optimizer.zero_grad()
         moving_image = make_batch()

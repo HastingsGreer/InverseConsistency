@@ -19,9 +19,7 @@ GPUS = 4
 phi = network_wrappers.FunctionFromMatrix(
     networks.StumpyConvolutionalMatrixNet(dimension=3)
 )
-psi = network_wrappers.FunctionFromVectorField(
-    networks.tallUNet2(dimension=3)
-)
+psi = network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3))
 
 net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.DoubleNet(phi, psi),

@@ -29,9 +29,18 @@ def assignIdentityMap(module, input_shape):
     else:
         child_shape = module.input_shape
     for child in module.children():
-        
+
         # To save memory, these standard torch modules do not need to know what the identity map is.
-        blacklist = [nn.ModuleList, nn.Linear, nn.BatchNorm2d, nn.BatchNorm3d, nn.Conv2d, nn.Conv3d, nn.ConvTranspose2d, nn.ConvTranspose3d]
+        blacklist = [
+            nn.ModuleList,
+            nn.Linear,
+            nn.BatchNorm2d,
+            nn.BatchNorm3d,
+            nn.Conv2d,
+            nn.Conv3d,
+            nn.ConvTranspose2d,
+            nn.ConvTranspose3d,
+        ]
         continue_recursion = True
         for module_type in blacklist:
             if isinstance(child, module_type):
@@ -39,10 +48,12 @@ def assignIdentityMap(module, input_shape):
         if continue_recursion:
             assignIdentityMap(child, child_shape)
 
+
 def adjust_batch_size(model, size):
     shape = model.input_shape
     shape[0] = size
     assignIdentityMap(model, shape)
+
 
 class FunctionFromVectorField(nn.Module):
     def __init__(self, net):
@@ -51,13 +62,19 @@ class FunctionFromVectorField(nn.Module):
 
     def forward(self, x, y):
         vectorfield_phi = self.net(x, y)
+
         def ret(input_):
-            if False and hasattr(input_, "isIdentity") and vectorfield_phi.shape == input_.shape:
+            if (
+                False
+                and hasattr(input_, "isIdentity")
+                and vectorfield_phi.shape == input_.shape
+            ):
                 return input_ + vectorfield_phi
             else:
                 return input_ + compute_warped_image_multiNC(
                     vectorfield_phi, input_, self.spacing, 1
                 )
+
         return ret
 
 
@@ -79,10 +96,12 @@ class FunctionFromMatrix(nn.Module):
 
         return ret
 
+
 class RandomShift(nn.Module):
     def __init__(self, stddev):
         super(RandomShift, self).__init__()
         self.stddev = stddev
+
     def forward(self, x, y):
         shift_shape = (x.shape[0], len(x.shape - 2))
         shift = self.stddev * torch.randn(shift_shape, device=x.device)
@@ -100,7 +119,9 @@ class DoubleNet(nn.Module):
         self.identityMap.isIdentity = True
         phi = self.netPhi(x, y)
         phi_vectorfield = phi(self.identityMap)
-        self.x_comp_phi = compute_warped_image_multiNC(x, phi_vectorfield, self.spacing, 1)
+        self.x_comp_phi = compute_warped_image_multiNC(
+            x, phi_vectorfield, self.spacing, 1
+        )
         psi = self.netPsi(self.x_comp_phi, y)
 
         ret = lambda input_: phi(psi(input_))
@@ -118,8 +139,8 @@ class DownsampleNet(nn.Module):
             self.avg_pool = F.avg_pool3d
             self.interpolate_mode = "trilinear"
         self.dimension = dimension
-        # This member variable is read by assignIdentityMap when 
-        # walking the network tree and assigning identityMaps 
+        # This member variable is read by assignIdentityMap when
+        # walking the network tree and assigning identityMaps
         # to know that all children of this module operate at a lower
         # resolution.
         self.downscale_factor = 2
@@ -130,6 +151,7 @@ class DownsampleNet(nn.Module):
         y = self.avg_pool(y, 2, ceil_mode=True)
         return self.net(x, y)
 
+
 class AffineFromUNet(nn.Module):
     def __init__(self, unet, dimension=2):
         super(AffineFromUNet, self).__init__()
@@ -139,18 +161,18 @@ class AffineFromUNet(nn.Module):
     def forward(self, x, y):
         identityMapCentered = self.identityMap - 0.5
         Minv = torch.inverse(
+            torch.sum(
                 torch.sum(
-                    torch.sum(
-                        torch.einsum(
-                            "imjk,injk->imnjk",
-                            self.identityMapCentered,
-                            self.identityMapCentered,
-                        ),
-                        axis=-1,
+                    torch.einsum(
+                        "imjk,injk->imnjk",
+                        self.identityMapCentered,
+                        self.identityMapCentered,
                     ),
                     axis=-1,
-                )
+                ),
+                axis=-1,
             )
+        )
         D = self.unet(x, y)
         if self.dimension == 2:
             b = torch.mean(torch.mean(D, axis=-1), axis=-1)
@@ -201,9 +223,20 @@ class AffineFromUNet(nn.Module):
             x = torch.cat([A, b], axis=-1)
 
             x = torch.cat(
-                [x, torch.Tensor([[[0, 0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1, -1)], 1
+                [
+                    x,
+                    torch.Tensor([[[0, 0, 0, 1]]])
+                    .cuda()
+                    .expand(x.shape[0], -1, -1, -1),
+                ],
+                1,
             )
-            x = x + torch.Tensor([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]).cuda()
+            x = (
+                x
+                + torch.Tensor(
+                    [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
+                ).cuda()
+            )
             x = torch.matmul(
                 torch.Tensor([[1, 0, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).cuda(), x
             )

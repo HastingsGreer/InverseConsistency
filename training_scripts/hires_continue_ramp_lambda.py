@@ -9,7 +9,7 @@ import network_wrappers
 import data
 import describe
 
-BATCH_SIZE =4 
+BATCH_SIZE = 4
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
@@ -17,23 +17,22 @@ GPUS = 4
 phi = network_wrappers.FunctionFromVectorField(
     networks.tallUNet(unet=networks.UNet2ChunkyMiddle, dimension=3)
 )
-psi = network_wrappers.FunctionFromVectorField(
-    networks.tallUNet2(dimension=3)
-)
+psi = network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3))
 net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.DoubleNet(
-        network_wrappers.DownsampleNet(network_wrappers.DoubleNet(phi, psi), dimension=3), 
+        network_wrappers.DownsampleNet(
+            network_wrappers.DoubleNet(phi, psi), dimension=3
+        ),
         network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
     ),
     lambda x, y: torch.mean((x - y) ** 2),
-    1200 
+    1200,
 )
 
 network_wrappers.assignIdentityMap(net, input_shape)
 
 weights = torch.load("results/knees_l400_hires_ramp_lmbda4/knee_aligner_resi_net7200")
 net.load_state_dict(weights)
-
 
 
 knees = torch.load("/playpen/tgreer/knees_big_2xdownsample_train_set")
@@ -44,7 +43,9 @@ else:
     net_par = torch.nn.DataParallel(net).cuda()
 optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00006)
 
-optimizer_state = torch.load("results/knees_l400_hires_ramp_lmbda4/knee_aligner_resi_opt7200")
+optimizer_state = torch.load(
+    "results/knees_l400_hires_ramp_lmbda4/knee_aligner_resi_opt7200"
+)
 
 optimizer.load_state_dict(optimizer_state)
 
@@ -60,7 +61,7 @@ def make_batch():
 loss_curve = []
 for _ in range(0, 100000):
     if net.lmbda < 2000:
-        net.lmbda += .15
+        net.lmbda += 0.15
     optimizer.zero_grad()
     moving_image = make_batch()
     fixed_image = make_batch()

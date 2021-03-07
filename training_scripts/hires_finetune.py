@@ -19,9 +19,7 @@ GPUS = 4
 phi = network_wrappers.FunctionFromVectorField(
     networks.tallUNet(unet=networks.UNet2ChunkyMiddle, dimension=3)
 )
-psi = network_wrappers.FunctionFromVectorField(
-    networks.tallUNet2(dimension=3)
-)
+psi = network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3))
 
 pretrained_lowres_net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.DoubleNet(phi, psi),
@@ -33,19 +31,21 @@ network_wrappers.assignIdentityMap(pretrained_lowres_net, input_shape)
 
 
 network_wrappers.adjust_batch_size(pretrained_lowres_net, 12)
-trained_weights = torch.load("results/dd_l400_continue_rescalegrad2/knee_aligner_resi_net1800")
+trained_weights = torch.load(
+    "results/dd_l400_continue_rescalegrad2/knee_aligner_resi_net1800"
+)
 
-#trained_weights = torch.load("../results/dd_knee_l400_continue_smallbatch2/knee_aligner_resi_net9300")
-#rained_weights = torch.load("../results/double_deformable_knee3/knee_aligner_resi_net22200")
+# trained_weights = torch.load("../results/dd_knee_l400_continue_smallbatch2/knee_aligner_resi_net9300")
+# rained_weights = torch.load("../results/double_deformable_knee3/knee_aligner_resi_net22200")
 pretrained_lowres_net.load_state_dict(trained_weights)
 
 hires_net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.DoubleNet(
-        network_wrappers.DownsampleNet(pretrained_lowres_net.regis_net, dimension=3), 
+        network_wrappers.DownsampleNet(pretrained_lowres_net.regis_net, dimension=3),
         network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
     ),
     lambda x, y: torch.mean((x - y) ** 2),
-    200
+    200,
 )
 BATCH_SIZE = 4
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
