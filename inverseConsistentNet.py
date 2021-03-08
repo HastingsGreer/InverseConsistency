@@ -64,3 +64,18 @@ class InverseConsistentNet(nn.Module):
             similarity_loss,
             transform_magnitude,
         )
+def normalize(image):
+    dimension = len(image.shape) - 2
+    if dimension == 2:
+        dim_reduce = [2, 3]
+    elif dimension == 3:
+        dim_reduce = [2, 3, 4]
+    image_centered = image - torch.mean(image, dim_reduce, keepdim=True)
+    stddev = torch.sqrt(torch.mean(image_centered**2, dim_reduce, keepdim=True))
+    return image_centered / stddev
+def ncc(image_A, image_B):
+    A = normalize(image_A)
+    B = normalize(image_A)
+    dimension = len(image_A.shape) - 2
+    res = torch.mean(A * B)
+    return 1 - res
