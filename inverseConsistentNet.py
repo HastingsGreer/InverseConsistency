@@ -75,7 +75,7 @@ def normalize(image):
     return image_centered / stddev
 def ncc(image_A, image_B):
     A = normalize(image_A)
-    B = normalize(image_A)
+    B = normalize(image_B)
     dimension = len(image_A.shape) - 2
     res = torch.mean(A * B)
     return 1 - res
