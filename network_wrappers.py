@@ -74,7 +74,27 @@ class FunctionFromVectorField(nn.Module):
                 return input_ + compute_warped_image_multiNC(
                     vectorfield_phi, input_, self.spacing, 1
                 )
+        return ret
 
+class FunctionFromVectorArray(nn.Module):
+    def __init__(self, vector_field,spacing):
+        super(FunctionFromVectorArray, self).__init__()
+        self.vector_field = vector_field
+        self.spacing = spacing
+
+    def forward(self):
+        vectorfield_phi = self.vector_field
+        def ret(input_):
+            if (
+                    False
+                    and hasattr(input_, "isIdentity")
+                    and vectorfield_phi.shape == input_.shape
+            ):
+                return  vectorfield_phi
+            else:
+                return compute_warped_image_multiNC(
+                    vectorfield_phi, input_, self.spacing, 1
+                )
         return ret
 
 
@@ -85,7 +105,6 @@ class FunctionFromMatrix(nn.Module):
 
     def forward(self, x, y):
         matrix_phi = self.net(x, y)
-
         def ret(input_):
             shape = list(input_.shape)
             shape[1] = 1
@@ -93,7 +112,6 @@ class FunctionFromMatrix(nn.Module):
                 [input_, torch.ones(shape, device=input_.device)], axis=1
             )
             return multiply_matrix_vectorfield(matrix_phi, input_homogeneous)[:, :-1]
-
         return ret
 
 

@@ -2,16 +2,16 @@ import torch
 from torch import nn
 import numpy as np
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
-
+from network_wrappers import FunctionFromVectorArray
 
 class InverseConsistentNet(nn.Module):
     def __init__(self, network, similarity, lmbda):
-
         super(InverseConsistentNet, self).__init__()
-
         self.regis_net = network
         self.lmbda = lmbda
         self.similarity = similarity
+        self.noise_standard_deviation = 1.0
+
 
     def forward(self, image_A, image_B):
         # Tag used elsewhere for optimization.
@@ -42,11 +42,37 @@ class InverseConsistentNet(nn.Module):
             / self.identityMap.shape[-1]
         )
 
+        Inoise1 = (
+            self.identityMap
+            + torch.randn(*self.identityMap.shape).cuda()
+            * self.noise_standard_deviation
+            / self.identityMap.shape[-1]
+        )
+
+        Inoise1 = FunctionFromVectorArray(Inoise1,self.spacing)()
+        Inoise2 = (
+                self.identityMap
+                + torch.randn(*self.identityMap.shape).cuda()
+                * self.noise_standard_deviation
+                / self.identityMap.shape[-1]
+        )
+        Inoise2 = FunctionFromVectorArray(Inoise2,self.spacing)()
         # inverse consistency one way
+        #approximate_Iepsilon1 = self.phi_AB(self.phi_BA(Iepsilon))
 
-        approximate_Iepsilon1 = self.phi_AB(self.phi_BA(Iepsilon))
+        # computation of the approximate inverse consistency with noise
+        temp = self.phi_BA(Iepsilon)
 
-        approximate_Iepsilon2 = self.phi_BA(self.phi_AB(Iepsilon))
+        approx_1 = Inoise1(temp)
+        approximate_Iepsilon1 = Inoise2(self.phi_AB(approx_1))
+
+
+        #approximate_Iepsilon2 = self.phi_BA(self.phi_AB(Iepsilon))
+
+        # computation of the approximate inverse consistency with noise
+        approx_2 = Inoise2(self.phi_AB(Iepsilon))
+        approximate_Iepsilon2 = Inoise1(self.phi_BA(approx_2))
+
 
         inverse_consistency_loss = torch.mean(
             (Iepsilon - approximate_Iepsilon1) ** 2
