@@ -90,9 +90,9 @@ class FunctionFromVectorArray(nn.Module):
                     and hasattr(input_, "isIdentity")
                     and vectorfield_phi.shape == input_.shape
             ):
-                return  vectorfield_phi
+                return  input_ + vectorfield_phi
             else:
-                return compute_warped_image_multiNC(
+                return input_ + compute_warped_image_multiNC(
                     vectorfield_phi, input_, self.spacing, 1
                 )
         return ret

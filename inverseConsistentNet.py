@@ -43,16 +43,14 @@ class InverseConsistentNet(nn.Module):
         )
 
         Inoise1 = (
-            self.identityMap
-            + torch.randn(*self.identityMap.shape).cuda()
+            torch.randn(*self.identityMap.shape).cuda()
             * self.noise_standard_deviation
             / self.identityMap.shape[-1]
         )
 
         Inoise1 = FunctionFromVectorArray(Inoise1,self.spacing)()
         Inoise2 = (
-                self.identityMap
-                + torch.randn(*self.identityMap.shape).cuda()
+                torch.randn(*self.identityMap.shape).cuda()
                 * self.noise_standard_deviation
                 / self.identityMap.shape[-1]
         )
