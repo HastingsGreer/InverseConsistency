@@ -27,8 +27,8 @@ d1_t, d2_t = data.get_dataset_triangles(
     "test", data_size=50, hollow=False, batch_size=batch_size
 )
 
-
 lmbda = 2048
+noise_std,lmbda_noise = 0.,0
 random.seed(1)
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
@@ -37,15 +37,13 @@ print("=" * 50)
 net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=2)),
     lambda x, y: torch.mean((x - y) ** 2),
-    lmbda,
+    lmbda,noise_std,lmbda_noise,
 )
-
 input_shape = next(iter(d1))[0].size()
 network_wrappers.assignIdentityMap(net, input_shape)
 net.cuda()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 net.train()
-
 
 xs = []
 for _ in range(40):
