@@ -24,6 +24,15 @@ class InverseConsistentNet(nn.Module):
         self.phi_AB_vectorfield = self.phi_AB(self.identityMap)
         self.phi_BA_vectorfield = self.phi_BA(self.identityMap)
 
+        # tag images during warping so that the similarity measure
+        # can use information about whether a sample is interpolated 
+        # or extrapolated
+
+        inbounds_tag = torch.zeros(self.input_shape, device = image_A.device)
+        if len(self.input_shape) - 2 == 3:
+            inbounds_tag[:, :, 1:-1, 1:-1, 1:-1] = 1.
+        else:
+            inbounds_tag[:, :, 1:-1, 1:-1] = 1.
         self.warped_image_A = compute_warped_image_multiNC(
             image_A, self.phi_AB_vectorfield, self.spacing, 1
         )
@@ -73,6 +82,7 @@ def normalize(image):
     image_centered = image - torch.mean(image, dim_reduce, keepdim=True)
     stddev = torch.sqrt(torch.mean(image_centered**2, dim_reduce, keepdim=True))
     return image_centered / stddev
+
 def ncc(image_A, image_B):
     A = normalize(image_A)
     B = normalize(image_B)
