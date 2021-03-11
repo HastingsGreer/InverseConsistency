@@ -36,7 +36,7 @@ np.random.seed(1)
 print("=" * 50)
 net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.DoubleNet(
-        network_wrappers.RandomShift(.25),
+        network_wrappers.RandomShift(0.25),
         network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=2)),
     ),
     lambda x, y: torch.mean((x - y) ** 2),

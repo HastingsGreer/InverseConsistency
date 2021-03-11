@@ -64,10 +64,7 @@ class FunctionFromVectorField(nn.Module):
         vectorfield_phi = self.net(x, y)
 
         def ret(input_):
-            if (
-                hasattr(input_, "isIdentity")
-                and vectorfield_phi.shape == input_.shape
-            ):
+            if hasattr(input_, "isIdentity") and vectorfield_phi.shape == input_.shape:
                 return input_ + vectorfield_phi
             else:
                 return input_ + compute_warped_image_multiNC(
@@ -102,7 +99,7 @@ class RandomShift(nn.Module):
         self.stddev = stddev
 
     def forward(self, x, y):
-        shift_shape = (x.shape[0], len(x.shape )- 2, *(1 for _ in x.shape[2:]))
+        shift_shape = (x.shape[0], len(x.shape) - 2, *(1 for _ in x.shape[2:]))
         shift = self.stddev * torch.randn(shift_shape, device=x.device)
         return lambda input_: input_ + shift
 

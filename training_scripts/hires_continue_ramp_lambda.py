@@ -35,16 +35,13 @@ weights = torch.load("results/hires_ncc_70000_6/knee_aligner_resi_net4200")
 net.load_state_dict(weights)
 
 
-
 if GPUS == 1:
     net_par = net.cuda()
 else:
     net_par = torch.nn.DataParallel(net).cuda()
 optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00001)
 
-optimizer_state = torch.load(
-    "results/hires_ncc_70000_6/knee_aligner_resi_opt4200"
-)
+optimizer_state = torch.load("results/hires_ncc_70000_6/knee_aligner_resi_opt4200")
 
 optimizer.load_state_dict(optimizer_state)
 
@@ -52,6 +49,8 @@ net_par.train()
 
 
 knees = torch.load("/playpen/tgreer/knees_big_2xdownsample_train_set")
+
+
 def make_batch():
     image = torch.cat([random.choice(knees) for _ in range(GPUS * BATCH_SIZE)])
     image = image.cuda()

@@ -31,9 +31,7 @@ network_wrappers.assignIdentityMap(pretrained_lowres_net, input_shape)
 
 
 network_wrappers.adjust_batch_size(pretrained_lowres_net, 12)
-trained_weights = torch.load(
-    "results/just_upsample_3/knee_aligner_resi_net15900"
-)
+trained_weights = torch.load("results/just_upsample_3/knee_aligner_resi_net15900")
 
 # trained_weights = torch.load("../results/dd_knee_l400_continue_smallbatch2/knee_aligner_resi_net9300")
 # rained_weights = torch.load("../results/double_deformable_knee3/knee_aligner_resi_net22200")
@@ -60,7 +58,9 @@ if GPUS == 1:
     net_par = hires_net.cuda()
 else:
     net_par = torch.nn.DataParallel(hires_net).cuda()
-optimizer = torch.optim.Adam((p for p in net_par.parameters() if p.requires_grad), lr=0.00005)
+optimizer = torch.optim.Adam(
+    (p for p in net_par.parameters() if p.requires_grad), lr=0.00005
+)
 
 
 net_par.train()
