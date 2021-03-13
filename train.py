@@ -1,8 +1,6 @@
 import torch
 
-
 def train2d(net, optimizer, d1, d2, epochs=400):
-
     loss_history = []
     print("[", end="")
     for epoch in range(epochs):
@@ -40,13 +38,14 @@ def train2d(net, optimizer, d1, d2, epochs=400):
             .cpu()
         )
         dA = du[:, 0] * dv[:, 1] - du[:, 1] * dv[:, 0]
-
+        lipschitz = torch.abs(du[:, 0]) + torch.abs(dv[:, 0]) + torch.abs(du[:, 1]) + torch.abs(dv[:, 1])
         loss_history.append(
             [
                 inverse_consistency_loss.item(),
                 similarity_loss.item(),
                 transform_magnitude.item(),
                 torch.log(torch.sum(dA < 0) + 0.1),
+                torch.log(torch.sum(lipschitz))
             ]
         )
     print("]")
