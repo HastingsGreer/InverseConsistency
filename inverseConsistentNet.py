@@ -28,7 +28,7 @@ class InverseConsistentNet(nn.Module):
         # can use information about whether a sample is interpolated
         # or extrapolated
 
-        inbounds_tag = torch.zeros(self.input_shape, device=image_A.device)
+        inbounds_tag = torch.zeros(tuple(self.input_shape), device=image_A.device)
         if len(self.input_shape) - 2 == 3:
             inbounds_tag[:, :, 1:-1, 1:-1, 1:-1] = 1.0
         else:
@@ -79,6 +79,7 @@ class InverseConsistentNet(nn.Module):
             inverse_consistency_loss,
             similarity_loss,
             transform_magnitude,
+            flips(self.phi_BA_vectorfield)
         )
 
 
@@ -111,6 +112,13 @@ def ssd_only_interpolated(image_A, image_B):
     inbounds_squared_distance = inbounds_mask * (image_A - image_B) ** 2
     sum_squared_distance = torch.sum(inbounds_squared_distance, dimensions_to_sum_over)
     divisor = torch.sum(inbounds_mask, dimensions_to_sum_over)
-    print(f"ssd_shape:{sum_squared_distance.shape}, divisor_shape:{divisor.shape}")
     ssds = sum_squared_distance / divisor
     return torch.mean(ssds)
+
+def flips(phi):
+    a = phi[:, :, 1:, 1:, 1:] - phi[:, :, :-1, 1:, 1:]
+    b = phi[:, :, 1:, 1:, 1:] - phi[:, :, 1:, :-1, 1:]
+    c = phi[:, :, 1:, 1:, 1:] - phi[:, :, 1:, 1:, :-1]
+
+    dV = torch.sum(torch.cross(a, b, 1) * c, axis=1, keepdims=True)
+    return torch.sum(dV < 0) / phi.shape[0]
