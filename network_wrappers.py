@@ -98,8 +98,11 @@ class RandomShift(nn.Module):
         super(RandomShift, self).__init__()
         self.stddev = stddev
 
-    def forward(self, x, y):
-        shift_shape = (x.shape[0], len(x.shape) - 2, *(1 for _ in x.shape[2:]))
+    def forward(self, image_A, image_B):
+        shift_shape = (image_A.shape[0], len(image_A.shape) - 2, *(1 for _ in image_A.shape[2:]))
+        # In a real class, the variable that parametrizes the returned transform,
+        # in this case shift, would be calculated from image_A and image_B before being captured
+        # in the closure as below.
         shift = self.stddev * torch.randn(shift_shape, device=x.device)
         return lambda input_: input_ + shift
 
