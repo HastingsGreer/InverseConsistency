@@ -26,9 +26,8 @@ d1, d2 = data.get_dataset_triangles(
 d1_t, d2_t = data.get_dataset_triangles(
     "test", data_size=50, hollow=False, batch_size=batch_size
 )
-
-lmbda = 2048
-noise_std,lmbda_noise = 0.,0
+lmbda = 0
+noise_std,lmbda_noise = 0.5,1*4048
 random.seed(1)
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
@@ -60,6 +59,18 @@ for _ in range(40):
     plt.plot(x[:, 3])
     # random.seed(1)
     plt.savefig(describe.run_dir + f"lossj.png")
+    plt.clf()
+    plt.title("Log # lipschitz constant per epoch")
+    plt.plot(x[:, 4])
+    # random.seed(1)
+    plt.savefig(describe.run_dir + f"smoothness.png")
+
+    plt.clf()
+    plt.title("Sup-Lipschitz constant per epoch")
+    plt.plot(x[:, 5])
+    # random.seed(1)
+    plt.savefig(describe.run_dir + f"sup_lipschitz.png")
+
     plt.clf()
     with open(describe.run_dir + "loss.pickle", "wb") as f:
         pickle.dump(x, f)

@@ -4,7 +4,7 @@ import random
 import torchvision
 import numpy as np
 import torch.nn.functional as F
-
+from scipy.ndimage import gaussian_filter as filter
 
 def get_dataset_mnist(split, number=5):
     ds = torch.utils.data.DataLoader(
@@ -59,7 +59,9 @@ def get_dataset_triangles(
         circles = 1 - circles ** 2
 
     images = isTriangle * triangles + (1 - isTriangle) * circles
-
+    #images = filter(images,1.0)
+    for i in range(images.shape[0]):
+        images[i,:,:] = filter(images[i,:,:],4.0)
     ds = torch.utils.data.TensorDataset(torch.Tensor(np.expand_dims(images, 1)))
     d1, d2 = (
         torch.utils.data.DataLoader(
