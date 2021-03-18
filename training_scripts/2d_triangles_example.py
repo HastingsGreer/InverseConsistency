@@ -26,8 +26,8 @@ d1, d2 = data.get_dataset_triangles(
 d1_t, d2_t = data.get_dataset_triangles(
     "test", data_size=50, hollow=False, batch_size=batch_size
 )
-lmbda = 0
-noise_std,lmbda_noise = 0.5,1*4048
+lmbda = 4048
+noise_std,lmbda_noise = 0.,0*4048
 random.seed(1)
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
