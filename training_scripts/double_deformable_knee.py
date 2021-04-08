@@ -37,7 +37,7 @@ network_wrappers.assignIdentityMap(net, input_shape)
 #net.load_state_dict(net_weights)
 #network_wrappers.adjust_batch_size(net, BATCH_SIZE)
 
-knees = torch.load("/playpen/tgreer/knees_big_train_set")
+knees = torch.load("/playpen/tgreer/blurred_small_knees")
 
 if GPUS == 1:
     net_par = net.cuda()
