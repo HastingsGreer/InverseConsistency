@@ -74,6 +74,27 @@ class FunctionFromVectorField(nn.Module):
         return ret
 
 
+class FunctionFromVectorArray(nn.Module):
+    def __init__(self, vector_field,spacing):
+        super(FunctionFromVectorArray, self).__init__()
+        self.vector_field = vector_field
+        self.spacing = spacing
+
+    def forward(self):
+        vectorfield_phi = self.vector_field
+        def ret(input_):
+            if (
+                    False
+                    and hasattr(input_, "isIdentity")
+                    and vectorfield_phi.shape == input_.shape
+            ):
+                return  input_ + vectorfield_phi
+            else:
+                return input_ + compute_warped_image_multiNC(
+                    vectorfield_phi, input_, self.spacing, 1
+                )
+        return ret
+
 class FunctionFromMatrix(nn.Module):
     def __init__(self, net):
         super(FunctionFromMatrix, self).__init__()
