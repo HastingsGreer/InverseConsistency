@@ -1,3 +1,11 @@
+ICON: Learning Regular Maps through Inverse Consistency
+ICCV 2021
+[Demo figure](notebooks/paper_figures/Intro_NewLabels-2.png)
+
+
+
+
+
 How to run on triangles and circles dataset, from the beginning
 
 1: Install pytorch
