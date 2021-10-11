@@ -5,10 +5,11 @@ import torch
 
 def show_as_grid(phi):
     data_size = phi.size()[-1]
-    plot_phi = data_size * phi[:, ::4, ::4].detach().cpu() - 0.5
     axes = plt.gca()
-    axes.set_xlim([-0.5, data_size - 0.5])
-    axes.set_ylim([data_size - 0.5, -0.5])
+    plot_phi = data_size * phi[:, ::4, ::4].detach().cpu() - 0.5
+    #plot_phi = data_size * phi.detach().cpu() - 0.5
+    axes.set_xlim([-0.5, phi.size()[-2] - 0.5])
+    axes.set_ylim([phi.size()[-1] - 0.5, -0.5])
     plt.plot(plot_phi[1], plot_phi[0], linewidth=1)
     plt.plot(plot_phi[1].transpose(0, 1), plot_phi[0].transpose(0, 1), linewidth=1)
 
