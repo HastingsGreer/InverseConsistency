@@ -21,43 +21,47 @@ phi = network_wrappers.FunctionFromVectorField(
 )
 psi = network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3))
 
-pretrained_lowres_net = inverseConsistentNet.InverseConsistentNet(
-    network_wrappers.DoubleNet(phi, psi),
-    inverseConsistentNet.ssd_only_interpolated,
-    100,
-)
-
-network_wrappers.assignIdentityMap(pretrained_lowres_net, input_shape)
-
-
-network_wrappers.adjust_batch_size(pretrained_lowres_net, 32)
-trained_weights = torch.load("results/smart_lmbda_4/knee_aligner_resi_net16200")
-
-# trained_weights = torch.load("../results/dd_knee_l400_continue_smallbatch2/knee_aligner_resi_net9300")
-# rained_weights = torch.load("../results/double_deformable_knee3/knee_aligner_resi_net22200")
-pretrained_lowres_net.load_state_dict(trained_weights)
+pretrained_lowres_net = network_wrappers.DoubleNet(phi, psi)
 
 hires_net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.DoubleNet(
-        network_wrappers.DownsampleNet(pretrained_lowres_net.regis_net, dimension=3),
+        network_wrappers.DownsampleNet(pretrained_lowres_net, dimension=3),
         network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
     ),
     inverseConsistentNet.ssd_only_interpolated,
-    1600,
+    3600,
 )
 BATCH_SIZE = 4
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 network_wrappers.assignIdentityMap(hires_net, input_shape)
 
-for p in hires_net.regis_net.netPhi.parameters():
+trained_weights = torch.load("results/hires_smart_6/knee_aligner_resi_net74700")
+hires_net.load_state_dict(trained_weights)
+
+fourth_net = inverseConsistentNet.InverseConsistentNet(
+    network_wrappers.DoubleNet(
+        hires_net.regis_net, 
+        network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
+    ),
+    inverseConsistentNet.ssd_only_interpolated,
+    3600,
+)
+
+for p in fourth_net.regis_net.netPhi.parameters():
     p.requires_grad = False
+BATCH_SIZE = 3
+SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
+input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
+network_wrappers.assignIdentityMap(fourth_net, input_shape)
+
+
 knees = torch.load("/playpen/tgreer/knees_big_2xdownsample_train_set")
 
 if GPUS == 1:
-    net_par = hires_net.cuda()
+    net_par = fourth_net.cuda()
 else:
-    net_par = torch.nn.DataParallel(hires_net).cuda()
+    net_par = torch.nn.DataParallel(fourth_net).cuda()
 optimizer = torch.optim.Adam(
     (p for p in net_par.parameters() if p.requires_grad), lr=0.00005
 )
@@ -86,7 +90,7 @@ for _ in range(0, 100000):
     optimizer.step()
 
     if torch.mean(flips).cpu().item() > 25 * 8:
-        hires_net.lmbda += .1 * 8
+        fourth_net.lmbda += .1 * 8
     if _ % 300 == 0:
         try:
             import pickle
@@ -99,5 +103,5 @@ for _ in range(0, 100000):
             optimizer.state_dict(), describe.run_dir + "knee_aligner_resi_opt" + str(_)
         )
         torch.save(
-            hires_net.state_dict(), describe.run_dir + "knee_aligner_resi_net" + str(_)
+            fourth_net.state_dict(), describe.run_dir + "knee_aligner_resi_net" + str(_)
         )
