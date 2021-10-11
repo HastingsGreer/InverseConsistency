@@ -102,7 +102,7 @@ for tt in tqdm.tqdm(test_pair_paths):
 # In[ ]:
 
 
-torch.save(ds, "/playpen/tgreer/knees_real_train_set_hires")
+torch.save(ds, "/playpen/tgreer/knees_test_set_hires")
 
 
 # In[91]:

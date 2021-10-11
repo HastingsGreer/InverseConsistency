@@ -535,6 +535,29 @@ class FCNet(nn.Module):
         return x
 
 
+class FCNet3D(nn.Module):
+    def __init__(self, shape, bottleneck=128):
+        super(FCNet3D, self).__init__()
+        self.shape = shape.copy()
+        self.shape[1] = 3
+        self.bottleneck = bottleneck
+        self.dense1 = nn.Linear(2 * np.product(self.shape[2:]), self.bottleneck)
+        self.dense2 = nn.Linear(self.bottleneck, 8000)
+        self.dense3 = nn.Linear(8000, self.bottleneck)
+        self.dense4 = nn.Linear(self.bottleneck, np.product(self.shape[1:]))
+        torch.nn.init.zeros_(self.dense4.weight)
+        torch.nn.init.zeros_(self.dense4.bias)
+
+    def forward(self, x, y):
+        x = torch.reshape(torch.cat([x, y], 1), (-1, 2 * np.product(self.shape[2:])))
+        x = F.relu(self.dense1(x))
+        x = F.relu(self.dense2(x))
+        x = F.relu(self.dense3(x))
+        x = self.dense4(x)
+        x = torch.reshape(x, tuple(self.shape))
+        return x
+
+
 class DenseMatrixNet(nn.Module):
     def __init__(self, size=28, dimension=2):
         super(DenseMatrixNet, self).__init__()
