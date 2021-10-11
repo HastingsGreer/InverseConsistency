@@ -1,8 +1,12 @@
-ICON: Learning Regular Maps through Inverse Consistency
+# ICON: Learning Regular Maps through Inverse Consistency
 
-ICCV 2021
+## ICCV 2021
+
+https://arxiv.org/abs/2105.04459
 
 ![Demo figure](notebooks/paper_figures/Intro_NewLabels-2.png)
+
+
 
 
 
