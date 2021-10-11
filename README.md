@@ -6,13 +6,13 @@ https://arxiv.org/abs/2105.04459
 
 ![Demo figure](notebooks/paper_figures/Intro_NewLabels-2.png)
 
+## Running our code
 
+To run our pretrained model in the cloud on 4 sample image pairs from OAI knees (as above), visit [our google colab notebook](https://colab.research.google.com/drive/1Pd3ua_NZTem3xtBvDxertzi7u3E233ZL?usp=sharing)
 
+----------------
 
-
-
-
-How to run on triangles and circles dataset, from the beginning
+To train from scratch on the synthetic triangles and circles dataset:
 
 1: Install pytorch
 
