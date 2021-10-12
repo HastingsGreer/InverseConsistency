@@ -4,7 +4,7 @@
 
 This is the official repository for  
 ICON: Learning Regular Maps through Inverse Consistency.  
-Hastings Greer, Roland Kwitt, Francois-Xavier Vialard, Marc Niethammer. 
+Hastings Greer, Roland Kwitt, Francois-Xavier Vialard, Marc Niethammer.  
 ICCV 2021 https://arxiv.org/abs/2105.04459
 
 
