@@ -1,10 +1,13 @@
 # ICON: Learning Regular Maps through Inverse Consistency
 
-## ICCV 2021
-
-https://arxiv.org/abs/2105.04459
-
 ![Demo figure](notebooks/paper_figures/Intro_NewLabels-2.png)
+
+This is the official repository for 
+ICON: Learning Regular Maps through Inverse Consistency
+Hastings Greer, Roland Kwitt, Francois-Xavier Vialard, Marc Niethammer
+ICCV 2021 https://arxiv.org/abs/2105.04459
+
+
 
 ## Running our code
 
