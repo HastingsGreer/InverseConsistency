@@ -4,7 +4,7 @@
 
 This is the official repository for  
 
-**ICON: Learning Regular Maps through Inverse Consistency.**
+**ICON: Learning Regular Maps through Inverse Consistency.**   
 Hastings Greer, Roland Kwitt, Francois-Xavier Vialard, Marc Niethammer.  
 _ICCV 2021_ https://arxiv.org/abs/2105.04459
 
