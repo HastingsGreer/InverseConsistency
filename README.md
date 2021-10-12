@@ -8,6 +8,10 @@ This is the official repository for
 Hastings Greer, Roland Kwitt, Francois-Xavier Vialard, Marc Niethammer.  
 _ICCV 2021_ https://arxiv.org/abs/2105.04459
 
+## Video Presentation
+
+https://www.youtube.com/watch?v=7kZsJ3zWDCA
+
 
 
 ## Running our code
