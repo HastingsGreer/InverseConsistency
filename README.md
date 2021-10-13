@@ -28,10 +28,10 @@ To run our pretrained model in the cloud on 4 sample image pairs from OAI knees 
 To train from scratch on the synthetic triangles and circles dataset:
 
 ```
-git clone https://github.com/HastingsGreer/InverseConsistency
-cd InverseConsistency
+git clone https://github.com/uncbiag/ICON
+cd ICON
 
-pip install -r requirements.txt
+python setup.py install -e
 
 python training_scripts/2d_triangles_example.py
 ```
