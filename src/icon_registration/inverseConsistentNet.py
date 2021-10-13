@@ -116,9 +116,14 @@ def ssd_only_interpolated(image_A, image_B):
     return torch.mean(ssds)
 
 def flips(phi):
-    a = phi[:, :, 1:, 1:, 1:] - phi[:, :, :-1, 1:, 1:]
-    b = phi[:, :, 1:, 1:, 1:] - phi[:, :, 1:, :-1, 1:]
-    c = phi[:, :, 1:, 1:, 1:] - phi[:, :, 1:, 1:, :-1]
+    if len(phi.size()) == 5:
+        a = phi[:, :, 1:, 1:, 1:] - phi[:, :, :-1, 1:, 1:]
+        b = phi[:, :, 1:, 1:, 1:] - phi[:, :, 1:, :-1, 1:]
+        c = phi[:, :, 1:, 1:, 1:] - phi[:, :, 1:, 1:, :-1]
 
-    dV = torch.sum(torch.cross(a, b, 1) * c, axis=1, keepdims=True)
-    return torch.sum(dV < 0) / phi.shape[0]
+        dV = torch.sum(torch.cross(a, b, 1) * c, axis=1, keepdims=True)
+        return torch.sum(dV < 0) / phi.shape[0]
+    else:
+        ## TODO: implement flips for 2-d registration. shouldn't be hard.
+        return -1
+
