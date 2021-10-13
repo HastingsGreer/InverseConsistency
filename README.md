@@ -16,15 +16,17 @@ https://www.youtube.com/watch?v=7kZsJ3zWDCA
 
 ## Running our code
 
+We are available on PyPI!
+```
+pip install icon-registration
+````
+
 To run our pretrained model in the cloud on 4 sample image pairs from OAI knees (as above), visit [our google colab notebook](https://colab.research.google.com/drive/1Pd3ua_NZTem3xtBvDxertzi7u3E233ZL?usp=sharing)
 
 ----------------
 
 To train from scratch on the synthetic triangles and circles dataset:
 
-1: Install pytorch
-
-2:
 ```
 git clone https://github.com/HastingsGreer/InverseConsistency
 cd InverseConsistency
