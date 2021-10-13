@@ -7,7 +7,7 @@ import inverseConsistentNet
 import networks
 import network_wrappers
 import data
-import describe
+import footsteps
 
 BATCH_SIZE = 32
 SCALE = 1  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
@@ -84,13 +84,13 @@ for _ in range(0, 100000):
         try:
             import pickle
 
-            with open(describe.run_dir + "loss_curve", "wb") as f:
+            with open(footsteps.output_dir + "loss_curve", "wb") as f:
                 pickle.dump(loss_curve, f)
         except:
             pass
         torch.save(
-            optimizer.state_dict(), describe.run_dir + "knee_aligner_resi_opt" + str(_)
+            optimizer.state_dict(), footsteps.output_dir + "knee_aligner_resi_opt" + str(_)
         )
         torch.save(
-            hires_net.state_dict(), describe.run_dir + "knee_aligner_resi_net" + str(_)
+            hires_net.state_dict(), footsteps.output_dir + "knee_aligner_resi_net" + str(_)
         )
