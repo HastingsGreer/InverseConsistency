@@ -50,11 +50,12 @@ import torch
 
 import itk
 import tqdm
+import numpy as np
 
 ds = []
 for tt in tqdm.tqdm(list(iter(train_paths))):
     tt = tt.replace("playpen", "playpen-raid")
-    image = torch.tensor(itk.GetArrayFromImage(itk.imread(tt)))
+    image = torch.tensor(np.asarray(itk.imread(tt)))
     if "RIGHT" in tt:
         image = torch.flip(image, [0])
     elif "LEFT" in tt:

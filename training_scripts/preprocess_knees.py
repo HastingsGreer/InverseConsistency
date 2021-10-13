@@ -68,6 +68,7 @@ import torch
 
 import itk
 import tqdm
+import numpy as np
 
 ds = []
 for tt in tqdm.tqdm(test_pair_paths):
@@ -75,7 +76,7 @@ for tt in tqdm.tqdm(test_pair_paths):
     tt = tt.split()
     data = []
     for t in tt:
-        image = torch.tensor(itk.GetArrayFromImage(itk.imread(t)))
+        image = torch.tensor(np.asarray(itk.imread(t)))
         if "RIGHT" in t:
             image = torch.flip(image, [0])
         elif "LEFT" in t:
