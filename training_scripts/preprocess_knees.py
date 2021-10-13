@@ -82,7 +82,7 @@ for tt in tqdm.tqdm(test_pair_paths):
         elif "LEFT" in t:
             pass
         else:
-            raise FuckityError()
+            raise ConfusedError()
         data.append(image)
 
     iA, iB, cA, cB = data
