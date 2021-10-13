@@ -43,8 +43,9 @@ def OAI_knees_registration_model(pretrained=True):
     if pretrained:
         from os.path import exists
         if not exists("pretrained_OAI_model"):
-            import urllib
-            urllib.urlretrieve(
+            print("Downloading pretrained model (1.2 GB)")
+            import urllib.request
+            urllib.request.urlretrieve(
               "https://github.com/HastingsGreer/InverseConsistency/releases/download/pretrained_oai_model/knee_aligner_resi_net99900", "pretrained_OAI_model")
 
         trained_weights = torch.load("pretrained_OAI_model")
