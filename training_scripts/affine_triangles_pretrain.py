@@ -1,11 +1,11 @@
-import parent
-import network_wrappers
+
+import icon_registration.network_wrappers as network_wrappers
 import torch
 import numpy as np
-import networks
-import visualize
-import inverseConsistentNet
-import data
+import icon_registration.networks as networks
+import icon_registration.visualize as visualize
+import icon_registration.inverseConsistentNet as inverseConsistentNet
+import icon_registration.data as data
 import footsteps
 import os
 import matplotlib.pyplot as plt
@@ -31,7 +31,7 @@ net = inverseConsistentNet.InverseConsistentNet(
 network_wrappers.assignIdentityMap(net, image_A.shape)
 net.cuda()
 
-import train
+import icon_registration.train as train
 
 optim = torch.optim.Adam(net.parameters(), lr=0.00001)
 net.train().cuda()

@@ -1,12 +1,12 @@
-import parent
+
 import torch.nn.functional as F
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
 import random
-import inverseConsistentNet
-import networks
-import network_wrappers
-import data
+import icon_registration.inverseConsistentNet as inverseConsistentNet
+import icon_registration.networks as networks
+import icon_registration.network_wrappers as network_wrappers
+import icon_registration.data as data
 import footsteps
 
 BATCH_SIZE = 32

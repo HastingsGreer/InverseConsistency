@@ -1,12 +1,12 @@
-import parent
+
 from collections import OrderedDict
 import torch
 import numpy as np
-import networks
-import network_wrappers
-import visualize
-import inverseConsistentNet
-import data
+import icon_registration.networks as networks
+import icon_registration.network_wrappers as network_wrappers
+import icon_registration.visualize as visualize
+import icon_registration.inverseConsistentNet as inverseConsistentNet
+import icon_registration.data as data
 import footsteps
 import os
 import matplotlib.pyplot as plt
@@ -47,7 +47,7 @@ network_wrappers.assignIdentityMap(net, input_shape)
 # net.affine_regis_net.load_state_dict(pretrained_weights)
 net.cuda()
 
-import train
+import icon_registration.train as train
 
 optim = torch.optim.Adam(net.parameters(), lr=0.0001)
 net.train().cuda()

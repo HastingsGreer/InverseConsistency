@@ -1,10 +1,10 @@
-import parent
-import data
-import networks
-import network_wrappers
-import visualize
-import train
-import inverseConsistentNet
+
+import icon_registration.data as data
+import icon_registration.networks as networks
+import icon_registration.network_wrappers as network_wrappers
+import icon_registration.visualize as visualize
+import icon_registration.train as train
+import icon_registration.inverseConsistentNet as inverseConsistentNet
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
