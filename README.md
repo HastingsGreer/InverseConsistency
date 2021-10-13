@@ -8,6 +8,18 @@ This is the official repository for
 Hastings Greer, Roland Kwitt, Francois-Xavier Vialard, Marc Niethammer.  
 _ICCV 2021_ https://arxiv.org/abs/2105.04459
 
+## Cite this work
+```
+@InProceedings{Greer_2021_ICCV,
+    author    = {Greer, Hastings and Kwitt, Roland and Vialard, Francois-Xavier and Niethammer, Marc},
+    title     = {ICON: Learning Regular Maps Through Inverse Consistency},
+    booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+    month     = {October},
+    year      = {2021},
+    pages     = {3396-3405}
+}
+```
+
 ## Video Presentation
 
 [<img src="https://img.youtube.com/vi/7kZsJ3zWDCA/maxresdefault.jpg" width="50%">](https://youtu.be/7kZsJ3zWDCA)
@@ -35,14 +47,4 @@ python setup.py install -e
 python training_scripts/2d_triangles_example.py
 ```
 
-## Cite this work
-```
-@InProceedings{Greer_2021_ICCV,
-    author    = {Greer, Hastings and Kwitt, Roland and Vialard, Francois-Xavier and Niethammer, Marc},
-    title     = {ICON: Learning Regular Maps Through Inverse Consistency},
-    booktitle = {Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
-    month     = {October},
-    year      = {2021},
-    pages     = {3396-3405}
-}
-```
+
