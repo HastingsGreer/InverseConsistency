@@ -1,13 +1,13 @@
-import parent
+
 import torch.nn.functional as F
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
 import random
-import inverseConsistentNet
-import networks
-import network_wrappers
-import data
-import describe
+import icon_registration.inverseConsistentNet as inverseConsistentNet
+import icon_registration.networks as networks
+import icon_registration.network_wrappers as network_wrappers
+import icon_registration.data as data
+import footsteps
 
 BATCH_SIZE = 32
 SCALE = 1  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
@@ -63,13 +63,13 @@ for _ in range(0, 100000):
         try:
             import pickle
 
-            with open(describe.run_dir + "loss_curve", "wb") as f:
+            with open(footsteps.output_dir + "loss_curve", "wb") as f:
                 pickle.dump(loss_curve, f)
         except:
             pass
         torch.save(
-            optimizer.state_dict(), describe.run_dir + "knee_aligner_resi_opt" + str(_)
+            optimizer.state_dict(), footsteps.output_dir + "knee_aligner_resi_opt" + str(_)
         )
         torch.save(
-            net.state_dict(), describe.run_dir + "knee_aligner_resi_net" + str(_)
+            net.state_dict(), footsteps.output_dir + "knee_aligner_resi_net" + str(_)
         )

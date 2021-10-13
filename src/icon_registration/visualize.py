@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from mermaidlite import compute_warped_image_multiNC
+from .mermaidlite import compute_warped_image_multiNC
 import torch
 
 

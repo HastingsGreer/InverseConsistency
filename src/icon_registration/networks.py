@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import numpy as np
-from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
+from .mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 
 
 class Autoencoder(nn.Module):

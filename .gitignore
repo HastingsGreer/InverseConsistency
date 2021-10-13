@@ -5,3 +5,6 @@ __pycache__/
 *.pickle
 notebooks/.ipynb_checkpoints/
 .ipynb_checkpoints/
+dist/
+build/
+src/icon_registration.egg-info/

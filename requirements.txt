@@ -2,3 +2,6 @@ torch
 torchvision
 tqdm
 matplotlib
+footsteps
+scikit-learn
+itk

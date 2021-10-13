@@ -19,6 +19,7 @@ def train2d(net, optimizer, d1, d2, epochs=400):
                     inverse_consistency_loss,
                     similarity_loss,
                     transform_magnitude,
+                    flips,
                 ) = net(image_A, image_B)
 
                 loss.backward()
