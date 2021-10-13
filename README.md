@@ -10,8 +10,7 @@ _ICCV 2021_ https://arxiv.org/abs/2105.04459
 
 ## Video Presentation
 
-https://www.youtube.com/watch?v=7kZsJ3zWDCA
-
+[<img src="https://img.youtube.com/vi/7kZsJ3zWDCA/maxresdefault.jpg" width="50%">](https://youtu.be/7kZsJ3zWDCA)
 
 
 ## Running our code
