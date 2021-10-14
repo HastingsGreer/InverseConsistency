@@ -1,5 +1,7 @@
 # ICON: Learning Regular Maps through Inverse Consistency
 
+![Tests](https://github.com/uncbiag/ICON/actions/workflows/test-action.yml/badge.svg?branch=master)
+
 ![Demo figure](notebooks/paper_figures/Intro_NewLabels-2.png)
 
 This is the official repository for  
