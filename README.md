@@ -46,7 +46,7 @@ To train from scratch on the synthetic triangles and circles dataset:
 git clone https://github.com/uncbiag/ICON
 cd ICON
 
-python setup.py install -e
+pip install -e .
 
 python training_scripts/2d_triangles_example.py
 ```
