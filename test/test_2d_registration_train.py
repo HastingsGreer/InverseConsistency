@@ -18,10 +18,10 @@ class Test2DRegistrationTrain(unittest.TestCase):
         batch_size = 128
 
         d1, d2 = data.get_dataset_triangles(
-            "train", data_size=30, hollow=False, batch_size=batch_size
+            "train", data_size=50, hollow=False, batch_size=batch_size
         )
         d1_t, d2_t = data.get_dataset_triangles(
-            "test", data_size=30, hollow=False, batch_size=batch_size
+            "test", data_size=50, hollow=False, batch_size=batch_size
         )
 
         lmbda = 2048
@@ -47,8 +47,8 @@ class Test2DRegistrationTrain(unittest.TestCase):
         y = np.array(train.train2d(net, optimizer, d1, d2, epochs=50))
 
         # Test that image similarity is good enough
-        self.assertTrue(np.mean(y[-5:, 1]) < 0.1)
+        self.assertLess(np.mean(y[-5:, 1]), 0.1)
 
         # Test that folds are rare enough
-        self.assertTrue(np.mean(np.exp(y[-5:, 3] - 0.1)) < 2)
+        self.assertLess(np.mean(np.exp(y[-5:, 3] - 0.1)), 2)
         print(y)
