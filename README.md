@@ -32,9 +32,9 @@ _ICCV 2021_ https://arxiv.org/abs/2105.04459
 ## Running our code
 
 We are available on PyPI!
-```
+```bash
 pip install icon-registration
-````
+```
 
 To run our pretrained model in the cloud on 4 sample image pairs from OAI knees (as above), visit [our google colab notebook](https://colab.research.google.com/drive/1Pd3ua_NZTem3xtBvDxertzi7u3E233ZL?usp=sharing)
 
@@ -42,7 +42,7 @@ To run our pretrained model in the cloud on 4 sample image pairs from OAI knees 
 
 To train from scratch on the synthetic triangles and circles dataset:
 
-```
+```bash
 git clone https://github.com/uncbiag/ICON
 cd ICON
 
