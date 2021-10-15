@@ -18,6 +18,9 @@ jobs:
       run: |
         pip install -e .
 
-    - name: Test with unittest
+    - name: fast test with unittest
+      run: |
+        python -m unittest -k CPU
+    - name: GPU test with unittest
       run: |
         python -m unittest discover
