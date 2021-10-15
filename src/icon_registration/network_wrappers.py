@@ -17,7 +17,7 @@ def multiply_matrix_vectorfield(matrix, vectorfield):
 
 def assignIdentityMap(module, input_shape):
     module.input_shape = np.array(input_shape)
-    module.spacing = 1.0 / (module.input_shape[2::])
+    module.spacing = 1.0 / (module.input_shape[2::] - 1)
 
     _id = identity_map_multiN(module.input_shape, module.spacing)
     module.register_buffer("identityMap", torch.from_numpy(_id))
