@@ -47,8 +47,8 @@ class Test2DRegistrationTrain(unittest.TestCase):
         y = np.array(train.train2d(net, optimizer, d1, d2, epochs=50))
 
         # Test that image similarity is good enough
-        self.assertTrue(np.mean(y[-5:, 1]) < 0.1)
+        self.assertLess(np.mean(y[-5:, 1]), 0.1)
 
         # Test that folds are rare enough
-        self.assertTrue(np.mean(np.exp(y[-5:, 3] - 0.1)) < 2)
+        self.assertLess(np.mean(np.exp(y[-5:, 3] - 0.1)), 2)
         print(y)

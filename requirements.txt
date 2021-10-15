@@ -4,4 +4,5 @@ tqdm
 matplotlib
 footsteps
 scikit-learn
-itk
+itk-io
+itk-filtering
