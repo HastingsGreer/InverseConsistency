@@ -2,7 +2,7 @@ import torch
 
 
 def train2d(net, optimizer, d1, d2, epochs=400):
-
+    batch_size = net.identityMap.shape[0]
     loss_history = []
     print("[", end="")
     for epoch in range(epochs):
@@ -10,7 +10,7 @@ def train2d(net, optimizer, d1, d2, epochs=400):
         if (epoch + 1) % 50 == 0:
             print("]", end="\n[")
         for A, B in list(zip(d1, d2)):
-            if A[0].size()[0] == 128:
+            if A[0].size()[0] == batch_size:
                 image_A = A[0].cuda()
                 image_B = B[0].cuda()
                 optimizer.zero_grad()
