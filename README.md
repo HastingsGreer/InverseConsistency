@@ -3,7 +3,7 @@
 
 # ICON: Learning Regular Maps through Inverse Consistency
 
-[<img src="https://github.com/uncbiag/ICON/actions/workflows/test-action.yml/badge.svg">](https://github.com/uncbiag/ICON/actions)[<img src="https://img.shields.io/pypi/v/icon_registration.svg?color=blue">](https://pypi.org/projects/icon_registration)
+[<img src="https://github.com/uncbiag/ICON/actions/workflows/test-action.yml/badge.svg">](https://github.com/uncbiag/ICON/actions)[<img src="https://img.shields.io/pypi/v/icon_registration.svg?color=blue">](https://pypi.org/project/icon-registration)
 
 
 This is the official repository for  
