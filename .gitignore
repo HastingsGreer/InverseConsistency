@@ -8,3 +8,5 @@ notebooks/.ipynb_checkpoints/
 dist/
 build/
 src/icon_registration.egg-info/
+icon_example_data
+pretrained_OAI_model
