@@ -14,13 +14,16 @@ class TestKneeRegistration(unittest.TestCase):
         import subprocess
 
         print("Downloading test data)")
-        import urllib.request
-
-        urllib.request.urlretrieve(
-            "https://github.com/HastingsGreer/InverseConsistency/releases/download/pretrained_oai_model/icon_example_data",
-            "icon_example_data",
-        )
-        t_ds = torch.load("icon_example_data")
+        import icon_registration.test_utils
+        icon_registration.test_utils.download_test_data()
+        t_ds = torch.load(icon_registration.test_utils.TEST_DATA_DIR / "icon_example_data")
+#        import urllib.request
+#
+#        urllib.request.urlretrieve(
+#            "https://github.com/HastingsGreer/InverseConsistency/releases/download/pretrained_oai_model/icon_example_data",
+#            "icon_example_data",
+#        )
+#        t_ds = torch.load("icon_example_data")
         batched_ds = list(zip(*[t_ds[i::2] for i in range(2)]))
         net = icon_registration.pretrained_models.OAI_knees_registration_model(
             pretrained=True

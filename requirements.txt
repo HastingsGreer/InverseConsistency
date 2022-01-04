@@ -6,3 +6,4 @@ footsteps
 scikit-learn
 itk-io
 itk-filtering
+girder_client
