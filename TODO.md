@@ -7,6 +7,8 @@ Create an even easier wrapper interface that can be imported to a) get the map a
 
  - Create subpackage `icon_registration.itk_wrapper` for this functionality : done
  - It has method `register_pair(image_A, image_B)` that handles this and above (in progress)
+ - Final step, refactor `icon_registration.pretrained_models` to return an itk wrapped model and rewrite tests, notebooks to use that)
+ - Answer questions about whether to use spacing when deciding how to prepare images for model
 
 Based on this wrapper also create an easy way to evaluate the results on a test set with labels.
 
