@@ -30,7 +30,9 @@ class TestItkRegistration(unittest.TestCase):
         print(image_B.GetSpacing())
 
         phi_AB, phi_BA = icon_registration.itk_wrapper.register_pair(model, image_A, image_B)
-
+        
+        assert(isinstance(phi_AB, itk.DisplacementFieldTransform))
+        assert(isinstance(phi_BA, itk.DisplacementFieldTransform))
 
         
 
