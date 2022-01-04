@@ -29,13 +29,6 @@ net = inverseConsistentNet.InverseConsistentNet(
 
 network_wrappers.assignIdentityMap(net, input_shape)
 
-# load weights
-#net_weights = torch.load("results/double_deformable_knee3/knee_aligner_resi_net26400")
-#opt_weights = torch.load("results/double_deformable_knee3/knee_aligner_resi_opt26400")
-
-#network_wrappers.adjust_batch_size(net, 32)
-#net.load_state_dict(net_weights)
-#network_wrappers.adjust_batch_size(net, BATCH_SIZE)
 
 knees = torch.load("/playpen/tgreer/knees_big_train_set")
 
