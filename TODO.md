@@ -14,6 +14,9 @@ Based on this wrapper also create an easy way to evaluate the results on a test 
 
 Provide and clean up scripts for the training.
 
+ - The exact training scripts used for the paper have been moved into their own folder `training_scripts/oai_paper_pipeline/` (done)
+ - Next, I could clean up and document those five scripts, then run them again to verify that they still work.
+
 Support training with optionally available segmentation masks that can be incorporated in the loss.
 
 Provide some nice wrapper functionality for some good visualization (transformation grid, checkerboard, warped images and segmentations, ...)
