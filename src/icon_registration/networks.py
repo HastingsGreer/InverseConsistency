@@ -480,7 +480,7 @@ def tallerUNet2(dimension=2):
 def tallUNet2(dimension=2, input_channels=2):
     return UNet2(
         5,
-        np.array([[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]]),
+        [[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]],
         dimension,
         input_channels=input_channels,
     )
@@ -489,7 +489,7 @@ def tallUNet2(dimension=2, input_channels=2):
 def tallUNet3(normalization="batchnorm", dimension=2):
     return UNet3(
         5,
-        np.array([[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]]),
+        [[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]],
         dimension,
         normalization=normalization,
     )
