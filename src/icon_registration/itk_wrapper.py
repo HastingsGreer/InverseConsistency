@@ -88,7 +88,7 @@ def register_pair(model, image_A, image_B):
     plt.colorbar()
     plt.savefig(outdir + "warpedA.png")
     plt.clf()
-    return None, None
+    return tr, None
 
 def array_to_vector_image(array):
     # array is a numpy array of doubles of shape 

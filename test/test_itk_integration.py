@@ -33,6 +33,14 @@ class TestItkRegistration(unittest.TestCase):
         
 #        assert(isinstance(phi_AB, itk.DisplacementFieldTransform))
 #        assert(isinstance(phi_BA, itk.DisplacementFieldTransform))
+        interpolator = itk.LinearInterpolateImageFunction.New(image_A)
+
+        warped_image_A = itk.resample_image_filter(image_A, 
+            transform=phi_AB, 
+            interpolator=interpolator,
+            size=itk.size(image_B),
+            output_spacing=itk.spacing(image_B)
+        )
 
         
 
