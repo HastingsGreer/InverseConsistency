@@ -69,8 +69,7 @@ def register_pair(model, image_A, image_B):
     
     tr = itk.DisplacementFieldTransform[(itk.D, 3)].New()       
 
-    itk_disp_field = array_to_vector_image(disp_AB.long().numpy())
-
+    itk_disp_field = array_to_vector_image(disp_AB.double().numpy()[[2, 1, 0]])
     tr.SetDisplacementField(itk_disp_field)
 
     interpolator = itk.LinearInterpolateImageFunction.New(fake_A)
@@ -84,9 +83,13 @@ def register_pair(model, image_A, image_B):
 
     warped_a_arr = np.array(warped_a)
 
-    plt.imshow(warped_a_arr[40] - A_resized[0, 0, 40].cpu().numpy())
+    plt.imshow(warped_a_arr[40])
     plt.colorbar()
     plt.savefig(outdir + "warpedA.png")
+    plt.clf()
+    plt.imshow(warped_a_arr[:, 40])
+    plt.colorbar()
+    plt.savefig(outdir + "warpedA2.png")
     plt.clf()
     return tr, None
 
@@ -98,11 +101,14 @@ def array_to_vector_image(array):
     # returns image with [1, 1, 1] spacing :(
     assert isinstance(array, np.ndarray)
 
+    arrayT = array.transpose([1, 2, 3, 0])
 
     PixelType = itk.Vector[itk.D, 3]
     ImageType = itk.Image[PixelType, 3]
 
-    vector_image = itk.PyBuffer[ImageType].GetImageViewFromArray(array)
+    vector_image = itk.PyBuffer[ImageType].GetImageViewFromArray(arrayT, array.shape[1:])
+
+    print(vector_image.GetLargestPossibleRegion().GetSize())
 
     return vector_image
     
