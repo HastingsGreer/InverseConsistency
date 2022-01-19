@@ -11,10 +11,6 @@ import icon_registration.visualize
 
 def register_pair(model, image_A, image_B):
 
-
-    outdir = "/home/hastings/blog/_assets/ICON_test/"
-    import subprocess
-    subprocess.run("rm -r " + outdir + "*", shell=True)
     assert( isinstance(image_A, itk.Image))
     assert( isinstance(image_B, itk.Image))
     icon_registration.network_wrappers.adjust_batch_size(model, 1)
@@ -27,71 +23,39 @@ def register_pair(model, image_A, image_B):
 
     shape = model.identityMap.shape
 
-    print("A shape:", A_trch.shape)
-    print("B shape:", B_trch.shape)
-    
-
-
     A_resized = F.interpolate(A_trch, size=shape[2:], mode="trilinear", align_corners=False)
     B_resized = F.interpolate(B_trch, size=shape[2:], mode="trilinear", align_corners=False)
 
-    
-    print("A shape:", A_resized.shape)
-    print("B shape:", B_resized.shape)
-    print("A_max", torch.max(A_resized))
-
-    plt.imshow(A_resized[0, 0, 40].cpu())
-    plt.colorbar()
-    plt.savefig(outdir + "A_in.png")
-    plt.clf()
-
-    plt.imshow(B_resized[0, 0, 40].cpu())
-    plt.colorbar()
-    plt.savefig(outdir + "B_in.png")
-    plt.clf()
     with torch.no_grad():
         x = model(A_resized, B_resized)
     
     phi_AB = model.phi_AB(model.identityMap)[0].cpu()
     disp_AB = phi_AB - model.identityMap[0].cpu()
     disp_AB *= torch.Tensor([[[[80]]], [[[192]]], [[[192]]]])
-    icon_registration.visualize.show_as_grid(phi_AB[[1, 2], 40])
-    plt.savefig(outdir + "transform2.png")
-    plt.clf()
 
-    # Pass 1: try just using the itk utils to register not respecting spacing
-
-    fake_A = itk.image_from_array(A_resized.float().cpu()[0, 0])
-    fake_B = itk.image_from_array(B_resized.float().cpu()[0, 0])
-    
-    print(type(fake_A))
-    
-    
     tr = itk.DisplacementFieldTransform[(itk.D, 3)].New()       
 
-    itk_disp_field = array_to_vector_image(disp_AB.double().numpy()[[2, 1, 0]])
+    disp_AB_itk_format  = disp_AB.double().numpy()[[2, 1, 0]].transpose([1, 2, 3, 0])
+
+    itk_disp_field = itk.image_from_array(disp_AB_itk_format, is_vector=True)
+
+    itk_disp_field = array_to_vector_image(disp_AB_itk_format)
+
     tr.SetDisplacementField(itk_disp_field)
 
-    interpolator = itk.LinearInterpolateImageFunction.New(fake_A)
+    tr.SetDebug(True)
 
-    warped_a = itk.resample_image_filter(fake_A, 
-        transform=tr, 
-        interpolator=interpolator,
-        size=itk.size(fake_A),
-        output_spacing=itk.spacing(fake_A)
-        )
+    to_aligned = resampling_transform(image_A, [80, 192, 192])
 
-    warped_a_arr = np.array(warped_a)
+    from_aligned = resampling_transform(image_B, [80, 192, 192]).GetInverseTransform()
 
-    plt.imshow(warped_a_arr[40])
-    plt.colorbar()
-    plt.savefig(outdir + "warpedA.png")
-    plt.clf()
-    plt.imshow(warped_a_arr[:, 40])
-    plt.colorbar()
-    plt.savefig(outdir + "warpedA2.png")
-    plt.clf()
-    return tr, None
+    phi_AB_itk = itk.CompositeTransform[itk.D, 3].New()
+
+    phi_AB_itk.PrependTransform(from_aligned)
+    phi_AB_itk.PrependTransform(tr)
+    phi_AB_itk.PrependTransform(to_aligned)
+
+    return phi_AB_itk, None
 
 def array_to_vector_image(array):
     # array is a numpy array of doubles of shape 
@@ -101,15 +65,54 @@ def array_to_vector_image(array):
     # returns image with [1, 1, 1] spacing :(
     assert isinstance(array, np.ndarray)
 
-    arrayT = array.transpose([1, 2, 3, 0])
-
+    print("before:", array.shape)
     PixelType = itk.Vector[itk.D, 3]
     ImageType = itk.Image[PixelType, 3]
 
-    vector_image = itk.PyBuffer[ImageType].GetImageViewFromArray(arrayT, array.shape[1:])
+    vector_image = itk.PyBuffer[ImageType].GetImageViewFromArray(array, array.shape[:-1])
 
+    print("after:")
     print(vector_image.GetLargestPossibleRegion().GetSize())
+
 
     return vector_image
     
+def resampling_transform(image, shape):
     
+    imageType = itk.template(image)[0][itk.template(image)[1]]
+    
+    dummy_image = itk.image_from_array(np.zeros(tuple(reversed(shape)), dtype=itk.array_from_image(image).dtype))
+    if len(shape) == 2:
+        transformType = itk.MatrixOffsetTransformBase[itk.D, 2, 2]
+    else:
+        transformType = itk.VersorRigid3DTransform[itk.D]
+    initType = itk.CenteredTransformInitializer[transformType, imageType, imageType]
+    initializer = initType.New()
+    initializer.SetFixedImage(dummy_image)
+    initializer.SetMovingImage(image)
+    transform = transformType.New()
+    
+    initializer.SetTransform(transform)
+    initializer.InitializeTransform()
+    
+    if len(shape) == 3:
+        transformType = itk.MatrixOffsetTransformBase[itk.D, 3, 3]
+        t2 = transformType.New()
+        t2.SetCenter(transform.GetCenter())
+        t2.SetOffset(transform.GetOffset())
+        transform = t2
+    m = transform.GetMatrix()
+    m_a = np.array(m)
+    
+    input_shape = image.GetLargestPossibleRegion().GetSize()
+    
+    for i in range(len(shape)):
+    
+        m_a[i, i] = image.GetSpacing()[i] * (input_shape[i] / shape[i])
+    
+    m_a = image.GetDirection() @ m_a 
+    
+    transform.SetMatrix(itk.matrix_from_array(m_a))
+    
+    return transform
+     
