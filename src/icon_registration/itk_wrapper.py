@@ -101,7 +101,7 @@ def resampling_transform(image, shape):
         t2.SetOffset(transform.GetOffset())
         transform = t2
     m = transform.GetMatrix()
-    m_a = np.array(m)
+    m_a = itk.array_from_matrix(m)
     
     input_shape = image.GetLargestPossibleRegion().GetSize()
     
