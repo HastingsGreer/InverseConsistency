@@ -90,7 +90,7 @@ class TestItkRegistration(unittest.TestCase):
         files = os.listdir(icon_registration.test_utils.TEST_DATA_DIR / "knees_diverse_sizes")
         print(files)
         for f in files:
-            image = itk.imread(icon_registration.test_utils.TEST_DATA_DIR / "knees_diverse_sizes" / f)
+            image = itk.imread(str(icon_registration.test_utils.TEST_DATA_DIR / "knees_diverse_sizes" / f))
             print("\n[".join(str(image.GetDirection()).split("[")))
 
 
