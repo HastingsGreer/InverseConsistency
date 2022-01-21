@@ -63,6 +63,7 @@ class TestItkRegistration(unittest.TestCase):
 
     def test_diff_spacing_identity(self):
         # Try to create a map that maps an image into another image with different stuff
+        icon_registration.test_utils.download_test_data()
 
         print("=============================================================")
         
@@ -84,6 +85,7 @@ class TestItkRegistration(unittest.TestCase):
         
 
     def test_all_images(self):
+        icon_registration.test_utils.download_test_data()
         import os
         files = os.listdir(icon_registration.test_utils.TEST_DATA_DIR / "knees_diverse_sizes")
         print(files)
@@ -93,6 +95,8 @@ class TestItkRegistration(unittest.TestCase):
 
 
     def test_identity_remove_special_transform(self):
+
+        icon_registration.test_utils.download_test_data()
         itk_logo_location = str(icon_registration.test_utils.TEST_DATA_DIR / "itkLogo.jpg")
         logo = itk.imread(itk_logo_location)
         print(logo.GetDirection())
