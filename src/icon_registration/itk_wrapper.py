@@ -109,7 +109,7 @@ def resampling_transform(image, shape):
     
         m_a[i, i] = image.GetSpacing()[i] * (input_shape[i] / shape[i])
     
-    m_a = image.GetDirection() @ m_a 
+    m_a = itk.array_from_matrix(image.GetDirection()) @ m_a 
     
     transform.SetMatrix(itk.matrix_from_array(m_a))
     
