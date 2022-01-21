@@ -61,46 +61,4 @@ class TestItkRegistration(unittest.TestCase):
         #plt.savefig(outdir + "warped.png")
         #plt.clf()
 
-    def test_diff_spacing_identity(self):
-        # Try to create a map that maps an image into another image with different stuff
-        icon_registration.test_utils.download_test_data()
-
-        print("=============================================================")
-        
-        image_A = itk.imread(str(
-            icon_registration.test_utils.TEST_DATA_DIR / 
-            "knees_diverse_sizes" / 
-            #"9126260_20060921_SAG_3D_DESS_LEFT_11309302_image.nii.gz")
-             "9487462_20081003_SAG_3D_DESS_RIGHT_11495603_image.nii.gz")
-        )
-
-        image_B = itk.imread(str(
-            icon_registration.test_utils.TEST_DATA_DIR / 
-            "knees_diverse_sizes" / 
-            "9225063_20090413_SAG_3D_DESS_RIGHT_12784112_image.nii.gz")
-        )
-
-
-        middle_shape = [160, 160, 80]
-        
-
-    def test_all_images(self):
-        icon_registration.test_utils.download_test_data()
-        import os
-        files = os.listdir(icon_registration.test_utils.TEST_DATA_DIR / "knees_diverse_sizes")
-        print(files)
-        for f in files:
-            image = itk.imread(str(icon_registration.test_utils.TEST_DATA_DIR / "knees_diverse_sizes" / f))
-            print("\n[".join(str(image.GetDirection()).split("[")))
-
-
-    def test_identity_remove_special_transform(self):
-
-        icon_registration.test_utils.download_test_data()
-        itk_logo_location = str(icon_registration.test_utils.TEST_DATA_DIR / "itkLogo.jpg")
-        logo = itk.imread(itk_logo_location)
-        print(logo.GetDirection())
-        print(logo.GetSpacing())
-        
-        logo_no_spacing = itk.image_from_array(itk.array_from_image(logo))
 
