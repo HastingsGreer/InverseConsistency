@@ -101,7 +101,7 @@ np.random.seed(1)
 print("=" * 50)
 net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.FunctionFromVectorField(RegistrationTransformer(28)),
-    lambda x, y: torch.mean((x - y) ** 2),
+    lambda x, y: torch.mean((x[:1] - y[:1]) ** 2),
     lmbda,
 )
 
