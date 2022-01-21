@@ -50,7 +50,8 @@ class TestKneeRegistration(unittest.TestCase):
                 # First, evaluate phi_AB on a tensor of coordinates to get an explicit map.
                 phi_AB_vectorfield = net.phi_AB(net.identityMap)
                 fat_phi = torch.nn.Upsample(
-                    size=moving_cartilage.size()[2:], mode="trilinear"
+                    size=moving_cartilage.size()[2:], mode="trilinear",
+                    align_corners=False
                 )(phi_AB_vectorfield[:, :3])
                 sz = np.array(fat_phi.size())
                 spacing = 1.0 / (sz[2::] - 1)
