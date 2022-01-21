@@ -37,17 +37,15 @@ def register_pair(model, image_A, image_B):
 
     disp_AB_itk_format  = disp_AB.double().numpy()[[2, 1, 0]].transpose([1, 2, 3, 0])
 
-    itk_disp_field = itk.image_from_array(disp_AB_itk_format, is_vector=True)
-
     itk_disp_field = array_to_vector_image(disp_AB_itk_format)
 
     tr.SetDisplacementField(itk_disp_field)
 
     tr.SetDebug(True)
 
-    to_aligned = resampling_transform(image_A, [80, 192, 192])
+    to_aligned = resampling_transform(image_A, [192, 192, 80])
 
-    from_aligned = resampling_transform(image_B, [80, 192, 192]).GetInverseTransform()
+    from_aligned = resampling_transform(image_B, [192, 192, 80]).GetInverseTransform()
 
     phi_AB_itk = itk.CompositeTransform[itk.D, 3].New()
 
@@ -57,23 +55,24 @@ def register_pair(model, image_A, image_B):
 
     return phi_AB_itk, None
 
+
+anti_garbage_collection_box = []
 def array_to_vector_image(array):
     # array is a numpy array of doubles of shape 
     # 3, H, W, D
 
-    # returns an itk.Image of vectors
-    # returns image with [1, 1, 1] spacing :(
+    # returns an itk.Image of itk.Vector
     assert isinstance(array, np.ndarray)
 
-    print("before:", array.shape)
+    array = np.ascontiguousarray(array)
+
+    # if array is ever garbage collected, we crash.
+    anti_garbage_collection_box.append(array)
+
     PixelType = itk.Vector[itk.D, 3]
     ImageType = itk.Image[PixelType, 3]
 
     vector_image = itk.PyBuffer[ImageType].GetImageViewFromArray(array, array.shape[:-1])
-
-    print("after:")
-    print(vector_image.GetLargestPossibleRegion().GetSize())
-
 
     return vector_image
     

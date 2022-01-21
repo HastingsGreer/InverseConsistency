@@ -62,7 +62,10 @@ class TestItkRegistration(unittest.TestCase):
 
         plt.imshow(np.array(itk.checker_board_image_filter(warped_image_A, image_B))[40])
         plt.colorbar()
-        plt.savefig(outdir + "warped_hires.png")
+        plt.savefig(outdir + "grid.png")
+        plt.clf()
+        plt.imshow(np.array(warped_image_A)[40])
+        plt.savefig(outdir + "warped.png")
         plt.clf()
 
     def test_diff_spacing_identity(self):
