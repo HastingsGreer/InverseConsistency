@@ -30,18 +30,25 @@ def register_pair(model, image_A, image_B):
         x = model(A_resized, B_resized)
     
     phi_AB = model.phi_AB(model.identityMap)[0].cpu()
-    disp_AB = phi_AB - model.identityMap[0].cpu()
-    disp_AB *= torch.Tensor([[[[80]]], [[[192]]], [[[192]]]])
+    phi_BA = model.phi_BA(model.identityMap)[0].cpu()
+
+    return (
+        create_itk_transform(phi_AB, model.identityMap, image_A, image_B),
+        create_itk_transform(phi_BA, model.identityMap, image_B, image_A)
+    )
+
+def create_itk_transform(phi, ident, image_A, image_B):
+    
+    disp = phi - ident[0].cpu()
+    disp *= torch.Tensor([[[[80]]], [[[192]]], [[[192]]]])
 
     tr = itk.DisplacementFieldTransform[(itk.D, 3)].New()       
 
-    disp_AB_itk_format  = disp_AB.double().numpy()[[2, 1, 0]].transpose([1, 2, 3, 0])
+    disp_itk_format  = disp.double().numpy()[[2, 1, 0]].transpose([1, 2, 3, 0])
 
-    itk_disp_field = array_to_vector_image(disp_AB_itk_format)
+    itk_disp_field = array_to_vector_image(disp_itk_format)
 
     tr.SetDisplacementField(itk_disp_field)
-
-    tr.SetDebug(True)
 
     to_aligned = resampling_transform(image_A, [192, 192, 80])
 
@@ -53,7 +60,7 @@ def register_pair(model, image_A, image_B):
     phi_AB_itk.PrependTransform(tr)
     phi_AB_itk.PrependTransform(to_aligned)
 
-    return phi_AB_itk, None
+    return phi_AB_itk
 
 
 anti_garbage_collection_box = []
