@@ -4,6 +4,5 @@ tqdm
 matplotlib
 footsteps
 scikit-learn
-itk-io
-itk-filtering
+itk
 girder_client
