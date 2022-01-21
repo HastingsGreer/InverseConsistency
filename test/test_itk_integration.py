@@ -44,12 +44,6 @@ class TestItkRegistration(unittest.TestCase):
         assert(isinstance(phi_AB, itk.CompositeTransform))
         interpolator = itk.LinearInterpolateImageFunction.New(image_A)
 
-        print("pre segfault")
-        #warped_image_A = itk.resample_image_filter(image_A, 
-        #    transform=phi_AB, 
-        #    interpolator=interpolator,
-        #    size=[192, 192, 80],
-        #)
         warped_image_A = itk.resample_image_filter(image_A, 
             transform=phi_AB, 
             interpolator=interpolator,
@@ -58,15 +52,14 @@ class TestItkRegistration(unittest.TestCase):
             output_direction=image_B.GetDirection(),
             output_origin=image_B.GetOrigin()
         )
-        print("post_segfault")
 
-        plt.imshow(np.array(itk.checker_board_image_filter(warped_image_A, image_B))[40])
-        plt.colorbar()
-        plt.savefig(outdir + "grid.png")
-        plt.clf()
-        plt.imshow(np.array(warped_image_A)[40])
-        plt.savefig(outdir + "warped.png")
-        plt.clf()
+        #plt.imshow(np.array(itk.checker_board_image_filter(warped_image_A, image_B))[40])
+        #plt.colorbar()
+        #plt.savefig(outdir + "grid.png")
+        #plt.clf()
+        #plt.imshow(np.array(warped_image_A)[40])
+        #plt.savefig(outdir + "warped.png")
+        #plt.clf()
 
     def test_diff_spacing_identity(self):
         # Try to create a map that maps an image into another image with different stuff
