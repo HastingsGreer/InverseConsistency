@@ -21,3 +21,6 @@ jobs:
     - name: Test with unittest
       run: |
         python -m unittest -k CPU
+    - name: Test cpu inference
+      run: |
+        python -m unittest -k Itk

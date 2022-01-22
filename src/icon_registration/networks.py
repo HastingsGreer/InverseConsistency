@@ -3,7 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 import numpy as np
 from .mermaidlite import compute_warped_image_multiNC, identity_map_multiN
-
+import icon_registration.config as config
 
 class Autoencoder(nn.Module):
     def __init__(self, num_layers, channels):
@@ -576,20 +576,20 @@ class DenseMatrixNet(nn.Module):
         if self.dimension == 3:
             x = torch.reshape(x, (-1, 3, 4))
             x = torch.cat(
-                [x, torch.Tensor([[[0, 0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+                [x, torch.Tensor([[[0, 0, 0, 1]]]).to(config.device).expand(x.shape[0], -1, -1)], 1
             )
             x = (
                 x
                 + torch.Tensor(
                     [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
-                ).cuda()
+                ).to(config.device)
             )
         elif self.dimension == 2:
             x = torch.reshape(x, (-1, 2, 3))
             x = torch.cat(
-                [x, torch.Tensor([[[0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+                [x, torch.Tensor([[[0, 0, 1]]]).to(config.device).expand(x.shape[0], -1, -1)], 1
             )
-            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).cuda()
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).to(config.device)
         else:
             raise ArgumentError()
         return x
@@ -636,37 +636,37 @@ class ConvolutionalMatrixNet(nn.Module):
         if self.dimension == 3:
             x = torch.reshape(x, (-1, 3, 4))
             x = torch.cat(
-                [x, torch.Tensor([[[0, 0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+                [x, torch.Tensor([[[0, 0, 0, 1]]]).to(config.device).expand(x.shape[0], -1, -1)], 1
             )
             x = (
                 x
                 + torch.Tensor(
                     [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
-                ).cuda()
+                ).to(config.device)
             )
             x = torch.matmul(
                 torch.Tensor(
                     [[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 0.5], [0, 0, 0, 1]]
-                ).cuda(),
+                ).to(config.device),
                 x,
             )
             x = torch.matmul(
                 x,
                 torch.Tensor(
                     [[1, 0, 0, -0.5], [0, 1, 0, -0.5], [0, 0, 1, -0.5], [0, 0, 0, 1]]
-                ).cuda(),
+                ).to(config.device),
             )
         elif self.dimension == 2:
             x = torch.reshape(x, (-1, 2, 3))
             x = torch.cat(
-                [x, torch.Tensor([[[0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+                [x, torch.Tensor([[[0, 0, 1]]]).to(config.device).expand(x.shape[0], -1, -1)], 1
             )
-            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).cuda()
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).to(config.device)
             x = torch.matmul(
-                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).cuda(), x
+                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).to(config.device), x
             )
             x = torch.matmul(
-                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).cuda()
+                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).to(config.device)
             )
         else:
             raise ArgumentError()
@@ -713,37 +713,37 @@ class StumpyConvolutionalMatrixNet(nn.Module):
         if self.dimension == 3:
             x = torch.reshape(x, (-1, 3, 4))
             x = torch.cat(
-                [x, torch.Tensor([[[0, 0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+                [x, torch.Tensor([[[0, 0, 0, 1]]]).to(config.device).expand(x.shape[0], -1, -1)], 1
             )
             x = (
                 x
                 + torch.Tensor(
                     [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
-                ).cuda()
+                ).to(config.device)
             )
             x = torch.matmul(
                 torch.Tensor(
                     [[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 0.5], [0, 0, 0, 1]]
-                ).cuda(),
+                ).to(config.device),
                 x,
             )
             x = torch.matmul(
                 x,
                 torch.Tensor(
                     [[1, 0, 0, -0.5], [0, 1, 0, -0.5], [0, 0, 1, -0.5], [0, 0, 0, 1]]
-                ).cuda(),
+                ).to(config.device),
             )
         elif self.dimension == 2:
             x = torch.reshape(x, (-1, 2, 3))
             x = torch.cat(
-                [x, torch.Tensor([[[0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+                [x, torch.Tensor([[[0, 0, 1]]]).to(config.device).expand(x.shape[0], -1, -1)], 1
             )
-            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).cuda()
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).to(config.device)
             x = torch.matmul(
-                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).cuda(), x
+                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).to(config.device), x
             )
             x = torch.matmul(
-                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).cuda()
+                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).to(config.device)
             )
         else:
             raise ArgumentError()
