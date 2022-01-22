@@ -2,6 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 from .mermaidlite import compute_warped_image_multiNC, identity_map_multiN
+import icon_registration.config as config
 
 
 class InverseConsistentNet(nn.Module):
@@ -58,7 +59,7 @@ class InverseConsistentNet(nn.Module):
 
         Iepsilon = (
             self.identityMap
-            + torch.randn(*self.identityMap.shape).cuda()
+            + torch.randn(*self.identityMap.shape).to(config.device)
             * 1
             / self.identityMap.shape[-1]
         )

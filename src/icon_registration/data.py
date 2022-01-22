@@ -4,6 +4,7 @@ import random
 import torchvision
 import numpy as np
 import torch.nn.functional as F
+import icon_registration.config as config
 
 
 def get_dataset_mnist(split, number=5):
@@ -120,5 +121,5 @@ def get_knees_dataset():
 def make_batch(data, BATCH_SIZE, SCALE):
     image = torch.cat([random.choice(data) for _ in range(BATCH_SIZE)])
     image = image.reshape(BATCH_SIZE, 1, SCALE * 40, SCALE * 96, SCALE * 96)
-    image = image.cuda()
+    image = image.to(config.device)
     return image

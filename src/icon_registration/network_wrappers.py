@@ -3,6 +3,7 @@ from torch import nn
 import torch.nn.functional as F
 import numpy as np
 from .mermaidlite import compute_warped_image_multiNC, identity_map_multiN
+import icon_registration.config as config
 
 
 def multiply_matrix_vectorfield(matrix, vectorfield):
@@ -114,7 +115,7 @@ class DoubleNet(nn.Module):
         self.netPhi = netPhi
 
     def forward(self, x, y):
-        # Tag for optimization. Must be set at the beginning of forward because it is not preserved by .cuda()
+        # Tag for optimization. Must be set at the beginning of forward because it is not preserved by .to(config.device)
         self.identityMap.isIdentity = True
         phi = self.netPhi(x, y)
         phi_vectorfield = phi(self.identityMap)
@@ -192,14 +193,14 @@ class AffineFromUNet(nn.Module):
             x = torch.cat([A, b], axis=-1)
 
             x = torch.cat(
-                [x, torch.Tensor([[[0, 0, 1]]]).cuda().expand(x.shape[0], -1, -1)], 1
+                [x, torch.Tensor([[[0, 0, 1]]]).to(config.device).expand(x.shape[0], -1, -1)], 1
             )
-            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).cuda()
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).to(config.device)
             x = torch.matmul(
-                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).cuda(), x
+                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).to(config.device), x
             )
             x = torch.matmul(
-                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).cuda()
+                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).to(config.device)
             )
             return x
         if self.dimension == 3:
@@ -225,7 +226,7 @@ class AffineFromUNet(nn.Module):
                 [
                     x,
                     torch.Tensor([[[0, 0, 0, 1]]])
-                    .cuda()
+                    .to(config.device)
                     .expand(x.shape[0], -1, -1, -1),
                 ],
                 1,
@@ -234,12 +235,12 @@ class AffineFromUNet(nn.Module):
                 x
                 + torch.Tensor(
                     [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
-                ).cuda()
+                ).to(config.device)
             )
             x = torch.matmul(
-                torch.Tensor([[1, 0, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).cuda(), x
+                torch.Tensor([[1, 0, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).to(config.device), x
             )
             x = torch.matmul(
-                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).cuda()
+                x, torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).to(config.device)
             )
             return x

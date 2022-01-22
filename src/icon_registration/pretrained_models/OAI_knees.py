@@ -6,6 +6,7 @@ from ..mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 from .. import inverseConsistentNet
 from .. import networks
 from .. import network_wrappers
+import icon_registration.config as config
 
 import numpy as np
 
@@ -48,13 +49,13 @@ def OAI_knees_registration_model(pretrained=True):
             urllib.request.urlretrieve(
               "https://github.com/HastingsGreer/InverseConsistency/releases/download/pretrained_oai_model/knee_aligner_resi_net99900", "pretrained_OAI_model")
 
-        trained_weights = torch.load("pretrained_OAI_model")
+        trained_weights = torch.load("pretrained_OAI_model", map_location=torch.device("cpu"))
         fourth_net.load_state_dict(trained_weights)
 
     net = fourth_net
     BATCH_SIZE = 2
     network_wrappers.adjust_batch_size(net, BATCH_SIZE)
-    net.cuda()
+    net.to(config.device)
     net.eval()
     return net
 

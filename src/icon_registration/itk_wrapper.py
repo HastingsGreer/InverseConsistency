@@ -9,17 +9,19 @@ import icon_registration.network_wrappers
 
 import icon_registration.visualize
 
+import icon_registration.config as config
+
 def register_pair(model, image_A, image_B):
 
     assert( isinstance(image_A, itk.Image))
     assert( isinstance(image_B, itk.Image))
     icon_registration.network_wrappers.adjust_batch_size(model, 1)
-    model.cuda() 
+    model.to(config.device) 
 
     A_npy = np.array(image_A)
     B_npy = np.array(image_B)
-    A_trch = torch.Tensor(A_npy).cuda()[None, None]
-    B_trch = torch.Tensor(B_npy).cuda()[None, None]
+    A_trch = torch.Tensor(A_npy).to(config.device)[None, None]
+    B_trch = torch.Tensor(B_npy).to(config.device)[None, None]
 
     shape = model.identityMap.shape
 
