@@ -36,7 +36,8 @@ We are available on PyPI!
 pip install icon-registration
 ```
 
-To run our pretrained model in the cloud on 4 sample image pairs from OAI knees (as above), visit [our google colab notebook](https://colab.research.google.com/drive/1Pd3ua_NZTem3xtBvDxertzi7u3E233ZL?usp=sharing)
+
+To run our pretrained model in the cloud on 4 sample image pairs from OAI knees, visit [our google colab notebook](https://colab.research.google.com/drive/1svftgw-vYWnLp9lSf3UkrG547atjbIrg?usp=sharing)
 
 ----------------
 
