@@ -37,7 +37,7 @@ pip install icon-registration
 ```
 
 
-To run our pretrained model in the cloud on 4 sample image pairs from OAI knees, visit [our google colab notebook](https://colab.research.google.com/drive/1svftgw-vYWnLp9lSf3UkrG547atjbIrg?usp=sharing)
+To run our pretrained model in the cloud on sample images from OAI knees, visit [our google colab notebook](https://colab.research.google.com/drive/1svftgw-vYWnLp9lSf3UkrG547atjbIrg?usp=sharing)
 
 ----------------
 
