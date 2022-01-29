@@ -42,21 +42,28 @@ def register_pair(model, image_A, image_B):
 def create_itk_transform(phi, ident, image_A, image_B):
     
     disp = phi - ident[0].cpu()
-    disp *= torch.Tensor([[[[80]]], [[[192]]], [[[192]]]])
 
-    tr = itk.DisplacementFieldTransform[(itk.D, 3)].New()       
+    network_shape_list = list(ident.shape[2:])
 
-    disp_itk_format  = disp.double().numpy()[[2, 1, 0]].transpose([1, 2, 3, 0])
+    dimension = len(network_shape_list)
+
+    scale = torch.Tensor(network_shape_list)
+    for _ in network_shape_list:
+        scale = scale[:, None]
+    disp *= scale
+    tr = itk.DisplacementFieldTransform[(itk.D, dimension)].New()       
+
+    disp_itk_format  = disp.double().numpy()[list(reversed(range(dimension)))].transpose(list(range(1, dimension + 1)) + [0])
 
     itk_disp_field = array_to_vector_image(disp_itk_format)
 
     tr.SetDisplacementField(itk_disp_field)
 
-    to_aligned = resampling_transform(image_A, [192, 192, 80])
+    to_aligned = resampling_transform(image_A, list(reversed(network_shape_list)))
 
-    from_aligned = resampling_transform(image_B, [192, 192, 80]).GetInverseTransform()
+    from_aligned = resampling_transform(image_B, list(reversed(network_shape_list))).GetInverseTransform()
 
-    phi_AB_itk = itk.CompositeTransform[itk.D, 3].New()
+    phi_AB_itk = itk.CompositeTransform[itk.D, dimension].New()
 
     phi_AB_itk.PrependTransform(from_aligned)
     phi_AB_itk.PrependTransform(tr)
