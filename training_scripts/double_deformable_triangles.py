@@ -35,16 +35,6 @@ net = inverseConsistentNet.InverseConsistentNet(
 
 input_shape = next(iter(d1))[0].size()
 network_wrappers.assignIdentityMap(net, input_shape)
-# pretrained_weights = torch.load("results/affine_triangle_pretrain/epoch000case0.png")
-# pretrained_weights = OrderedDict(
-#    [
-#        (a.split("regis_net.")[1], b)
-#        for a, b in pretrained_weights.items()
-#        if "regis_net" in a
-#    ]
-# )
-
-# net.affine_regis_net.load_state_dict(pretrained_weights)
 net.cuda()
 
 import icon_registration.train as train
