@@ -87,6 +87,106 @@ class InverseConsistentNet(nn.Module):
             transform_magnitude,
             flips(self.phi_BA_vectorfield)
         )
+    
+class GradientICON(nn.Module):
+    def __init__(self, network, similarity, lmbda):
+
+        super(GradientICON, self).__init__()
+
+        self.regis_net = network
+        self.lmbda = lmbda
+        self.similarity = similarity
+
+    def forward(self, image_A, image_B):
+        
+        assert self.identityMap.shape[2:] == image_A.shape[2:]
+        assert self.identityMap.shape[2:] == image_B.shape[2:]
+
+        # Tag used elsewhere for optimization.
+        # Must be set at beginning of forward b/c not preserved by .cuda() etc
+        self.identityMap.isIdentity = True
+
+        self.phi_AB = self.regis_net(image_A, image_B)
+        self.phi_BA = self.regis_net(image_B, image_A)
+
+        self.phi_AB_vectorfield = self.phi_AB(self.identityMap)
+        self.phi_BA_vectorfield = self.phi_BA(self.identityMap)
+
+        # tag images during warping so that the similarity measure
+        # can use information about whether a sample is interpolated
+        # or extrapolated
+
+        inbounds_tag = torch.zeros(tuple(self.input_shape), device=image_A.device)
+        if len(self.input_shape) - 2 == 3:
+            inbounds_tag[:, :, 1:-1, 1:-1, 1:-1] = 1.0
+        else:
+            inbounds_tag[:, :, 1:-1, 1:-1] = 1.0
+
+        self.warped_image_A = compute_warped_image_multiNC(
+            torch.cat([image_A, inbounds_tag], axis=1),
+            self.phi_AB_vectorfield,
+            self.spacing,
+            1,
+        )
+        self.warped_image_B = compute_warped_image_multiNC(
+            torch.cat([image_B, inbounds_tag], axis=1),
+            self.phi_BA_vectorfield,
+            self.spacing,
+            1,
+        )
+
+        similarity_loss = self.similarity(
+            self.warped_image_A, image_B
+        ) + self.similarity(self.warped_image_B, image_A)
+
+        Iepsilon = (
+            self.identityMap
+            + torch.randn(*self.identityMap.shape).to(config.device)
+            * 1
+            / self.identityMap.shape[-1]
+        )
+
+        # compute squared Frobenius of Jacobian of icon error
+
+        direction_losses = []
+
+        approximate_Iepsilon = self.phi_AB(self.phi_BA(Iepsilon))
+
+        inverse_consistency_error = Iepsilon - approximate_Iepsilon
+
+        delta = .001
+
+        if len(self.identityMap.shape) == 4:
+            dx = torch.Tensor([[[[delta]], [[0.]]]]).to(config.device)
+            dy = torch.Tensor([[[[0.]], [[delta]]]]).to(config.device)
+            direction_vectors = (dx, dy)
+
+        elif len(self.identityMap.shape == 5):
+            dx = torch.Tensor([[[[[delta]]], [[[0.]]], [[[0.]]]]]).to(config.device)
+            dy = torch.Tensor([[[[[0.]]], [[[delta]]], [[[0.]]]]]).to(config.device)
+            dz = torch.Tensor([[[[0.]]], [[[0.]]], [[[delta]]]]).to(config.device)
+            direction_vectors = (dx, dy, dz)
+
+        for d in direction_vectors:
+            approximate_Iepsilon_d = self.phi_AB(self.phi_BA(Iepsilon + d))
+            inverse_consistency_error_d = Iepsilon + d - approximate_Iepsilon_d
+            grad_d_icon_error = (inverse_consistency_error - inverse_consistency_error_d) / delta
+            direction_losses.append(torch.mean(grad_d_icon_error**2))
+
+        inverse_consistency_loss = sum(direction_losses)
+       
+        all_loss = self.lmbda * inverse_consistency_loss + similarity_loss
+
+        transform_magnitude = torch.mean(
+            (self.identityMap - self.phi_AB_vectorfield) ** 2
+        )
+        return (
+            all_loss,
+            inverse_consistency_loss,
+            similarity_loss,
+            transform_magnitude,
+            flips(self.phi_BA_vectorfield)
+        )
 
 
 def normalize(image):
