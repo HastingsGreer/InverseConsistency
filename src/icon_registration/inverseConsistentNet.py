@@ -161,7 +161,7 @@ class GradientICON(nn.Module):
             dy = torch.Tensor([[[[0.]], [[delta]]]]).to(config.device)
             direction_vectors = (dx, dy)
 
-        elif len(self.identityMap.shape == 5):
+        elif len(self.identityMap.shape) == 5:
             dx = torch.Tensor([[[[[delta]]], [[[0.]]], [[[0.]]]]]).to(config.device)
             dy = torch.Tensor([[[[[0.]]], [[[delta]]], [[[0.]]]]]).to(config.device)
             dz = torch.Tensor([[[[0.]]], [[[0.]]], [[[delta]]]]).to(config.device)
