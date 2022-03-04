@@ -231,8 +231,10 @@ class UNet2(nn.Module):
             )
             # x = self.residues[depth](x)
             x = self.batchNorms[depth](x)
-
-            x = x[:, :, : skips[depth].size()[2], : skips[depth].size()[3]]
+            if self.dimension == 2:
+                x = x[:, :, : skips[depth].size()[2], : skips[depth].size()[3]]
+            else:
+                x = x[:, :, : skips[depth].size()[2], : skips[depth].size()[3], :skips[depth].size()[4]]
             x = torch.cat([x, skips[depth]], 1)
         x = self.lastConv(x)
         return x / 10
