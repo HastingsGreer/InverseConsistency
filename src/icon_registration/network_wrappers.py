@@ -25,7 +25,7 @@ def assignIdentityMap(module, input_shape):
 
     if "downscale_factor" in vars(module):
         child_shape = np.concatenate(
-            [module.input_shape[:2], module.input_shape[2:] // module.downscale_factor]
+            [module.input_shape[:2], np.ceil(module.input_shape[2:] / module.downscale_factor).astype(int)]
         )
     else:
         child_shape = module.input_shape
