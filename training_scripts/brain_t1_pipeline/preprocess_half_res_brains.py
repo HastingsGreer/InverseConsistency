@@ -6,9 +6,9 @@ footsteps.initialize(output_root="/playpen-ssd/tgreer/ICON_brain_preprocessed_da
 
 def process(iA, isSeg=False):
     iA = iA[None, None, :, :, :]
-    iA = torch.nn.functional.avg_pool3d(iA, 2)
+    iA = torch.nn.functional.avg_pool3d(iA, 4)
     return iA
-
+downsample = 4
 for split in ["train"]:
     with open(f"splits/{split}.txt") as f:
         image_paths = f.readlines()
@@ -21,12 +21,16 @@ for split in ["train"]:
     import glob
 
     ds = []
+
+    # /playpen-raid2/Data/HCP/HCP_1200/100206/T1w/T1w_acpc_dc.nii.gz
+    # ==>
+    # /playpen-raid2/Data/HCP/HCP_1200/100206/T1w/T1w_acpc_dc_restore_brain.nii.gz
     for name in tqdm.tqdm(list(iter(image_paths))[:]):
-        name = name[:-1] # remove newline
+        name = name.split(".nii.gz")[0] + "_restore_brain.nii.gz"
 
         image = torch.tensor(np.asarray(itk.imread(name)))
 
         ds.append(process(image))
 
-    torch.save(ds, f"{footsteps.output_dir}/brain_{split}_2xdown_scaled")
+    torch.save(ds, f"{footsteps.output_dir}/brain_{split}_4xdown_scaled")
 
