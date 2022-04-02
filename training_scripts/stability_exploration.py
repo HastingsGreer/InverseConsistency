@@ -24,10 +24,10 @@ for data_size in (32, 64, 128, 256, 512):
     np.random.seed(1)
 
     d1, d2 = data.get_dataset_triangles(
-        "train", data_size=50, hollow=False, batch_size=batch_size
+        "train", data_size=data_size, hollow=False, batch_size=batch_size
     )
     d1_t, d2_t = data.get_dataset_triangles(
-        "test", data_size=50, hollow=False, batch_size=batch_size
+        "test", data_size=data_size, hollow=False, batch_size=batch_size
     )
     t_image_A, t_image_B = (x[0].cuda() for x in next(zip(d1_t, d2_t)))
     for lr in (.0001, .001, .01):
@@ -41,7 +41,7 @@ for data_size in (32, 64, 128, 256, 512):
                     else:
                         inner_net = networks.tallUNet2(dimension=2)
 
-                    net = inverseConsistentNet.__getattr__(loss)(
+                    net = getattr(inverseConsistentNet, loss)(
                         network_wrappers.FunctionFromVectorField(inner_net),
                         # Our image similarity metric. The last channel of x and y is whether the value is interpolated or extrapolated, 
                         # which is used by some metrics but not this one
@@ -78,12 +78,12 @@ for data_size in (32, 64, 128, 256, 512):
                     # torch.manual_seed(1)
                     # torch.cuda.manual_seed(1)
                     # np.random.seed(1)
-                    net(image_A_t, image_B_t)
-                    for N in range(3):
+                    net(t_image_A, t_image_B)
+                    for N in range(6):
                         visualize.visualizeRegistration(
                             net,
-                            image_A,
-                            image_B,
+                            t_image_A,
+                            t_image_B,
                             N,
                             output_dir + f"epoch{_:03}" + "case" + str(N) + ".png",
                         )
