@@ -193,6 +193,29 @@ def compute_warped_image_multiNC(
         )
     else:
         raise ValueError("Images can only be warped in dimensions 1 to 3")
+        
+def _compute_warped_image_multiNC_1d(I0, phi, spacing, spline_order, zero_boundary=False, use_01_input=True):
+
+    if spline_order not in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+        raise ValueError('Currently only orders 0 to 9 are supported')
+
+    if spline_order == 0:
+        stn = STN_ND_BCXYZ(spacing,
+                           zero_boundary,
+                           use_bilinear=False,
+                           use_01_input=use_01_input)
+    elif spline_order == 1:
+        stn = STN_ND_BCXYZ(spacing,
+                           zero_boundary,
+                           use_bilinear=True,
+                           use_01_input=use_01_input)
+    else:
+        stn = SplineInterpolation_ND_BCXYZ(spacing,
+                                           spline_order)
+
+    I1_warped = stn(I0, phi)
+
+    return I1_warped
 
 
 def _compute_warped_image_multiNC_2d(
