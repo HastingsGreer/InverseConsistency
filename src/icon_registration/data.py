@@ -35,6 +35,26 @@ def get_dataset_mnist(split, number=5):
     )
     return d1, d2
 
+def get_dataset_1d(
+    split, data_size=128, samples=6000, batch_size=128
+):
+    x = np.arange(0, 1, 1/data_size)
+    x = np.reshape(x, (1, data_size))
+    cx = np.random.random((samples, 1)) * 0.3 + 0.4
+    r = np.random.random((samples, 1)) * 0.2 + 0.2
+
+    circles = np.tanh(-40 * (np.sqrt((x - cx) ** 2 ) - r))
+
+    ds = torch.utils.data.TensorDataset(torch.Tensor(np.expand_dims(circles, 1)))
+    d1, d2 = (
+        torch.utils.data.DataLoader(
+            ds,
+            batch_size=batch_size,
+            shuffle=True,
+        )
+        for _ in (1, 1)
+    )
+    return d1, d2
 
 def get_dataset_triangles(
     split, data_size=128, hollow=False, samples=6000, batch_size=128
