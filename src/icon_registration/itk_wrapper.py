@@ -55,7 +55,7 @@ def create_itk_transform(phi, ident, image_A, image_B):
 
     disp_itk_format  = disp.double().numpy()[list(reversed(range(dimension)))].transpose(list(range(1, dimension + 1)) + [0])
 
-    itk_disp_field = array_to_vector_image(disp_itk_format)
+    itk_disp_field = itk.image_from_array(disp_itk_format, is_vector=True)
 
     tr.SetDisplacementField(itk_disp_field)
 
@@ -71,26 +71,6 @@ def create_itk_transform(phi, ident, image_A, image_B):
 
     return phi_AB_itk
 
-
-anti_garbage_collection_box = []
-def array_to_vector_image(array):
-    # array is a numpy array of doubles of shape 
-    # 3, H, W, D
-
-    # returns an itk.Image of itk.Vector
-    assert isinstance(array, np.ndarray)
-
-    array = np.ascontiguousarray(array)
-
-    # if array is ever garbage collected, we crash.
-    anti_garbage_collection_box.append(array)
-
-    PixelType = itk.Vector[itk.D, 3]
-    ImageType = itk.Image[PixelType, 3]
-
-    vector_image = itk.PyBuffer[ImageType].GetImageViewFromArray(array, array.shape[:-1])
-
-    return vector_image
     
 def resampling_transform(image, shape):
     
