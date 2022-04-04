@@ -518,6 +518,23 @@ class RegisNet(nn.Module):
         return self.conv6(x)
 
 
+class FCNet1D(nn.Module):
+    def __init__(self, size=28):
+        super().__init__()
+        self.size = size
+        self.dense1 = nn.Linear(size * 2, 8000)
+        self.dense2 = nn.Linear(8000, 3000)
+        self.dense3 = nn.Linear(3000, size)
+        torch.nn.init.zeros_(self.dense3.weight)
+
+    def forward(self, x, y):
+        x = torch.reshape(torch.cat([x, y], 1), (-1, 2 * self.size))
+        x = F.relu(self.dense1(x))
+        x = F.relu(self.dense2(x))
+        x = self.dense3(x)
+        x = torch.reshape(x, (-1, 1, self.size))
+        return x
+
 class FCNet(nn.Module):
     def __init__(self, size=28):
         super(FCNet, self).__init__()

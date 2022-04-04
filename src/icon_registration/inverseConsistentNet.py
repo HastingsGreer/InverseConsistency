@@ -37,8 +37,10 @@ class InverseConsistentNet(nn.Module):
         inbounds_tag = torch.zeros(tuple(self.input_shape), device=image_A.device)
         if len(self.input_shape) - 2 == 3:
             inbounds_tag[:, :, 1:-1, 1:-1, 1:-1] = 1.0
-        else:
+        elif len(self.input_shape) - 2 == 2:
             inbounds_tag[:, :, 1:-1, 1:-1] = 1.0
+        else:
+            inbounds_tag[:, :, 1:-1] = 1.0
 
         self.warped_image_A = compute_warped_image_multiNC(
             torch.cat([image_A, inbounds_tag], axis=1),
@@ -119,8 +121,10 @@ class GradientICON(nn.Module):
         inbounds_tag = torch.zeros(tuple(self.input_shape), device=image_A.device)
         if len(self.input_shape) - 2 == 3:
             inbounds_tag[:, :, 1:-1, 1:-1, 1:-1] = 1.0
-        else:
+        elif len(self.input_shape) - 2 == 2:
             inbounds_tag[:, :, 1:-1, 1:-1] = 1.0
+        else:
+            inbounds_tag[:, :, 1:-1] = 1.0
 
         self.warped_image_A = compute_warped_image_multiNC(
             torch.cat([image_A, inbounds_tag], axis=1),
@@ -166,6 +170,9 @@ class GradientICON(nn.Module):
             dy = torch.Tensor([[[[[0.]]], [[[delta]]], [[[0.]]]]]).to(config.device)
             dz = torch.Tensor([[[[0.]]], [[[0.]]], [[[delta]]]]).to(config.device)
             direction_vectors = (dx, dy, dz)
+        elif len(self.identityMap.shape) == 3:
+            dx = torch.Tensor([[[delta]]]).to(config.device)
+            direction_vectors = (dx,)
 
         for d in direction_vectors:
             approximate_Iepsilon_d = self.phi_AB(self.phi_BA(Iepsilon + d))
@@ -211,8 +218,10 @@ def ncc(image_A, image_B):
 def ssd_only_interpolated(image_A, image_B):
     if len(image_A.shape) - 2 == 3:
         dimensions_to_sum_over = [2, 3, 4]
-    else:
+    elif len(image_A.shape) - 2 == 2:
         dimensions_to_sum_over = [2, 3]
+    elif len(image_A.shape) - 2 == 1:
+        dimensions_to_sum_over = [2]
     inbounds_mask = image_A[:, 1:]
     image_A = image_A[:, :1]
     inbounds_squared_distance = inbounds_mask * (image_A - image_B) ** 2
