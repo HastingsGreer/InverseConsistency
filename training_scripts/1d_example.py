@@ -25,7 +25,7 @@ d1_t, d2_t = data.get_dataset_1d(
 )
 
 
-lmbda = 2048
+lmbda = 20
 random.seed(1)
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
@@ -69,6 +69,7 @@ for _ in range(40):
     # torch.cuda.manual_seed(1)
     # np.random.seed(1)
     image_A, image_B = (x[0].cuda() for x in next(zip(d1_t, d2_t)))
+    net(image_A, image_B)
     for N in range(3):
         def plot(im):
             plt.plot(im[0].cpu().detach())
@@ -83,7 +84,7 @@ for _ in range(40):
         plot(net.warped_image_A[N])
         plt.subplot(2, 2, 4)
         plt.title("vectorfield")
-        plot(net.phi_AB_vectorfield)
+        plot(net.phi_AB_vectorfield[N])
         plt.savefig(
             footsteps.output_dir + f"epoch{_:03}" + "case" + str(N) + ".png",
         )
