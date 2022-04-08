@@ -13,6 +13,7 @@ import os
 import pickle
 
 import footsteps
+footsteps.initialize()
 
 import argparse
 
