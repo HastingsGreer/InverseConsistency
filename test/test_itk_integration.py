@@ -17,7 +17,7 @@ class TestItkRegistration(unittest.TestCase):
 
         icon_registration.test_utils.download_test_data()
 
-        model = icon_registration.pretrained_models.OAI_knees_registration_model(
+        model = icon_registration.pretrained_models.OAI_knees_gradICON_model(
             pretrained=True
         )
 
@@ -64,9 +64,19 @@ class TestItkRegistration(unittest.TestCase):
         reference = np.load(icon_registration.test_utils.TEST_DATA_DIR / "warped.npy")
 
         np.save(footsteps.output_dir + "warped.npy", itk.array_from_image(warped_image_A)[40] )
+        itk.transformwrite([phi_AB], footsteps.output_dir + "phi_AB.tfm")
+
+        print(itk.transformread(footsteps.output_dir + "phi_AB.tfm"))
         
+        print("Error:", np.mean(np.abs(itk.array_from_image(image_B) - itk.array_from_image(warped_image_A))))
         self.assertLess(np.mean(np.abs(reference - itk.array_from_image(warped_image_A)[40])), 1e-6)
 
+
+#        writer = itk.TransformFileWriterTemplate[itk.D].New()
+#        writer.SetFileName(footsteps.output_dir + "phi_AB.tfm")
+#        writer.SetInput(phi_AB)
+#        writer.Update()
+#
 
 
 
