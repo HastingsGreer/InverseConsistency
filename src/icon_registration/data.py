@@ -92,6 +92,72 @@ def get_dataset_triangles(
     )
     return d1, d2
 
+def get_dataset_retina(extra_deformation=False, downsample_factor=4, blur_sigma=None, warps_per_pair=20, fixed_vertical_offset=None):
+    try:
+        import hub
+        import elasticdeform
+    except:
+        
+        raise Exception("the retina dataset requires the dependencies hub and elasticdeform. \n Try pip install hub elasticdeform")
+
+    res = []
+    for batch in hub.load("hub://activeloop/drive-train").pytorch(num_workers=0, batch_size=4, shuffle=False):
+      res.append(batch["manual_masks/mask"] ^ batch["masks/mask"])
+    res = torch.cat(res)
+    ds_tensor = res[:, None, :, :, 0] * -1.0
+    ds_tensor.shape
+
+    if fixed_vertical_offset is not None:
+        ds2_tensor = torch.cat([torch.zeros(20, 1, fixed_vertical_offset, 565), ds_tensor], axis=2)
+        ds1_tensor = torch.cat([ds_tensor, torch.zeros(20, 1, fixed_vertical_offset, 565)], axis=2)
+    else:
+        ds2_tensor = ds_tensor
+        ds1_tensor = ds_tensor
+
+    warped_tensors = []
+    print("warping images to generate dataset")
+    for _ in tqdm.tqdm(range(warps_per_pair)):
+        ds_2_list = []
+        for el in ds2_tensor:
+            case = el[0]
+            #TODO implement random warping on gpu
+            case_warped = np.array(case)
+            if extra_deformation:
+                case_warped = elasticdeform.deform_random_grid(case_warped, sigma=60, points=3)
+            case_warped = elasticdeform.deform_random_grid(case_warped, sigma=25, points=3)
+
+            case_warped = elasticdeform.deform_random_grid(case_warped, sigma=12, points=6)
+            ds_2_list.append(torch.tensor(case_warped)[None, None, :, :])
+            ds_2_tensor = torch.cat(ds_2_list)
+            warped_tensors.append(ds_2_tensor)
+
+    augmented_ds2_tensor = torch.cat(warped_tensors)
+    augmented_ds1_tensor = torch.cat([ds1_tensor for _ in range(warps_per_pair)])
+
+    batch_size = 10
+    import torchvision.transforms.functional as Fv
+    if blur_sigma is None:
+        ds1 = torch.utils.data.TensorDataset(F.avg_pool2d(augmented_ds1_tensor, downsample_factor))
+    else:
+        ds1 = torch.utils.data.TensorDataset(Fv.gaussian_blur(F.avg_pool2d(augmented_ds1_tensor, downsample_factor), 4 * blur_sigma + 1, blur_sigma))
+    d1= torch.utils.data.DataLoader(
+            ds1,
+            batch_size=batch_size,
+            shuffle=False,
+        )
+    if blur_sigma is None:
+        ds2 = torch.utils.data.TensorDataset(F.avg_pool2d(augmented_ds2_tensor, downsample_factor))
+    else:
+        ds2 = torch.utils.data.TensorDataset(Fv.gaussian_blur(F.avg_pool2d(augmented_ds2_tensor, downsample_factor), 4 * blur_sigma + 1, blur_sigma))
+
+    d2= torch.utils.data.DataLoader(
+            ds2,
+            batch_size=batch_size,
+            shuffle=False,
+        )
+
+    return d1, d2
+
 
 def get_dataset_sunnyside(split, scale=1):
     import pickle
