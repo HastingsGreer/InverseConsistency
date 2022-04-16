@@ -31,6 +31,9 @@ if __name__ == "__main__":
     net = make_network()
 
     input_shape = next(iter(ds1))[0].size()
+
+    next(iter(ds2)) # keep them synchonized
+
     network_wrappers.assignIdentityMap(net, input_shape)
     net.cuda()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
@@ -51,7 +54,8 @@ if __name__ == "__main__":
           image_A,
           image_B,
           N,
-          f"{footsteps.output_dir}test{N}.png"
+          f"{footsteps.output_dir}test{N}.png",
+          linewidth=.25
       )
 
 
