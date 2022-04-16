@@ -252,9 +252,9 @@ class BlurredSSD:
 
 
 def ssd_only_interpolated(image_A, image_B):
-    if len(image_A.shape) - 3 == 3:
-        dimensions_to_sum_over = [3, 3, 4]
-    elif len(image_A.shape) - 3 == 2:
+    if len(image_A.shape) - 2 == 3:
+        dimensions_to_sum_over = [2, 3, 4]
+    elif len(image_A.shape) - 2 == 2:
         dimensions_to_sum_over = [2, 3]
     elif len(image_A.shape) - 2 == 1:
         dimensions_to_sum_over = [2]
