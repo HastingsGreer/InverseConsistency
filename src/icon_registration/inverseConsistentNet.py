@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import torchvision.transforms.functional_tensor as F_t
 import numpy as np
 from .mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import icon_registration.config as config
@@ -213,6 +214,41 @@ def ncc(image_A, image_B):
     dimension = len(image_A.shape) - 2
     res = torch.mean(A * B)
     return 1 - res
+
+
+def gaussian_blur(tensor, kernel_size, sigma):
+    kernel1d = F_t._get_gaussian_kernel1d(kernel_size=kernel_size, sigma=sigma).to(tensor.device, dtype=tensor.dtype)
+    out = tensor
+
+    if len(tensor.shape) - 2 == 1:
+        out = torch.conv1d(out, kernel1d[None, None, :], padding='same')
+    elif len(tensor.shape) - 2 == 2:
+        out = torch.conv2d(out, kernel1d[None, None, :, None], padding='same')
+        out = torch.conv2d(out, kernel1d[None, None, None, :], padding='same')
+    elif len(tensor.shape) - 2 == 3:
+        out = torch.conv3d(out, kernel1d[None, None, :, None, None], padding='same')
+        out = torch.conv3d(out, kernel1d[None, None, None, :, None], padding='same')
+        out = torch.conv3d(out, kernel1d[None, None, None, None, :], padding='same')
+
+    return out
+class LNCC:
+    def __init__(self, sigma):
+        self.sigma = sigma
+    def blur(self, tensor):
+        return gaussian_blur(tensor, self.sigma * 4 + 1, self.sigma)
+    def __call__(self, image_A, image_B):
+        I = image_A[:, :1]
+        J = image_B[:, :1]
+        return torch.mean(1 - (self.blur(I * J) - (self.blur(I) * self.blur(J))) / 
+             torch.sqrt((self.blur(I*I) - self.blur(I)**2 + .00001) * (self.blur(J*J) - self.blur(J)**2 + .00001)))
+
+class BlurredSSD:
+    def __init__(self, sigma):
+        self.sigma = sigma
+    def blur(self, tensor):
+        return gaussian_blur(tensor, self.sigma * 4 + 1, self.sigma)
+    def __call__(self, image_A, image_B):
+        return torch.mean((self.blur(image_A[:, :1]) - self.blur(image_B[:, :1]))**2) 
 
 
 def ssd_only_interpolated(image_A, image_B):
