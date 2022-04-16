@@ -17,7 +17,7 @@ def make_network():
 
     for _ in range(3):
        inner_net = network_wrappers.DoubleNet(network_wrappers.DownsampleNet(inner_net, 2), network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=2)))
-    lmbda=2
+    lmbda=.2
     net = inverseConsistenNet.GradientICON(
             inner_net, 
             inverseConsistenNet.BlurredSSD(sigma=3),
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     net.train()
     # do training
-    loss_curves = np.array(train.train2d(net, optimizer, ds1, ds2, epochs=64))
+    loss_curves = np.array(train.train2d(net, optimizer, ds1, ds2, epochs=90))
 
     # save results
     plt.plot(loss_curves[:, :3])

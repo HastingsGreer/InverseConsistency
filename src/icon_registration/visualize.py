@@ -73,6 +73,10 @@ def visualizeRegistration(net, image_A, image_B, N, path, linewidth=1):
 
     plt.imshow(dA[N])
     plt.colorbar()
+
+    plt.subplot(3, 2, 6)
+    plt.title("Difference image")
+    plt.imshow(image_A[N, 0].cpu() - net.warped_image_B.detach().cpu()[N, 0])
     if path:
         plt.savefig(path)
         plt.clf()
