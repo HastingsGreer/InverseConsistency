@@ -187,7 +187,7 @@ class GradientICON(nn.Module):
         self.phi_AB = self.regis_net(image_A, image_B)
         self.phi_BA = self.regis_net(image_B, image_A)
 
-        similarity_loss = self.compute_similarity_measure(phi_AB, phi_BA)
+        similarity_loss = self.compute_similarity_measure(self.phi_AB, self.phi_BA)
         
         inverse_consistency_loss = self.gradient_icon_loss(self.phi_AB, self.phi_BA)
        
