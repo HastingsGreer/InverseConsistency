@@ -11,8 +11,8 @@ import footsteps
 
 
 
-BATCH_SIZE = 8 
-input_shape = [BATCH_SIZE, 1, 130, 155, 130]
+BATCH_SIZE = 32
+input_shape = [BATCH_SIZE, 1, 65, 77, 65]
 
 GPUS = 4
 def make_network():
@@ -23,11 +23,7 @@ def make_network():
 
 
     hires_net = inverseConsistentNet.GradientICON(
-        network_wrappers.DoubleNet(
-            network_wrappers.DownsampleNet(network_wrappers.DoubleNet(phi, psi),
-                dimension=3),
-            network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
-        ),
+        network_wrappers.DoubleNet(phi, psi),
         inverseConsistentNet.ssd_only_interpolated,
         .05,
     )
@@ -43,7 +39,7 @@ def make_batch():
 
 if __name__ == "__main__":
     footsteps.initialize()
-    brains = torch.load("/playpen-ssd/tgreer/ICON_brain_preprocessed_data/stripped/brain_train_2xdown_scaled")
+    brains = torch.load("/playpen-ssd/tgreer/ICON_brain_preprocessed_data/quarter_res_stripped/brain_train_4xdown_scaled")
     hires_net = make_network()
 
     if GPUS == 1:
