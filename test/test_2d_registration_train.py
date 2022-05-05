@@ -21,10 +21,10 @@ class Test2DRegistrationTrain(unittest.TestCase):
         batch_size = 128
 
         d1, d2 = data.get_dataset_triangles(
-            "train", data_size=50, hollow=False, batch_size=batch_size
+            data_size=50, hollow=False, batch_size=batch_size
         )
         d1_t, d2_t = data.get_dataset_triangles(
-            "test", data_size=50, hollow=False, batch_size=batch_size
+            data_size=50, hollow=False, batch_size=batch_size
         )
 
         lmbda = 2048
