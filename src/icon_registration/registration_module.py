@@ -36,7 +36,7 @@ class RegistrationModule(nn.Module):
         super().__init__()
         self.downscale_factor = 1
 
-    def as_function(image):
+    def as_function(self, image):
         """image is a tensor with shape self.input_shape.
         Returns a python function that maps a tensor of coordinates [batch x N_dimensions x ...]
         into a tensor of intensities.
