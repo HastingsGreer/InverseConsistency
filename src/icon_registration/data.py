@@ -1,10 +1,12 @@
-import torch
-import tqdm
 import random
-import torchvision
+
 import numpy as np
+import torch
 import torch.nn.functional as F
-import icon_registration.config as config
+import torchvision
+import tqdm
+
+from icon_registration import config
 
 
 def get_dataset_mnist(split, number=5):
@@ -36,7 +38,7 @@ def get_dataset_mnist(split, number=5):
     return d1, d2
 
 
-def get_dataset_1d(split, data_size=128, samples=6000, batch_size=128):
+def get_dataset_1d(data_size=128, samples=6000, batch_size=128):
     x = np.arange(0, 1, 1 / data_size)
     x = np.reshape(x, (1, data_size))
     cx = np.random.random((samples, 1)) * 0.3 + 0.4
@@ -57,7 +59,7 @@ def get_dataset_1d(split, data_size=128, samples=6000, batch_size=128):
 
 
 def get_dataset_triangles(
-    split, data_size=128, hollow=False, samples=6000, batch_size=128
+    data_size=128, hollow=False, samples=6000, batch_size=128
 ):
     x, y = np.mgrid[0 : 1 : data_size * 1j, 0 : 1 : data_size * 1j]
     x = np.reshape(x, (1, data_size, data_size))
@@ -102,12 +104,13 @@ def get_dataset_retina(
     include_boundary=False,
 ):
     try:
-        import hub
         import elasticdeform
+        import hub
     except:
 
         raise Exception(
-            "the retina dataset requires the dependencies hub and elasticdeform. \n Try pip install hub elasticdeform"
+            """the retina dataset requires the dependencies hub and elasticdeform.
+            Try pip install hub elasticdeform"""
         )
 
     ds_name = f"retina{extra_deformation}{downsample_factor}{blur_sigma}{warps_per_pair}{fixed_vertical_offset}{include_boundary}.trch"
@@ -127,8 +130,7 @@ def get_dataset_retina(
             else:
                 res.append(batch["manual_masks/mask"])
         res = torch.cat(res)
-        ds_tensor = res[:, None, :, :, 0] * -1.0 + (not (include_boundary))
-        ds_tensor.shape
+        ds_tensor = res[:, None, :, :, 0] * -1.0 + (not include_boundary)
 
         if fixed_vertical_offset is not None:
             ds2_tensor = torch.cat(

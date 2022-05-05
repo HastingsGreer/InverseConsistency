@@ -1,16 +1,15 @@
 import torch
-from torch import nn
 import torchvision.transforms.functional_tensor as F_t
-import numpy as np
-from .mermaidlite import compute_warped_image_multiNC, identity_map_multiN
-import icon_registration.config as config
-import icon_registration.registration_module as registration_module
+
+from icon_registration import config, registration_module
+
+from .mermaidlite import compute_warped_image_multiNC
 
 
 class InverseConsistentNet(registration_module.RegistrationModule):
     def __init__(self, network, similarity, lmbda):
 
-        super(InverseConsistentNet, self).__init__()
+        super().__init__()
 
         self.regis_net = network
         self.lmbda = lmbda
@@ -95,7 +94,7 @@ class InverseConsistentNet(registration_module.RegistrationModule):
 class GradientICON(registration_module.RegistrationModule):
     def __init__(self, network, similarity, lmbda):
 
-        super(GradientICON, self).__init__()
+        super().__init__()
 
         self.regis_net = network
         self.lmbda = lmbda
@@ -146,8 +145,8 @@ class GradientICON(registration_module.RegistrationModule):
         return inverse_consistency_loss
 
     def compute_similarity_measure(self, phi_AB, phi_BA, image_A, image_B):
-        self.phi_AB_vectorfield = self.phi_AB(self.identity_map)
-        self.phi_BA_vectorfield = self.phi_BA(self.identity_map)
+        self.phi_AB_vectorfield = phi_AB(self.identity_map)
+        self.phi_BA_vectorfield = phi_BA(self.identity_map)
 
         # tag images during warping so that the similarity measure
         # can use information about whether a sample is interpolated
@@ -220,7 +219,6 @@ def normalize(image):
 def ncc(image_A, image_B):
     A = normalize(image_A[:, :1])
     B = normalize(image_B)
-    dimension = len(image_A.shape) - 2
     res = torch.mean(A * B)
     return 1 - res
 

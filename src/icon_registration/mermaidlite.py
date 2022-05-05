@@ -2,10 +2,10 @@
 # that defines the functions compute_warped_image_multiNC
 # which we use for composing maps and identity_map_multiN which we use
 # to get an identity map.
+import numpy as np
 import torch
 from torch.autograd import Function
 from torch.nn import Module
-import numpy as np
 
 
 def scale_map(map, sz, spacing):

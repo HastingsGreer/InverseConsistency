@@ -1,13 +1,13 @@
-import torch
-from torch import nn
-import torch.nn.functional as F
 import numpy as np
+import torch
+import torch.nn.functional as F
+from torch import nn
+
 from .mermaidlite import compute_warped_image_multiNC, identity_map_multiN
-import icon_registration.config as config
 
 
 class RegistrationModule(nn.Module):
-    """Base class for icon modules that perform registration.
+    r"""Base class for icon modules that perform registration.
 
     A subclass of RegistrationModule should have a forward method that
     takes as input two images image_A and image_B, and returns a python function
@@ -86,7 +86,7 @@ class FunctionFromVectorField(RegistrationModule):
     """
 
     def __init__(self, net):
-        super(FunctionFromVectorField, self).__init__()
+        super().__init__()
         self.net = net
 
     def forward(self, image_A, image_B):
@@ -120,7 +120,7 @@ class FunctionFromMatrix(RegistrationModule):
     """
 
     def __init__(self, net):
-        super(FunctionFromMatrix, self).__init__()
+        super().__init__()
         self.net = net
 
     def forward(self, image_A, image_B):
@@ -139,7 +139,7 @@ class FunctionFromMatrix(RegistrationModule):
 
 class RandomShift(RegistrationModule):
     def __init__(self, stddev):
-        super(RandomShift, self).__init__()
+        super().__init__()
         self.stddev = stddev
 
     def forward(self, image_A, image_B):

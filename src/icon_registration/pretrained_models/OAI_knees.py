@@ -1,12 +1,11 @@
-import torch.nn.functional as F
-import torch
-import random
-import icon_registration
-from ..mermaidlite import compute_warped_image_multiNC, identity_map_multiN
-from .. import networks
-import icon_registration.config as config
+from os.path import exists
 
-import numpy as np
+import torch
+
+import icon_registration
+from icon_registration import config
+
+from .. import networks
 
 
 def OAI_knees_registration_model(pretrained=True):
@@ -92,7 +91,6 @@ def OAI_knees_gradICON_model(pretrained=True):
     third_net.assign_identity_map(input_shape)
 
     if pretrained:
-        from os.path import exists
 
         if not exists("gradICON_oai_halfres_weights"):
             print("Downloading pretrained model (1.2 GB)")

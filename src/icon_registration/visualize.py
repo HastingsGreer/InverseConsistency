@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
-from .mermaidlite import compute_warped_image_multiNC
 import torch
+
+from .mermaidlite import compute_warped_image_multiNC
 
 
 def show_as_grid(phi, linewidth=1):

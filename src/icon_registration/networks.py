@@ -1,14 +1,14 @@
-import torch
-from torch import nn
-import torch.nn.functional as F
 import numpy as np
-from .mermaidlite import compute_warped_image_multiNC, identity_map_multiN
-import icon_registration.config as config
+import torch
+import torch.nn.functional as F
+from torch import nn
+
+from icon_registration import config
 
 
 class Autoencoder(nn.Module):
     def __init__(self, num_layers, channels):
-        super(Autoencoder, self).__init__()
+        super().__init__()
         self.num_layers = num_layers
         down_channels = channels[0]
         up_channels = channels[1]
@@ -63,7 +63,7 @@ def tallAE():
 
 class Residual(nn.Module):
     def __init__(self, features):
-        super(Residual, self).__init__()
+        super().__init__()
         self.bn1 = nn.BatchNorm2d(num_features=features)
         self.bn2 = nn.BatchNorm2d(num_features=features)
 
@@ -80,7 +80,7 @@ class Residual(nn.Module):
 
 class UNet(nn.Module):
     def __init__(self, num_layers, channels, dimension):
-        super(UNet, self).__init__()
+        super().__init__()
 
         if dimension == 2:
             self.BatchNorm = nn.BatchNorm2d
@@ -158,7 +158,7 @@ def pad_or_crop(x, shape, dimension):
 
 class UNet2(nn.Module):
     def __init__(self, num_layers, channels, dimension, input_channels=2):
-        super(UNet2, self).__init__()
+        super().__init__()
         self.dimension = dimension
         if dimension == 2:
             self.BatchNorm = nn.BatchNorm2d
@@ -247,8 +247,8 @@ class UNet2(nn.Module):
 
 
 class UNet2ChunkyMiddle(nn.Module):
-    def __init__(self, num_layers, channels, dimension, input_channels=2):
-        super(UNet2ChunkyMiddle, self).__init__()
+    def __init__(self, num_layers, channels, dimension):
+        super().__init__()
         self.dimension = dimension
         if dimension == 2:
             self.BatchNorm = nn.BatchNorm2d
@@ -340,7 +340,7 @@ class UNet2ChunkyMiddle(nn.Module):
 
 class UNet3(nn.Module):
     def __init__(self, num_layers, channels, dimension, normalization):
-        super(UNet3, self).__init__()
+        super().__init__()
 
         self.dimension = dimension
         if dimension == 2:
@@ -461,7 +461,7 @@ class UNet3(nn.Module):
         return x / 10
 
 
-def tallUNet(unet=UNet, dimension=2, input_channels=2):
+def tallUNet(unet=UNet, dimension=2):
     return unet(
         5,
         [[2, 16, 32, 64, 256, 512], [16, 32, 64, 128, 256]],
@@ -505,7 +505,7 @@ def tallUNet3(normalization="batchnorm", dimension=2):
 
 class RegisNet(nn.Module):
     def __init__(self):
-        super(RegisNet, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(2, 10, kernel_size=5, padding=2)
         self.conv2 = nn.Conv2d(12, 10, kernel_size=5, padding=2)
         self.conv3 = nn.Conv2d(22, 10, kernel_size=5, padding=2)
@@ -545,7 +545,7 @@ class FCNet1D(nn.Module):
 
 class FCNet(nn.Module):
     def __init__(self, size=28):
-        super(FCNet, self).__init__()
+        super().__init__()
         self.size = size
         self.dense1 = nn.Linear(size * size * 2, 8000)
         self.dense2 = nn.Linear(8000, 3000)
@@ -563,7 +563,7 @@ class FCNet(nn.Module):
 
 class FCNet3D(nn.Module):
     def __init__(self, shape, bottleneck=128):
-        super(FCNet3D, self).__init__()
+        super().__init__()
         self.shape = shape.copy()
         self.shape[1] = 3
         self.bottleneck = bottleneck
@@ -586,7 +586,7 @@ class FCNet3D(nn.Module):
 
 class DenseMatrixNet(nn.Module):
     def __init__(self, size=28, dimension=2):
-        super(DenseMatrixNet, self).__init__()
+        super().__init__()
         self.dimension = dimension
         self.size = size
         self.dense1 = nn.Linear(size * size * 2, 800)
@@ -632,7 +632,7 @@ class DenseMatrixNet(nn.Module):
 
 class ConvolutionalMatrixNet(nn.Module):
     def __init__(self, dimension=2):
-        super(ConvolutionalMatrixNet, self).__init__()
+        super().__init__()
         self.dimension = dimension
 
         if dimension == 2:
@@ -720,7 +720,7 @@ class ConvolutionalMatrixNet(nn.Module):
 
 class StumpyConvolutionalMatrixNet(nn.Module):
     def __init__(self, dimension=2):
-        super(StumpyConvolutionalMatrixNet, self).__init__()
+        super().__init__()
         self.dimension = dimension
 
         if dimension == 2:

@@ -1,13 +1,9 @@
 import itk
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn.functional as F
 
-import icon_registration
-import icon_registration.pretrained_models
-
-import icon_registration.config as config
+from icon_registration import config
 
 
 def register_pair(
@@ -30,8 +26,8 @@ def register_pair(
     shape = model.identity_map.shape
 
     # Here we resize the input images to the shape expected by the neural network. This affects the
-    # pixel stride as well as the magnitude of the displacement vectors of the resulting displacement field, which
-    # create_itk_transform will have to compensate for.
+    # pixel stride as well as the magnitude of the displacement vectors of the resulting 
+    # displacement field, which create_itk_transform will have to compensate for.
     A_resized = F.interpolate(
         A_trch, size=shape[2:], mode="trilinear", align_corners=False
     )

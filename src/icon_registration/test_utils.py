@@ -1,5 +1,5 @@
-import subprocess
 import pathlib
+import subprocess
 import sys
 
 TEST_DATA_DIR = pathlib.Path(__file__).parent.parent.parent / "test_files"
