@@ -7,7 +7,7 @@ class TestKneeRegistration(unittest.TestCase):
 
         import icon_registration.pretrained_models
         from icon_registration.mermaidlite import compute_warped_image_multiNC
-        from icon_registration.inverseConsistentNet import flips
+        from icon_registration.losses import flips
 
         import torch
         import numpy as np
@@ -93,7 +93,7 @@ class TestKneeRegistration(unittest.TestCase):
 
         import icon_registration.pretrained_models
         from icon_registration.mermaidlite import compute_warped_image_multiNC
-        from icon_registration.inverseConsistentNet import flips
+        from icon_registration.losses import flips
 
         import torch
         import numpy as np

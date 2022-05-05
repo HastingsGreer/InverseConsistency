@@ -4,10 +4,8 @@ import unittest
 class TestImports(unittest.TestCase):
     def test_imports_CPU(self):
         import icon_registration
-        import icon_registration.inverseConsistentNet
         import icon_registration.networks
         import icon_registration.data
-        import icon_registration.network_wrappers
     def test_requirements_match_cfg_CPU(self):
         from inspect import getsourcefile
         import os.path as path, sys

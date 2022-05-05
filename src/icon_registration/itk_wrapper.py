@@ -4,8 +4,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+import icon_registration
 import icon_registration.pretrained_models
-import icon_registration.network_wrappers
 
 import icon_registration.config as config
 
@@ -14,7 +14,7 @@ def register_pair(model, image_A, image_B)->"(itk.CompositeTransform, itk.Compos
     assert( isinstance(image_A, itk.Image))
     assert( isinstance(image_B, itk.Image))
     
-    icon_registration.network_wrappers.adjust_batch_size(model, 1)
+    model.adjust_batch_size(1)
     # send model to cpu or gpu depending on config- auto detects capability
     model.to(config.device) 
 

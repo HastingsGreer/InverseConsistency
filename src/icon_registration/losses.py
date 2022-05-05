@@ -4,9 +4,10 @@ import torchvision.transforms.functional_tensor as F_t
 import numpy as np
 from .mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import icon_registration.config as config
+import icon_registration.registration_module as registration_module
 
 
-class InverseConsistentNet(nn.Module):
+class InverseConsistentNet(registration_module.RegistrationModule):
     def __init__(self, network, similarity, lmbda):
 
         super(InverseConsistentNet, self).__init__()
@@ -17,19 +18,19 @@ class InverseConsistentNet(nn.Module):
 
     def forward(self, image_A, image_B):
         
-        assert self.identityMap.shape[2:] == image_A.shape[2:]
-        assert self.identityMap.shape[2:] == image_B.shape[2:]
+        assert self.identity_map.shape[2:] == image_A.shape[2:]
+        assert self.identity_map.shape[2:] == image_B.shape[2:]
 
         # Tag used elsewhere for optimization.
         # Must be set at beginning of forward b/c not preserved by .cuda() etc
-        self.identityMap.isIdentity = True
+        self.identity_map.isIdentity = True
 
 
         self.phi_AB = self.regis_net(image_A, image_B)
         self.phi_BA = self.regis_net(image_B, image_A)
 
-        self.phi_AB_vectorfield = self.phi_AB(self.identityMap)
-        self.phi_BA_vectorfield = self.phi_BA(self.identityMap)
+        self.phi_AB_vectorfield = self.phi_AB(self.identity_map)
+        self.phi_BA_vectorfield = self.phi_BA(self.identity_map)
 
         # tag images during warping so that the similarity measure
         # can use information about whether a sample is interpolated
@@ -61,10 +62,10 @@ class InverseConsistentNet(nn.Module):
         ) + self.similarity(self.warped_image_B, image_A)
 
         Iepsilon = (
-            self.identityMap
-            + torch.randn(*self.identityMap.shape).to(config.device)
+            self.identity_map
+            + torch.randn(*self.identity_map.shape).to(config.device)
             * 1
-            / self.identityMap.shape[-1]
+            / self.identity_map.shape[-1]
         )
 
         # inverse consistency one way
@@ -78,7 +79,7 @@ class InverseConsistentNet(nn.Module):
         ) + torch.mean((Iepsilon - approximate_Iepsilon2) ** 2)
 
         transform_magnitude = torch.mean(
-            (self.identityMap - self.phi_AB_vectorfield) ** 2
+            (self.identity_map - self.phi_AB_vectorfield) ** 2
         )
 
         all_loss = self.lmbda * inverse_consistency_loss + similarity_loss
@@ -91,7 +92,7 @@ class InverseConsistentNet(nn.Module):
             flips(self.phi_BA_vectorfield)
         )
     
-class GradientICON(nn.Module):
+class GradientICON(registration_module.RegistrationModule):
     def __init__(self, network, similarity, lmbda):
 
         super(GradientICON, self).__init__()
@@ -100,12 +101,12 @@ class GradientICON(nn.Module):
         self.lmbda = lmbda
         self.similarity = similarity
     
-    def gradient_icon_loss(self, phi_AB, phi_BA):
+    def compute_gradient_icon_loss(self, phi_AB, phi_BA):
         Iepsilon = (
-            self.identityMap
-            + torch.randn(*self.identityMap.shape).to(config.device)
+            self.identity_map
+            + torch.randn(*self.identity_map.shape).to(config.device)
             * 1
-            / self.identityMap.shape[-1]
+            / self.identity_map.shape[-1]
         )
 
         # compute squared Frobenius of Jacobian of icon error
@@ -118,17 +119,17 @@ class GradientICON(nn.Module):
 
         delta = .001
 
-        if len(self.identityMap.shape) == 4:
+        if len(self.identity_map.shape) == 4:
             dx = torch.Tensor([[[[delta]], [[0.]]]]).to(config.device)
             dy = torch.Tensor([[[[0.]], [[delta]]]]).to(config.device)
             direction_vectors = (dx, dy)
 
-        elif len(self.identityMap.shape) == 5:
+        elif len(self.identity_map.shape) == 5:
             dx = torch.Tensor([[[[[delta]]], [[[0.]]], [[[0.]]]]]).to(config.device)
             dy = torch.Tensor([[[[[0.]]], [[[delta]]], [[[0.]]]]]).to(config.device)
             dz = torch.Tensor([[[[0.]]], [[[0.]]], [[[delta]]]]).to(config.device)
             direction_vectors = (dx, dy, dz)
-        elif len(self.identityMap.shape) == 3:
+        elif len(self.identity_map.shape) == 3:
             dx = torch.Tensor([[[delta]]]).to(config.device)
             direction_vectors = (dx,)
 
@@ -143,8 +144,8 @@ class GradientICON(nn.Module):
         return inverse_consistency_loss
     
     def compute_similarity_measure(self, phi_AB, phi_BA, image_A, image_B):
-        self.phi_AB_vectorfield = self.phi_AB(self.identityMap)
-        self.phi_BA_vectorfield = self.phi_BA(self.identityMap)
+        self.phi_AB_vectorfield = self.phi_AB(self.identity_map)
+        self.phi_BA_vectorfield = self.phi_BA(self.identity_map)
 
         # tag images during warping so that the similarity measure
         # can use information about whether a sample is interpolated
@@ -158,18 +159,10 @@ class GradientICON(nn.Module):
         else:
             inbounds_tag[:, :, 1:-1] = 1.0
 
-        self.warped_image_A = compute_warped_image_multiNC(
-            torch.cat([image_A, inbounds_tag], axis=1),
-            self.phi_AB_vectorfield,
-            self.spacing,
-            1,
-        )
-        self.warped_image_B = compute_warped_image_multiNC(
-            torch.cat([image_B, inbounds_tag], axis=1),
-            self.phi_BA_vectorfield,
-            self.spacing,
-            1,
-        )
+        self.warped_image_A = self.as_function(
+            torch.cat([image_A, inbounds_tag], axis=1))(self.phi_AB_vectorfield)
+        self.warped_image_B = self.as_function(
+            torch.cat([image_B, inbounds_tag], axis=1))(self.phi_BA_vectorfield)
         similarity_loss = self.similarity(
             self.warped_image_A, image_B
         ) + self.similarity(self.warped_image_B, image_A)
@@ -177,24 +170,24 @@ class GradientICON(nn.Module):
 
     def forward(self, image_A, image_B):
         
-        assert self.identityMap.shape[2:] == image_A.shape[2:]
-        assert self.identityMap.shape[2:] == image_B.shape[2:]
+        assert self.identity_map.shape[2:] == image_A.shape[2:]
+        assert self.identity_map.shape[2:] == image_B.shape[2:]
 
         # Tag used elsewhere for optimization.
         # Must be set at beginning of forward b/c not preserved by .cuda() etc
-        self.identityMap.isIdentity = True
+        self.identity_map.isIdentity = True
 
         self.phi_AB = self.regis_net(image_A, image_B)
         self.phi_BA = self.regis_net(image_B, image_A)
 
         similarity_loss = self.compute_similarity_measure(self.phi_AB, self.phi_BA, image_A, image_B)
         
-        inverse_consistency_loss = self.gradient_icon_loss(self.phi_AB, self.phi_BA)
+        inverse_consistency_loss = self.compute_gradient_icon_loss(self.phi_AB, self.phi_BA)
        
         all_loss = self.lmbda * inverse_consistency_loss + similarity_loss
 
         transform_magnitude = torch.mean(
-            (self.identityMap - self.phi_AB_vectorfield) ** 2
+            (self.identity_map - self.phi_AB_vectorfield) ** 2
         )
         return (
             all_loss,

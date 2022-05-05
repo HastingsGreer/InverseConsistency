@@ -14,10 +14,6 @@ import pickle
 
 import footsteps
 
-import argparse
-
-parser = argparse.ArgumentParser()
-
 batch_size = 128
 
 d1, d2 = data.get_dataset_triangles(
