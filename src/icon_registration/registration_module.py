@@ -50,11 +50,11 @@ class RegistrationModule(nn.Module):
         self.input_shape = np.array(input_shape)
         self.spacing = 1.0 / (self.input_shape[2::] - 1)
 
-        if parents_identity_map is not None:
-            self.identity_map = parents_identity_map
-        else:
-            _id = identity_map_multiN(self.input_shape, self.spacing)
-            self.register_buffer("identity_map", torch.from_numpy(_id))
+        #if parents_identity_map is not None:
+        #    self.identity_map = parents_identity_map
+        #else:
+        _id = identity_map_multiN(self.input_shape, self.spacing)
+        self.register_buffer("identity_map", torch.from_numpy(_id))
 
         if self.downscale_factor != 1:
             child_shape = np.concatenate(

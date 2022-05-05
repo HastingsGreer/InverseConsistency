@@ -13,3 +13,4 @@ from icon_registration.losses import (
     BlurredSSD,
     ssd_only_interpolated,
 )
+from icon_registration.train import train1d, train2d
