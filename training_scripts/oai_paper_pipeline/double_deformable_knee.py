@@ -1,4 +1,3 @@
-
 import torch.nn.functional as F
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
@@ -55,13 +54,15 @@ for _ in range(0, 100000):
         moving_image = make_batch()
         fixed_image = make_batch()
         loss, a, b, c, flips = net_par(moving_image, fixed_image)
-        loss = torch.mean(loss) 
+        loss = torch.mean(loss)
         loss.backward()
 
     if torch.mean(flips).cpu().item() > 25:
-        net.lmbda += .1
+        net.lmbda += 0.1
     print(f"FLIPS DETECTED. lambda = {net.lmbda}")
-    loss_curve.append([torch.mean(l.detach().cpu()).item() for l in (a, b, c)] + [flips, net.lmbda])
+    loss_curve.append(
+        [torch.mean(l.detach().cpu()).item() for l in (a, b, c)] + [flips, net.lmbda]
+    )
     print(loss_curve[-1])
     optimizer.step()
 
@@ -74,7 +75,8 @@ for _ in range(0, 100000):
         except:
             pass
         torch.save(
-            optimizer.state_dict(), footsteps.output_dir + "knee_aligner_resi_opt" + str(_)
+            optimizer.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_opt" + str(_),
         )
         torch.save(
             net.state_dict(), footsteps.output_dir + "knee_aligner_resi_net" + str(_)

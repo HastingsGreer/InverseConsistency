@@ -1,4 +1,3 @@
-
 import icon_registration.data as data
 import icon_registration.networks as networks
 import icon_registration.network_wrappers as network_wrappers

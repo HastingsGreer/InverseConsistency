@@ -14,7 +14,7 @@ class Test2DRegistrationTrain(unittest.TestCase):
         import torch
         import random
         import os
-        
+
         random.seed(1)
         torch.manual_seed(1)
         torch.cuda.manual_seed(1)
@@ -30,7 +30,7 @@ class Test2DRegistrationTrain(unittest.TestCase):
         )
 
         lmbda = 2048
-        
+
         print("=" * 50)
         net = inverseConsistentNet.InverseConsistentNet(
             network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=2)),

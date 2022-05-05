@@ -30,11 +30,17 @@ for data_size in (32, 64, 128, 256, 512):
         "test", data_size=data_size, hollow=False, batch_size=batch_size
     )
     t_image_A, t_image_B = (x[0].cuda() for x in next(zip(d1_t, d2_t)))
-    for lr in (.0001, .001, .01):
+    for lr in (0.0001, 0.001, 0.01):
         for loss in ("InverseConsistentNet", "GradientICON"):
-            for lmbda in {"InverseConsistentNet":(64, 256, 1024), "GradientICON":(.2, 1, 2)}[loss]:
+            for lmbda in {
+                "InverseConsistentNet": (64, 256, 1024),
+                "GradientICON": (0.2, 1, 2),
+            }[loss]:
                 for architecture in ("FCNet", "UNet"):
-                    output_dir = footsteps.output_dir + f"{data_size}-{lr}-{loss}-{lmbda}-{architecture}/"
+                    output_dir = (
+                        footsteps.output_dir
+                        + f"{data_size}-{lr}-{loss}-{lmbda}-{architecture}/"
+                    )
                     os.mkdir(output_dir)
                     if architecture == "FCNet":
                         inner_net = networks.FCNet(size=data_size)
@@ -43,7 +49,7 @@ for data_size in (32, 64, 128, 256, 512):
 
                     net = getattr(inverseConsistentNet, loss)(
                         network_wrappers.FunctionFromVectorField(inner_net),
-                        # Our image similarity metric. The last channel of x and y is whether the value is interpolated or extrapolated, 
+                        # Our image similarity metric. The last channel of x and y is whether the value is interpolated or extrapolated,
                         # which is used by some metrics but not this one
                         lambda x, y: torch.mean((x[:, :1] - y[:, :1]) ** 2),
                         lmbda,
@@ -55,7 +61,6 @@ for data_size in (32, 64, 128, 256, 512):
                     optimizer = torch.optim.Adam(net.parameters(), lr=lr)
                     net.train()
 
-
                     xs = []
                     for _ in range(10):
                         y = np.array(train.train2d(net, optimizer, d1, d2, epochs=50))
@@ -63,7 +68,10 @@ for data_size in (32, 64, 128, 256, 512):
 
                     x = np.concatenate(xs)
                     plt.title(
-                        "Loss curve for " + type(net.regis_net).__name__ + " lambda=" + str(lmbda)
+                        "Loss curve for "
+                        + type(net.regis_net).__name__
+                        + " lambda="
+                        + str(lmbda)
                     )
                     plt.plot(x[:, :3])
                     plt.savefig(output_dir + f"loss.png")

@@ -53,6 +53,7 @@ def train2d(net, optimizer, d1, d2, epochs=400):
     print("]")
     return loss_history
 
+
 def train1d(net, optimizer, d1, d2, epochs=400):
     batch_size = net.identityMap.shape[0]
     loss_history = []
@@ -77,10 +78,7 @@ def train1d(net, optimizer, d1, d2, epochs=400):
                 loss.backward()
                 optimizer.step()
         du = (
-            (
-                net.phi_AB_vectorfield[:, :, 1:]
-                - net.phi_AB_vectorfield[:, :, :-1]
-            )
+            (net.phi_AB_vectorfield[:, :, 1:] - net.phi_AB_vectorfield[:, :, :-1])
             .detach()
             .cpu()
         )

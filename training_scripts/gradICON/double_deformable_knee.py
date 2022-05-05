@@ -1,6 +1,8 @@
-
 import torch.nn.functional as F
-from icon_registration.mermaidlite import compute_warped_image_multiNC, identity_map_multiN
+from icon_registration.mermaidlite import (
+    compute_warped_image_multiNC,
+    identity_map_multiN,
+)
 import torch
 import random
 import icon_registration.inverseConsistentNet as inverseConsistentNet
@@ -24,7 +26,7 @@ psi = network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3))
 net = inverseConsistentNet.GradientICON(
     network_wrappers.DoubleNet(phi, psi),
     inverseConsistentNet.ssd_only_interpolated,
-    .2,
+    0.2,
 )
 
 network_wrappers.assignIdentityMap(net, input_shape)
@@ -55,10 +57,12 @@ for _ in range(0, 100000):
         moving_image = make_batch()
         fixed_image = make_batch()
         loss, a, b, c, flips = net_par(moving_image, fixed_image)
-        loss = torch.mean(loss) 
+        loss = torch.mean(loss)
         loss.backward()
 
-    loss_curve.append([torch.mean(l.detach().cpu()).item() for l in (a, b, c)] + [flips, net.lmbda])
+    loss_curve.append(
+        [torch.mean(l.detach().cpu()).item() for l in (a, b, c)] + [flips, net.lmbda]
+    )
     print(loss_curve[-1])
     optimizer.step()
 
@@ -71,8 +75,10 @@ for _ in range(0, 100000):
         except:
             pass
         torch.save(
-            optimizer.state_dict(), footsteps.output_dir + "knee_aligner_resi_opt" + str(_)
+            optimizer.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_opt" + str(_),
         )
         torch.save(
-            net.regis_net.state_dict(), footsteps.output_dir + "knee_aligner_resi_net" + str(_)
+            net.regis_net.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_net" + str(_),
         )

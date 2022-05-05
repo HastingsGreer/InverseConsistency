@@ -1,4 +1,3 @@
-
 import icon_registration.network_wrappers as network_wrappers
 import torch
 import numpy as np

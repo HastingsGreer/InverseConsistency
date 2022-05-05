@@ -6,7 +6,6 @@ with open("../oai_paper_pipeline/splits/test/pair_path_list.txt") as f:
     test_pair_paths = f.readlines()
 
 
-
 test_paths = set()
 
 [[test_paths.add(p) for p in [pp.split()[0], pp.split()[1]]] for pp in test_pair_paths]
@@ -36,7 +35,6 @@ for tt in tqdm.tqdm(test_pair_paths):
     iA = iA[None, None, :, :, :]
     iB = iB[None, None, :, :, :]
 
-
     cA = cA[None, None, :, :, :]
     cB = cB[None, None, :, :, :]
     cA = cA.byte()
@@ -45,4 +43,3 @@ for tt in tqdm.tqdm(test_pair_paths):
     ds.append([iA, iB, cA, cB])
 
 torch.save(ds, "/playpen/tgreer/knees_test_set_fullres")
-

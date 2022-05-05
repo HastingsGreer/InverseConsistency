@@ -17,14 +17,13 @@ class InverseConsistentNet(registration_module.RegistrationModule):
         self.similarity = similarity
 
     def forward(self, image_A, image_B):
-        
+
         assert self.identity_map.shape[2:] == image_A.shape[2:]
         assert self.identity_map.shape[2:] == image_B.shape[2:]
 
         # Tag used elsewhere for optimization.
         # Must be set at beginning of forward b/c not preserved by .cuda() etc
         self.identity_map.isIdentity = True
-
 
         self.phi_AB = self.regis_net(image_A, image_B)
         self.phi_BA = self.regis_net(image_B, image_A)
@@ -89,9 +88,10 @@ class InverseConsistentNet(registration_module.RegistrationModule):
             inverse_consistency_loss,
             similarity_loss,
             transform_magnitude,
-            flips(self.phi_BA_vectorfield)
+            flips(self.phi_BA_vectorfield),
         )
-    
+
+
 class GradientICON(registration_module.RegistrationModule):
     def __init__(self, network, similarity, lmbda):
 
@@ -100,7 +100,7 @@ class GradientICON(registration_module.RegistrationModule):
         self.regis_net = network
         self.lmbda = lmbda
         self.similarity = similarity
-    
+
     def compute_gradient_icon_loss(self, phi_AB, phi_BA):
         Iepsilon = (
             self.identity_map
@@ -117,17 +117,17 @@ class GradientICON(registration_module.RegistrationModule):
 
         inverse_consistency_error = Iepsilon - approximate_Iepsilon
 
-        delta = .001
+        delta = 0.001
 
         if len(self.identity_map.shape) == 4:
-            dx = torch.Tensor([[[[delta]], [[0.]]]]).to(config.device)
-            dy = torch.Tensor([[[[0.]], [[delta]]]]).to(config.device)
+            dx = torch.Tensor([[[[delta]], [[0.0]]]]).to(config.device)
+            dy = torch.Tensor([[[[0.0]], [[delta]]]]).to(config.device)
             direction_vectors = (dx, dy)
 
         elif len(self.identity_map.shape) == 5:
-            dx = torch.Tensor([[[[[delta]]], [[[0.]]], [[[0.]]]]]).to(config.device)
-            dy = torch.Tensor([[[[[0.]]], [[[delta]]], [[[0.]]]]]).to(config.device)
-            dz = torch.Tensor([[[[0.]]], [[[0.]]], [[[delta]]]]).to(config.device)
+            dx = torch.Tensor([[[[[delta]]], [[[0.0]]], [[[0.0]]]]]).to(config.device)
+            dy = torch.Tensor([[[[[0.0]]], [[[delta]]], [[[0.0]]]]]).to(config.device)
+            dz = torch.Tensor([[[[0.0]]], [[[0.0]]], [[[delta]]]]).to(config.device)
             direction_vectors = (dx, dy, dz)
         elif len(self.identity_map.shape) == 3:
             dx = torch.Tensor([[[delta]]]).to(config.device)
@@ -136,13 +136,15 @@ class GradientICON(registration_module.RegistrationModule):
         for d in direction_vectors:
             approximate_Iepsilon_d = phi_AB(phi_BA(Iepsilon + d))
             inverse_consistency_error_d = Iepsilon + d - approximate_Iepsilon_d
-            grad_d_icon_error = (inverse_consistency_error - inverse_consistency_error_d) / delta
+            grad_d_icon_error = (
+                inverse_consistency_error - inverse_consistency_error_d
+            ) / delta
             direction_losses.append(torch.mean(grad_d_icon_error**2))
 
         inverse_consistency_loss = sum(direction_losses)
-        
+
         return inverse_consistency_loss
-    
+
     def compute_similarity_measure(self, phi_AB, phi_BA, image_A, image_B):
         self.phi_AB_vectorfield = self.phi_AB(self.identity_map)
         self.phi_BA_vectorfield = self.phi_BA(self.identity_map)
@@ -160,16 +162,18 @@ class GradientICON(registration_module.RegistrationModule):
             inbounds_tag[:, :, 1:-1] = 1.0
 
         self.warped_image_A = self.as_function(
-            torch.cat([image_A, inbounds_tag], axis=1))(self.phi_AB_vectorfield)
+            torch.cat([image_A, inbounds_tag], axis=1)
+        )(self.phi_AB_vectorfield)
         self.warped_image_B = self.as_function(
-            torch.cat([image_B, inbounds_tag], axis=1))(self.phi_BA_vectorfield)
+            torch.cat([image_B, inbounds_tag], axis=1)
+        )(self.phi_BA_vectorfield)
         similarity_loss = self.similarity(
             self.warped_image_A, image_B
         ) + self.similarity(self.warped_image_B, image_A)
         return similarity_loss
 
     def forward(self, image_A, image_B):
-        
+
         assert self.identity_map.shape[2:] == image_A.shape[2:]
         assert self.identity_map.shape[2:] == image_B.shape[2:]
 
@@ -180,10 +184,14 @@ class GradientICON(registration_module.RegistrationModule):
         self.phi_AB = self.regis_net(image_A, image_B)
         self.phi_BA = self.regis_net(image_B, image_A)
 
-        similarity_loss = self.compute_similarity_measure(self.phi_AB, self.phi_BA, image_A, image_B)
-        
-        inverse_consistency_loss = self.compute_gradient_icon_loss(self.phi_AB, self.phi_BA)
-       
+        similarity_loss = self.compute_similarity_measure(
+            self.phi_AB, self.phi_BA, image_A, image_B
+        )
+
+        inverse_consistency_loss = self.compute_gradient_icon_loss(
+            self.phi_AB, self.phi_BA
+        )
+
         all_loss = self.lmbda * inverse_consistency_loss + similarity_loss
 
         transform_magnitude = torch.mean(
@@ -194,7 +202,7 @@ class GradientICON(registration_module.RegistrationModule):
             inverse_consistency_loss,
             similarity_loss,
             transform_magnitude,
-            flips(self.phi_BA_vectorfield)
+            flips(self.phi_BA_vectorfield),
         )
 
 
@@ -205,7 +213,7 @@ def normalize(image):
     elif dimension == 3:
         dim_reduce = [2, 3, 4]
     image_centered = image - torch.mean(image, dim_reduce, keepdim=True)
-    stddev = torch.sqrt(torch.mean(image_centered ** 2, dim_reduce, keepdim=True))
+    stddev = torch.sqrt(torch.mean(image_centered**2, dim_reduce, keepdim=True))
     return image_centered / stddev
 
 
@@ -218,38 +226,53 @@ def ncc(image_A, image_B):
 
 
 def gaussian_blur(tensor, kernel_size, sigma):
-    kernel1d = F_t._get_gaussian_kernel1d(kernel_size=kernel_size, sigma=sigma).to(tensor.device, dtype=tensor.dtype)
+    kernel1d = F_t._get_gaussian_kernel1d(kernel_size=kernel_size, sigma=sigma).to(
+        tensor.device, dtype=tensor.dtype
+    )
     out = tensor
 
     if len(tensor.shape) - 2 == 1:
-        out = torch.conv1d(out, kernel1d[None, None, :], padding='same')
+        out = torch.conv1d(out, kernel1d[None, None, :], padding="same")
     elif len(tensor.shape) - 2 == 2:
-        out = torch.conv2d(out, kernel1d[None, None, :, None], padding='same')
-        out = torch.conv2d(out, kernel1d[None, None, None, :], padding='same')
+        out = torch.conv2d(out, kernel1d[None, None, :, None], padding="same")
+        out = torch.conv2d(out, kernel1d[None, None, None, :], padding="same")
     elif len(tensor.shape) - 2 == 3:
-        out = torch.conv3d(out, kernel1d[None, None, :, None, None], padding='same')
-        out = torch.conv3d(out, kernel1d[None, None, None, :, None], padding='same')
-        out = torch.conv3d(out, kernel1d[None, None, None, None, :], padding='same')
+        out = torch.conv3d(out, kernel1d[None, None, :, None, None], padding="same")
+        out = torch.conv3d(out, kernel1d[None, None, None, :, None], padding="same")
+        out = torch.conv3d(out, kernel1d[None, None, None, None, :], padding="same")
 
     return out
+
+
 class LNCC:
     def __init__(self, sigma):
         self.sigma = sigma
+
     def blur(self, tensor):
         return gaussian_blur(tensor, self.sigma * 4 + 1, self.sigma)
+
     def __call__(self, image_A, image_B):
         I = image_A[:, :1]
         J = image_B[:, :1]
-        return torch.mean(1 - (self.blur(I * J) - (self.blur(I) * self.blur(J))) / 
-             torch.sqrt((self.blur(I*I) - self.blur(I)**2 + .00001) * (self.blur(J*J) - self.blur(J)**2 + .00001)))
+        return torch.mean(
+            1
+            - (self.blur(I * J) - (self.blur(I) * self.blur(J)))
+            / torch.sqrt(
+                (self.blur(I * I) - self.blur(I) ** 2 + 0.00001)
+                * (self.blur(J * J) - self.blur(J) ** 2 + 0.00001)
+            )
+        )
+
 
 class BlurredSSD:
     def __init__(self, sigma):
         self.sigma = sigma
+
     def blur(self, tensor):
         return gaussian_blur(tensor, self.sigma * 4 + 1, self.sigma)
+
     def __call__(self, image_A, image_B):
-        return torch.mean((self.blur(image_A[:, :1]) - self.blur(image_B[:, :1]))**2) 
+        return torch.mean((self.blur(image_A[:, :1]) - self.blur(image_B[:, :1])) ** 2)
 
 
 def ssd_only_interpolated(image_A, image_B):
@@ -267,6 +290,7 @@ def ssd_only_interpolated(image_A, image_B):
     ssds = sum_squared_distance / divisor
     return torch.mean(ssds)
 
+
 def flips(phi):
     if len(phi.size()) == 5:
         a = phi[:, :, 1:, 1:, 1:] - phi[:, :, :-1, 1:, 1:]
@@ -278,4 +302,3 @@ def flips(phi):
     else:
         ## TODO: implement flips for 2-d registration. shouldn't be hard.
         return -1
-

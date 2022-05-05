@@ -6,6 +6,7 @@ class TestImports(unittest.TestCase):
         import icon_registration
         import icon_registration.networks
         import icon_registration.data
+
     def test_requirements_match_cfg_CPU(self):
         from inspect import getsourcefile
         import os.path as path, sys
