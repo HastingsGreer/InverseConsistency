@@ -27,7 +27,7 @@ def register_pair(
     A_trch = torch.Tensor(A_npy).to(config.device)[None, None]
     B_trch = torch.Tensor(B_npy).to(config.device)[None, None]
 
-    shape = model.identityMap.shape
+    shape = model.identity_map.shape
 
     # Here we resize the input images to the shape expected by the neural network. This affects the
     # pixel stride as well as the magnitude of the displacement vectors of the resulting displacement field, which
@@ -44,13 +44,13 @@ def register_pair(
 
     # phi_AB and phi_BA are [1, 3, H, W, D] pytorch tensors representing the forward and backward
     # maps computed by the model
-    phi_AB = model.phi_AB(model.identityMap)
-    phi_BA = model.phi_BA(model.identityMap)
+    phi_AB = model.phi_AB(model.identity_map)
+    phi_BA = model.phi_BA(model.identity_map)
 
     # the parameters ident, image_A, and image_B are used for their metadata
     return (
-        create_itk_transform(phi_AB, model.identityMap, image_A, image_B),
-        create_itk_transform(phi_BA, model.identityMap, image_B, image_A),
+        create_itk_transform(phi_AB, model.identity_map, image_A, image_B),
+        create_itk_transform(phi_BA, model.identity_map, image_B, image_A),
     )
 
 

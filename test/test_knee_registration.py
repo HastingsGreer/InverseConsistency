@@ -52,7 +52,7 @@ class TestKneeRegistration(unittest.TestCase):
 
                 # Evaluate the registration
                 # First, evaluate phi_AB on a tensor of coordinates to get an explicit map.
-                phi_AB_vectorfield = net.phi_AB(net.identityMap)
+                phi_AB_vectorfield = net.phi_AB(net.identity_map)
                 fat_phi = torch.nn.Upsample(
                     size=moving_cartilage.size()[2:],
                     mode="trilinear",
@@ -142,7 +142,7 @@ class TestKneeRegistration(unittest.TestCase):
 
                 # Evaluate the registration
                 # First, evaluate phi_AB on a tensor of coordinates to get an explicit map.
-                phi_AB_vectorfield = net.phi_AB(net.identityMap)
+                phi_AB_vectorfield = net.phi_AB(net.identity_map)
                 fat_phi = torch.nn.Upsample(
                     size=moving_cartilage.size()[2:],
                     mode="trilinear",

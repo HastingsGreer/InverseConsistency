@@ -2,7 +2,7 @@ import torch
 
 
 def train2d(net, optimizer, d1, d2, epochs=400):
-    batch_size = net.identityMap.shape[0]
+    batch_size = net.identity_map.shape[0]
     loss_history = []
     print("[", end="")
     for epoch in range(epochs):
@@ -55,7 +55,7 @@ def train2d(net, optimizer, d1, d2, epochs=400):
 
 
 def train1d(net, optimizer, d1, d2, epochs=400):
-    batch_size = net.identityMap.shape[0]
+    batch_size = net.identity_map.shape[0]
     loss_history = []
     print("[", end="")
     for epoch in range(epochs):
