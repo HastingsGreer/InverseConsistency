@@ -29,7 +29,7 @@ hires_net = network_wrappers.DoubleNet(
     network_wrappers.DownsampleNet(pretrained_lowres_net, dimension=3),
     network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
 )
-network_wrappers.assignIdentityMap(hires_net, input_shape)
+hires_net.assign_identity_map(input_shape)
 
 
 trained_weights = torch.load("results/grad_hires-1/knee_aligner_resi_net12900")
@@ -46,7 +46,7 @@ fullres_net = inverseConsistentNet.GradientICON(
 BATCH_SIZE = 1
 SCALE = 4  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
-network_wrappers.assignIdentityMap(fullres_net, input_shape)
+fullres_net.assign_identity_map(input_shape)
 
 # for p in hires_net.regis_net.netPhi.parameters():
 #    p.requires_grad = False

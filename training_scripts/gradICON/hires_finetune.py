@@ -29,7 +29,7 @@ pretrained_lowres_net = inverseConsistentNet.InverseConsistentNet(
     100,
 )
 
-network_wrappers.assignIdentityMap(pretrained_lowres_net, input_shape)
+pretrained_lowres_net.assign_identity_map(input_shape)
 
 
 trained_weights = torch.load("results/gradknee-2/knee_aligner_resi_net8100")
@@ -47,7 +47,7 @@ hires_net = inverseConsistentNet.GradientICON(
 BATCH_SIZE = 8
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
-network_wrappers.assignIdentityMap(hires_net, input_shape)
+hires_net.assign_identity_map(input_shape)
 
 # for p in hires_net.regis_net.netPhi.parameters():
 #    p.requires_grad = False

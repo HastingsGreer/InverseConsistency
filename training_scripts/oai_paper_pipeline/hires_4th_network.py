@@ -33,7 +33,7 @@ hires_net = inverseConsistentNet.InverseConsistentNet(
 BATCH_SIZE = 4
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
-network_wrappers.assignIdentityMap(hires_net, input_shape)
+hires_net.assign_identity_map(input_shape)
 
 trained_weights = torch.load("results/hires_smart_6/knee_aligner_resi_net74700")
 hires_net.load_state_dict(trained_weights)
@@ -52,7 +52,7 @@ for p in fourth_net.regis_net.netPhi.parameters():
 BATCH_SIZE = 3
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
-network_wrappers.assignIdentityMap(fourth_net, input_shape)
+fourth_net.assign_identity_map(input_shape)
 
 
 knees = torch.load("/playpen/tgreer/knees_big_2xdownsample_train_set")

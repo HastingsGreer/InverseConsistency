@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     next(iter(ds2))  # keep them synchonized
 
-    network_wrappers.assignIdentityMap(net, input_shape)
+    net.assign_identity_map(input_shape)
     net.cuda()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 

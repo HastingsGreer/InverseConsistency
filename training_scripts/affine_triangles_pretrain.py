@@ -27,7 +27,7 @@ net = inverseConsistentNet.InverseConsistentNet(
     lambda x, y: torch.mean((x - y) ** 2),
     100,
 )
-network_wrappers.assignIdentityMap(net, image_A.shape)
+net.assign_identity_map(image_A.shape)
 net.cuda()
 
 import icon_registration.train as train

@@ -36,7 +36,7 @@ net = inverseConsistentNet.InverseConsistentNet(
 )
 
 input_shape = next(iter(d1))[0].size()
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 net.cuda()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 net.train()

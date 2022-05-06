@@ -26,7 +26,7 @@ net = inverseConsistentNet.InverseConsistentNet(
     70,
 )
 
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 
 
 knees = torch.load("/playpen/tgreer/knees_big_train_set")

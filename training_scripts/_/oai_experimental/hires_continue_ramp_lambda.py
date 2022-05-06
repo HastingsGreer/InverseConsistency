@@ -28,7 +28,7 @@ net = inverseConsistentNet.InverseConsistentNet(
     165000,
 )
 
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 
 weights = torch.load("results/hires_ncc_70000_6/knee_aligner_resi_net4200")
 net.load_state_dict(weights)
