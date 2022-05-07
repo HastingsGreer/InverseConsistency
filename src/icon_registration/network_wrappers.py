@@ -50,9 +50,9 @@ class RegistrationModule(nn.Module):
         self.input_shape = np.array(input_shape)
         self.spacing = 1.0 / (self.input_shape[2::] - 1)
 
-        #if parents_identity_map is not None:
+        # if parents_identity_map is not None:
         #    self.identity_map = parents_identity_map
-        #else:
+        # else:
         _id = identity_map_multiN(self.input_shape, self.spacing)
         self.register_buffer("identity_map", torch.from_numpy(_id))
 
@@ -208,3 +208,13 @@ class DownsampleRegistration(RegistrationModule):
         image_A = self.avg_pool(image_A, 2, ceil_mode=True)
         image_B = self.avg_pool(image_B, 2, ceil_mode=True)
         return self.net(image_A, image_B)
+
+
+### DEPRECATED
+def assignIdentityMap(net, size):
+    warnings.warn("assignIdentityMap is deprecated. use net.assign_identity_map")
+    net.assign_identity_map(size)
+
+def adjustBatchSize(net, N):
+    net.adjust_batch_size(N )
+

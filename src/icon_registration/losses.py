@@ -5,6 +5,9 @@ from icon_registration import config, registration_module
 
 from .mermaidlite import compute_warped_image_multiNC
 
+from collections import namedtuple
+
+ICONLoss = namedtuple("ICONLoss", "all_loss inverse_consistency_loss similarity_loss transform_magnitude flips")
 
 class InverseConsistentNet(registration_module.RegistrationModule):
     def __init__(self, network, similarity, lmbda):
@@ -82,7 +85,7 @@ class InverseConsistentNet(registration_module.RegistrationModule):
 
         all_loss = self.lmbda * inverse_consistency_loss + similarity_loss
 
-        return (
+        return ICONLoss(
             all_loss,
             inverse_consistency_loss,
             similarity_loss,
@@ -196,7 +199,7 @@ class GradientICON(registration_module.RegistrationModule):
         transform_magnitude = torch.mean(
             (self.identity_map - self.phi_AB_vectorfield) ** 2
         )
-        return (
+        return ICONLoss(
             all_loss,
             inverse_consistency_loss,
             similarity_loss,
