@@ -211,10 +211,14 @@ class DownsampleRegistration(RegistrationModule):
 
 
 ### DEPRECATED
+import warnings
+
+
 def assignIdentityMap(net, size):
     warnings.warn("assignIdentityMap is deprecated. use net.assign_identity_map")
     net.assign_identity_map(size)
 
-def adjustBatchSize(net, N):
-    net.adjust_batch_size(N )
 
+def adjustBatchSize(net, N):
+    warnings.warn("assignIdentityMap is deprecated. use net.assign_identity_map")
+    net.adjust_batch_size(N)
