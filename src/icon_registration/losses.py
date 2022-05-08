@@ -1,15 +1,19 @@
 import torch
 import torchvision.transforms.functional_tensor as F_t
 
-from icon_registration import config, registration_module
+from icon_registration import config, network_wrappers
 
 from .mermaidlite import compute_warped_image_multiNC
 
 from collections import namedtuple
 
-ICONLoss = namedtuple("ICONLoss", "all_loss inverse_consistency_loss similarity_loss transform_magnitude flips")
+ICONLoss = namedtuple(
+    "ICONLoss",
+    "all_loss inverse_consistency_loss similarity_loss transform_magnitude flips",
+)
 
-class InverseConsistentNet(registration_module.RegistrationModule):
+
+class InverseConsistentNet(network_wrappers.RegistrationModule):
     def __init__(self, network, similarity, lmbda):
 
         super().__init__()
@@ -94,7 +98,7 @@ class InverseConsistentNet(registration_module.RegistrationModule):
         )
 
 
-class GradientICON(registration_module.RegistrationModule):
+class GradientICON(network_wrappers.RegistrationModule):
     def __init__(self, network, similarity, lmbda):
 
         super().__init__()
