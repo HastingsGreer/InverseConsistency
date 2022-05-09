@@ -1,3 +1,6 @@
+from collections import namedtuple
+
+import matplotlib
 import torch
 import torchvision.transforms.functional_tensor as F_t
 
@@ -5,7 +8,15 @@ from icon_registration import config, network_wrappers
 
 from .mermaidlite import compute_warped_image_multiNC
 
-from collections import namedtuple
+
+def to_floats(stats):
+    out = []
+    for v in stats:
+        if isinstance(v, torch.Tensor):
+            v = torch.mean(v).cpu().item()
+        out.append(v)
+    return ICONLoss(*out)
+
 
 ICONLoss = namedtuple(
     "ICONLoss",
@@ -21,6 +32,9 @@ class InverseConsistentNet(network_wrappers.RegistrationModule):
         self.regis_net = network
         self.lmbda = lmbda
         self.similarity = similarity
+
+    def __call__(self, image_A, image_B) -> ICONLoss:
+        return super().__call__(image_A, image_B)
 
     def forward(self, image_A, image_B):
 
@@ -178,7 +192,7 @@ class GradientICON(network_wrappers.RegistrationModule):
         ) + self.similarity(self.warped_image_B, image_A)
         return similarity_loss
 
-    def forward(self, image_A, image_B):
+    def forward(self, image_A, image_B) -> ICONLoss:
 
         assert self.identity_map.shape[2:] == image_A.shape[2:]
         assert self.identity_map.shape[2:] == image_B.shape[2:]
@@ -304,6 +318,13 @@ def flips(phi):
 
         dV = torch.sum(torch.cross(a, b, 1) * c, axis=1, keepdims=True)
         return torch.sum(dV < 0) / phi.shape[0]
+    elif len(phi.size()) == 4:
+        du = (phi[:, :, 1:, :-1] - phi[:, :, :-1, :-1]).detach().cpu()
+        dv = (phi[:, :, :-1, 1:] - phi[:, :, :-1, :-1]).detach().cpu()
+        dA = du[:, 0] * dv[:, 1] - du[:, 1] * dv[:, 0]
+        return torch.sum(dA < 0) / phi.shape[0]
+    elif len(phi.size()) == 3:
+        du = (phi[:, :, 1:] - phi[:, :, :-1]).detach().cpu()
+        return torch.sum(du < 0) / phi.shape[0]
     else:
-        ## TODO: implement flips for 2-d registration. shouldn't be hard.
-        return -1
+        raise ValueError()

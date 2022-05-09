@@ -44,7 +44,7 @@ class Test2DRegistrationTrain(unittest.TestCase):
         optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
         net.train()
 
-        y = np.array(icon_registration.train2d(net, optimizer, d1, d2, epochs=50))
+        y = np.array(icon_registration.train_datasets(net, optimizer, d1, d2, epochs=5))
 
         # Test that image similarity is good enough
         self.assertLess(np.mean(y[-5:, 1]), 0.1)

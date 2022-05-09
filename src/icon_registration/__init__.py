@@ -13,4 +13,4 @@ from icon_registration.network_wrappers import (
     RegistrationModule,
     TwoStepRegistration,
 )
-from icon_registration.train import train1d, train2d
+from icon_registration.train import train_batchfunction, train_datasets
