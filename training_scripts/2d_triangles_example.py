@@ -1,23 +1,22 @@
-import icon_registration
-
-import numpy as np
-import torch
-import matplotlib.pyplot as plt
-import random
 import os
 import pickle
+import random
 
 import footsteps
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+
+import icon_registration
+from icon_registration import data, networks, visualize, losses
 
 footsteps.initialize()
 
 batch_size = 128
 
-d1, d2 = data.get_dataset_triangles(
-    "train", data_size=50, hollow=False, batch_size=batch_size
-)
+d1, d2 = data.get_dataset_triangles(data_size=50, hollow=False, batch_size=batch_size)
 d1_t, d2_t = data.get_dataset_triangles(
-    "test", data_size=50, hollow=False, batch_size=batch_size
+    data_size=50, hollow=False, batch_size=batch_size
 )
 
 
@@ -44,17 +43,18 @@ net.train()
 
 xs = []
 for _ in range(40):
-    y = np.array(train.train2d(net, optimizer, d1, d2, epochs=50))
+    y = np.array(icon_registration.train_datasets(net, optimizer, d1, d2, epochs=15))
     xs.append(y)
     x = np.concatenate(xs)
     plt.title(
         "Loss curve for " + type(net.regis_net).__name__ + " lambda=" + str(lmbda)
     )
-    plt.plot(x[:, :3])
+    plt.plot(x[:, :4], label=losses.ICONLoss._fields[:4])
+    plt.legend()
     plt.savefig(footsteps.output_dir + f"loss.png")
     plt.clf()
     plt.title("Log # pixels with negative Jacobian per epoch")
-    plt.plot(x[:, 3])
+    plt.plot(x[:, 4])
     # random.seed(1)
     plt.savefig(footsteps.output_dir + f"lossj.png")
     plt.clf()
