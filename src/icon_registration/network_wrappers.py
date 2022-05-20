@@ -222,3 +222,7 @@ def assignIdentityMap(net, size):
 def adjustBatchSize(net, N):
     warnings.warn("assignIdentityMap is deprecated. use net.assign_identity_map")
     net.adjust_batch_size(N)
+
+
+DoubleNet = TwoStepRegistration
+DownsampleNet = DownsampleRegistration

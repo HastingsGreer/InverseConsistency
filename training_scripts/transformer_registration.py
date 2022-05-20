@@ -70,7 +70,6 @@ import pickle
 
 import footsteps
 
-import argparse
 import math
 
 

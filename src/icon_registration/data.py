@@ -59,7 +59,7 @@ def get_dataset_1d(data_size=128, samples=6000, batch_size=128):
 
 
 def get_dataset_triangles(
-    data_size=128, hollow=False, samples=6000, batch_size=128
+    split=None, data_size=128, hollow=False, samples=6000, batch_size=128
 ):
     x, y = np.mgrid[0 : 1 : data_size * 1j, 0 : 1 : data_size * 1j]
     x = np.reshape(x, (1, data_size, data_size))

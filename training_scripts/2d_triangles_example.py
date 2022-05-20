@@ -20,13 +20,13 @@ d1_t, d2_t = data.get_dataset_triangles(
 )
 
 
-lmbda = 2048
+lmbda = 0.2
 random.seed(1)
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
 np.random.seed(1)
 print("=" * 50)
-net = icon_registration.InverseConsistentNet(
+net = icon_registration.GradientICON(
     icon_registration.FunctionFromVectorField(networks.tallUNet2(dimension=2)),
     # Our image similarity metric. The last channel of x and y is whether the value is interpolated or extrapolated,
     # which is used by some metrics but not this one

@@ -18,8 +18,8 @@ footsteps.initialize(run_name="1dtest")
 
 batch_size = 128
 
-d1, d2 = data.get_dataset_1d("train", data_size=50, batch_size=batch_size)
-d1_t, d2_t = data.get_dataset_1d("test", data_size=50, batch_size=batch_size)
+d1, d2 = data.get_dataset_1d(data_size=50, batch_size=batch_size)
+d1_t, d2_t = data.get_dataset_1d(data_size=50, batch_size=batch_size)
 
 
 lmbda = 20
