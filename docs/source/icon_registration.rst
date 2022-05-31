@@ -12,14 +12,6 @@ Subpackages
 Submodules
 ----------
 
-icon\_registration.config module
---------------------------------
-
-.. automodule:: icon_registration.config
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 icon\_registration.data module
 ------------------------------
 
