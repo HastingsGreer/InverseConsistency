@@ -4,8 +4,6 @@
 # to get an identity map.
 import numpy as np
 import torch
-from torch.autograd import Function
-from torch.nn import Module
 
 
 def scale_map(map, sz, spacing):
@@ -37,7 +35,7 @@ def scale_map(map, sz, spacing):
     return map_scaled
 
 
-class STNFunction_ND_BCXYZ(Module):
+class STNFunction_ND_BCXYZ:
     """
     Spatial transform function for 1D, 2D, and 3D. In BCXYZ format (this IS the format used in the current toolbox).
     """
@@ -49,7 +47,6 @@ class STNFunction_ND_BCXYZ(Module):
         Constructor
         :param ndim: (int) spatial transformation of the transform
         """
-        super(STNFunction_ND_BCXYZ, self).__init__()
         self.spacing = spacing
         self.ndim = len(spacing)
         # zero_boundary = False
@@ -113,7 +110,7 @@ class STNFunction_ND_BCXYZ(Module):
             )
         return output
 
-    def forward(self, input1, input2):
+    def __call__(self, input1, input2):
         """
         Perform the actual spatial transform
         :param input1: image in BCXYZ format
@@ -132,7 +129,7 @@ class STNFunction_ND_BCXYZ(Module):
         return output
 
 
-class STN_ND_BCXYZ(Module):
+class STN_ND_BCXYZ:
     """
     Spatial transform code for nD spatial transoforms. Uses the BCXYZ image format.
     """
@@ -145,7 +142,6 @@ class STN_ND_BCXYZ(Module):
         use_01_input=True,
         use_compile_version=False,
     ):
-        super(STN_ND_BCXYZ, self).__init__()
         self.spacing = spacing
         """spatial dimension"""
         if use_compile_version:
@@ -163,7 +159,7 @@ class STN_ND_BCXYZ(Module):
 
         """spatial transform function"""
 
-    def forward(self, input1, input2):
+    def __call__(self, input1, input2):
         """
         Simply returns the transformed input
         :param input1: image in BCXYZ format
