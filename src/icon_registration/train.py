@@ -53,7 +53,7 @@ def train_datasets(net, optimizer, d1, d2, epochs=400):
     loss_history = []
     for epoch in tqdm.tqdm(range(epochs)):
         for A, B in list(zip(d1, d2)):
-            if A[0].size()[0] == batch_size:
+            if True:  # A[0].size()[0] == batch_size:
                 image_A = A[0].cuda()
                 image_B = B[0].cuda()
                 optimizer.zero_grad()

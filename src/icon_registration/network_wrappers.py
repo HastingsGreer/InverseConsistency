@@ -48,6 +48,7 @@ class RegistrationModule(nn.Module):
 
     def assign_identity_map(self, input_shape, parents_identity_map=None):
         self.input_shape = np.array(input_shape)
+        self.input_shape[0] = 1
         self.spacing = 1.0 / (self.input_shape[2::] - 1)
 
         # if parents_identity_map is not None:
@@ -71,11 +72,6 @@ class RegistrationModule(nn.Module):
                     child_shape,
                     None if self.downscale_factor != 1 else self.identity_map,
                 )
-
-    def adjust_batch_size(self, size):
-        shape = self.input_shape
-        shape[0] = size
-        self.assign_identity_map(shape)
 
 
 class FunctionFromVectorField(RegistrationModule):
@@ -211,17 +207,23 @@ class DownsampleRegistration(RegistrationModule):
 
 
 ### DEPRECATED
-import warnings
+def warninfo(message):
+    from inspect import getframeinfo, stack
+    import warnings
+
+    caller = getframeinfo(stack()[2][0])
+    warnings.warn("%s:%d - %s" % (caller.filename, caller.lineno, message))
 
 
 def assignIdentityMap(net, size):
-    warnings.warn("assignIdentityMap is deprecated. use net.assign_identity_map")
+    warninfo("assignIdentityMap is deprecated. use net.assign_identity_map")
     net.assign_identity_map(size)
 
 
-def adjustBatchSize(net, N):
-    warnings.warn("assignIdentityMap is deprecated. use net.assign_identity_map")
-    net.adjust_batch_size(N)
+def adjust_batch_size(net, N):
+    warninfo(
+        "adjust_batch_size is deprecated. Batch size is now determined at runtime from input shape"
+    )
 
 
 DoubleNet = TwoStepRegistration

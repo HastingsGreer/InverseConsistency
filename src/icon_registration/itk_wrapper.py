@@ -13,7 +13,6 @@ def register_pair(
     assert isinstance(image_A, itk.Image)
     assert isinstance(image_B, itk.Image)
 
-    model.adjust_batch_size(1)
     # send model to cpu or gpu depending on config- auto detects capability
     model.to(config.device)
 
@@ -26,7 +25,7 @@ def register_pair(
     shape = model.identity_map.shape
 
     # Here we resize the input images to the shape expected by the neural network. This affects the
-    # pixel stride as well as the magnitude of the displacement vectors of the resulting 
+    # pixel stride as well as the magnitude of the displacement vectors of the resulting
     # displacement field, which create_itk_transform will have to compensate for.
     A_resized = F.interpolate(
         A_trch, size=shape[2:], mode="trilinear", align_corners=False

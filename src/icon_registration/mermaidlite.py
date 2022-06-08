@@ -87,6 +87,9 @@ class STNFunction_ND_BCXYZ(Module):
             input2_ordered = torch.zeros_like(input2)
             input2_ordered[:, 0, ...] = input2[:, 1, ...]
             input2_ordered[:, 1, ...] = input2[:, 0, ...]
+
+            if input2_ordered.shape[0] == 1 and input1.shape[0] != 1:
+                input2_ordered = input2_ordered.expand(input1.shape[0], -1, -1, -1)
             output = torch.nn.functional.grid_sample(
                 input1,
                 input2_ordered.permute([0, 2, 3, 1]),
@@ -99,6 +102,8 @@ class STNFunction_ND_BCXYZ(Module):
             input2_ordered[:, 0, ...] = input2[:, 2, ...]
             input2_ordered[:, 1, ...] = input2[:, 1, ...]
             input2_ordered[:, 2, ...] = input2[:, 0, ...]
+            if input2_ordered.shape[0] == 1 and input1.shape[0] != 1:
+                input2_ordered = input2_ordered.expand(input1.shape[0], -1, -1, -1, -1)
             output = torch.nn.functional.grid_sample(
                 input1,
                 input2_ordered.permute([0, 2, 3, 4, 1]),

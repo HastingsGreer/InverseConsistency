@@ -38,7 +38,8 @@ class Test2DRegistrationTrain(unittest.TestCase):
             lmbda,
         )
 
-        input_shape = next(iter(d1))[0].size()
+        input_shape = list(next(iter(d1))[0].size())
+        input_shape[0] = 1
         net.assign_identity_map(input_shape)
         net.cuda()
         optimizer = torch.optim.Adam(net.parameters(), lr=0.001)

@@ -56,8 +56,6 @@ def OAI_knees_registration_model(pretrained=True):
         fourth_net.load_state_dict(trained_weights, strict=False)
 
     net = fourth_net
-    BATCH_SIZE = 2
-    net.adjust_batch_size(BATCH_SIZE)
     net.to(config.device)
     net.eval()
     return net
@@ -107,8 +105,6 @@ def OAI_knees_gradICON_model(pretrained=True):
         third_net.regis_net.load_state_dict(trained_weights, strict=False)
 
     net = third_net
-    BATCH_SIZE = 2
-    net.adjust_batch_size(BATCH_SIZE)
     net.to(config.device)
     net.eval()
     return net

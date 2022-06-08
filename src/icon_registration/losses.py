@@ -55,7 +55,7 @@ class InverseConsistentNet(network_wrappers.RegistrationModule):
         # can use information about whether a sample is interpolated
         # or extrapolated
 
-        inbounds_tag = torch.zeros(tuple(self.input_shape), device=image_A.device)
+        inbounds_tag = torch.zeros(tuple(image_A.shape), device=image_A.device)
         if len(self.input_shape) - 2 == 3:
             inbounds_tag[:, :, 1:-1, 1:-1, 1:-1] = 1.0
         elif len(self.input_shape) - 2 == 2:
@@ -173,7 +173,7 @@ class GradientICON(network_wrappers.RegistrationModule):
         # can use information about whether a sample is interpolated
         # or extrapolated
 
-        inbounds_tag = torch.zeros(tuple(self.input_shape), device=image_A.device)
+        inbounds_tag = torch.zeros(tuple(image_A.shape), device=image_A.device)
         if len(self.input_shape) - 2 == 3:
             inbounds_tag[:, :, 1:-1, 1:-1, 1:-1] = 1.0
         elif len(self.input_shape) - 2 == 2:
