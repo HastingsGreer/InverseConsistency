@@ -1,4 +1,3 @@
-
 import torch.nn.functional as F
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
@@ -27,7 +26,7 @@ pretrained_lowres_net = inverseConsistentNet.InverseConsistentNet(
     100,
 )
 
-network_wrappers.assignIdentityMap(pretrained_lowres_net, input_shape)
+pretrained_lowres_net.assign_identity_map(input_shape)
 
 
 network_wrappers.adjust_batch_size(pretrained_lowres_net, 32)
@@ -48,7 +47,7 @@ hires_net = inverseConsistentNet.InverseConsistentNet(
 BATCH_SIZE = 4
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
-network_wrappers.assignIdentityMap(hires_net, input_shape)
+hires_net.assign_identity_map(input_shape)
 
 for p in hires_net.regis_net.netPhi.parameters():
     p.requires_grad = False
@@ -81,12 +80,15 @@ for _ in range(0, 100000):
     loss = torch.mean(loss)
     loss.backward()
 
-    loss_curve.append([torch.mean(l.detach().cpu()).item() for l in (a, b, c)] + [flips, hires_net.lmbda])
+    loss_curve.append(
+        [torch.mean(l.detach().cpu()).item() for l in (a, b, c)]
+        + [flips, hires_net.lmbda]
+    )
     print(loss_curve[-1])
     optimizer.step()
 
     if torch.mean(flips).cpu().item() > 25 * 8:
-        hires_net.lmbda += .1 * 8
+        hires_net.lmbda += 0.1 * 8
     if _ % 300 == 0:
         try:
             import pickle
@@ -96,8 +98,10 @@ for _ in range(0, 100000):
         except:
             pass
         torch.save(
-            optimizer.state_dict(), footsteps.output_dir + "knee_aligner_resi_opt" + str(_)
+            optimizer.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_opt" + str(_),
         )
         torch.save(
-            hires_net.state_dict(), footsteps.output_dir + "knee_aligner_resi_net" + str(_)
+            hires_net.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_net" + str(_),
         )

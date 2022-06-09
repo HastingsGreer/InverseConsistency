@@ -1,4 +1,3 @@
-
 import torch.nn.functional as F
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
@@ -34,14 +33,14 @@ hires_net = inverseConsistentNet.InverseConsistentNet(
 BATCH_SIZE = 4
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
-network_wrappers.assignIdentityMap(hires_net, input_shape)
+hires_net.assign_identity_map(input_shape)
 
 trained_weights = torch.load("results/hires_smart_6/knee_aligner_resi_net74700")
 hires_net.load_state_dict(trained_weights)
 
 fourth_net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.DoubleNet(
-        hires_net.regis_net, 
+        hires_net.regis_net,
         network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
     ),
     inverseConsistentNet.ssd_only_interpolated,
@@ -53,7 +52,7 @@ for p in fourth_net.regis_net.netPhi.parameters():
 BATCH_SIZE = 3
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
-network_wrappers.assignIdentityMap(fourth_net, input_shape)
+fourth_net.assign_identity_map(input_shape)
 
 
 knees = torch.load("/playpen/tgreer/knees_big_2xdownsample_train_set")
@@ -85,12 +84,15 @@ for _ in range(0, 100000):
     loss = torch.mean(loss)
     loss.backward()
 
-    loss_curve.append([torch.mean(l.detach().cpu()).item() for l in (a, b, c)] + [flips, hires_net.lmbda])
+    loss_curve.append(
+        [torch.mean(l.detach().cpu()).item() for l in (a, b, c)]
+        + [flips, hires_net.lmbda]
+    )
     print(loss_curve[-1])
     optimizer.step()
 
     if torch.mean(flips).cpu().item() > 25 * 8:
-        fourth_net.lmbda += .1 * 8
+        fourth_net.lmbda += 0.1 * 8
     if _ % 300 == 0:
         try:
             import pickle
@@ -100,8 +102,10 @@ for _ in range(0, 100000):
         except:
             pass
         torch.save(
-            optimizer.state_dict(), footsteps.output_dir + "knee_aligner_resi_opt" + str(_)
+            optimizer.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_opt" + str(_),
         )
         torch.save(
-            fourth_net.state_dict(), footsteps.output_dir + "knee_aligner_resi_net" + str(_)
+            fourth_net.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_net" + str(_),
         )

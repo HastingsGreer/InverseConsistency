@@ -7,13 +7,14 @@ import numpy as np
 import icon_registration.test_utils
 import icon_registration.pretrained_models
 import icon_registration.itk_wrapper
-class TestItkRegistration(unittest.TestCase):
 
+
+class TestItkRegistration(unittest.TestCase):
     def test_itk_registration(self):
         import os
+
         os.environ["FOOTSTEPS_NAME"] = "test"
         import footsteps
-
 
         icon_registration.test_utils.download_test_data()
 
@@ -21,39 +22,48 @@ class TestItkRegistration(unittest.TestCase):
             pretrained=True
         )
 
-        image_A = itk.imread(str(
-            icon_registration.test_utils.TEST_DATA_DIR / 
-            "knees_diverse_sizes" / 
-            #"9126260_20060921_SAG_3D_DESS_LEFT_11309302_image.nii.gz")
-             "9487462_20081003_SAG_3D_DESS_RIGHT_11495603_image.nii.gz")
+        image_A = itk.imread(
+            str(
+                icon_registration.test_utils.TEST_DATA_DIR
+                / "knees_diverse_sizes"
+                /
+                # "9126260_20060921_SAG_3D_DESS_LEFT_11309302_image.nii.gz")
+                "9487462_20081003_SAG_3D_DESS_RIGHT_11495603_image.nii.gz"
+            )
         )
 
-        image_B = itk.imread(str(
-            icon_registration.test_utils.TEST_DATA_DIR / 
-            "knees_diverse_sizes" / 
-            "9225063_20090413_SAG_3D_DESS_RIGHT_12784112_image.nii.gz")
+        image_B = itk.imread(
+            str(
+                icon_registration.test_utils.TEST_DATA_DIR
+                / "knees_diverse_sizes"
+                / "9225063_20090413_SAG_3D_DESS_RIGHT_12784112_image.nii.gz"
+            )
         )
         print(image_A.GetLargestPossibleRegion().GetSize())
         print(image_B.GetLargestPossibleRegion().GetSize())
         print(image_A.GetSpacing())
         print(image_B.GetSpacing())
 
-        phi_AB, phi_BA = icon_registration.itk_wrapper.register_pair(model, image_A, image_B)
+        phi_AB, phi_BA = icon_registration.itk_wrapper.register_pair(
+            model, image_A, image_B
+        )
 
-
-        assert(isinstance(phi_AB, itk.CompositeTransform))
+        assert isinstance(phi_AB, itk.CompositeTransform)
         interpolator = itk.LinearInterpolateImageFunction.New(image_A)
 
-        warped_image_A = itk.resample_image_filter(image_A, 
-            transform=phi_AB, 
+        warped_image_A = itk.resample_image_filter(
+            image_A,
+            transform=phi_AB,
             interpolator=interpolator,
             size=itk.size(image_B),
             output_spacing=itk.spacing(image_B),
             output_direction=image_B.GetDirection(),
-            output_origin=image_B.GetOrigin()
+            output_origin=image_B.GetOrigin(),
         )
 
-        plt.imshow(np.array(itk.checker_board_image_filter(warped_image_A, image_B))[40])
+        plt.imshow(
+            np.array(itk.checker_board_image_filter(warped_image_A, image_B))[40]
+        )
         plt.colorbar()
         plt.savefig(footsteps.output_dir + "grid.png")
         plt.clf()
@@ -63,10 +73,11 @@ class TestItkRegistration(unittest.TestCase):
 
         reference = np.load(icon_registration.test_utils.TEST_DATA_DIR / "warped.npy")
 
-        np.save(footsteps.output_dir + "warped.npy", itk.array_from_image(warped_image_A)[40] )
-        
-        self.assertLess(np.mean(np.abs(reference - itk.array_from_image(warped_image_A)[40])), 1e-6)
+        np.save(
+            footsteps.output_dir + "warped.npy",
+            itk.array_from_image(warped_image_A)[40],
+        )
 
-
-
-
+        self.assertLess(
+            np.mean(np.abs(reference - itk.array_from_image(warped_image_A)[40])), 1e-6
+        )

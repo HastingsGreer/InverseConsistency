@@ -1,4 +1,3 @@
-
 import torch.nn.functional as F
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
@@ -27,7 +26,7 @@ pretrained_lowres_net = inverseConsistentNet.InverseConsistentNet(
     100,
 )
 
-network_wrappers.assignIdentityMap(pretrained_lowres_net, input_shape)
+pretrained_lowres_net.assign_identity_map(input_shape)
 
 
 network_wrappers.adjust_batch_size(pretrained_lowres_net, 12)
@@ -50,7 +49,7 @@ hires_net = inverseConsistentNet.InverseConsistentNet(
 BATCH_SIZE = 4
 SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
 input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
-network_wrappers.assignIdentityMap(hires_net, input_shape)
+hires_net.assign_identity_map(input_shape)
 
 knees = torch.load("/playpen/tgreer/knees_big_2xdownsample_train_set")
 
@@ -92,8 +91,10 @@ for _ in range(0, 100000):
         except:
             pass
         torch.save(
-            optimizer.state_dict(), footsteps.output_dir + "knee_aligner_resi_opt" + str(_)
+            optimizer.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_opt" + str(_),
         )
         torch.save(
-            hires_net.state_dict(), footsteps.output_dir + "knee_aligner_resi_net" + str(_)
+            hires_net.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_net" + str(_),
         )

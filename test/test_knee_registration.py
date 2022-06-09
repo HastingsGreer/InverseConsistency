@@ -7,7 +7,7 @@ class TestKneeRegistration(unittest.TestCase):
 
         import icon_registration.pretrained_models
         from icon_registration.mermaidlite import compute_warped_image_multiNC
-        from icon_registration.inverseConsistentNet import flips
+        from icon_registration.losses import flips
 
         import torch
         import numpy as np
@@ -16,8 +16,11 @@ class TestKneeRegistration(unittest.TestCase):
 
         print("Downloading test data)")
         import icon_registration.test_utils
+
         icon_registration.test_utils.download_test_data()
-        t_ds = torch.load(icon_registration.test_utils.TEST_DATA_DIR / "icon_example_data")
+        t_ds = torch.load(
+            icon_registration.test_utils.TEST_DATA_DIR / "icon_example_data"
+        )
         batched_ds = list(zip(*[t_ds[i::2] for i in range(2)]))
         net = icon_registration.pretrained_models.OAI_knees_registration_model(
             pretrained=True
@@ -49,10 +52,11 @@ class TestKneeRegistration(unittest.TestCase):
 
                 # Evaluate the registration
                 # First, evaluate phi_AB on a tensor of coordinates to get an explicit map.
-                phi_AB_vectorfield = net.phi_AB(net.identityMap)
+                phi_AB_vectorfield = net.phi_AB(net.identity_map)
                 fat_phi = torch.nn.Upsample(
-                    size=moving_cartilage.size()[2:], mode="trilinear",
-                    align_corners=False
+                    size=moving_cartilage.size()[2:],
+                    mode="trilinear",
+                    align_corners=False,
                 )(phi_AB_vectorfield[:, :3])
                 sz = np.array(fat_phi.size())
                 spacing = 1.0 / (sz[2::] - 1)
@@ -87,13 +91,13 @@ class TestKneeRegistration(unittest.TestCase):
             mean_folds = np.mean(folds_list)
             print("Mean folds per image:", mean_folds)
             self.assertTrue(mean_folds < 300)
-            
+
     def test_knee_registration_gradICON(self):
         print("OAI gradICON")
 
         import icon_registration.pretrained_models
         from icon_registration.mermaidlite import compute_warped_image_multiNC
-        from icon_registration.inverseConsistentNet import flips
+        from icon_registration.losses import flips
 
         import torch
         import numpy as np
@@ -102,8 +106,11 @@ class TestKneeRegistration(unittest.TestCase):
 
         print("Downloading test data)")
         import icon_registration.test_utils
+
         icon_registration.test_utils.download_test_data()
-        t_ds = torch.load(icon_registration.test_utils.TEST_DATA_DIR / "icon_example_data")
+        t_ds = torch.load(
+            icon_registration.test_utils.TEST_DATA_DIR / "icon_example_data"
+        )
         batched_ds = list(zip(*[t_ds[i::2] for i in range(2)]))
         net = icon_registration.pretrained_models.OAI_knees_gradICON_model(
             pretrained=True
@@ -135,10 +142,11 @@ class TestKneeRegistration(unittest.TestCase):
 
                 # Evaluate the registration
                 # First, evaluate phi_AB on a tensor of coordinates to get an explicit map.
-                phi_AB_vectorfield = net.phi_AB(net.identityMap)
+                phi_AB_vectorfield = net.phi_AB(net.identity_map)
                 fat_phi = torch.nn.Upsample(
-                    size=moving_cartilage.size()[2:], mode="trilinear",
-                    align_corners=False
+                    size=moving_cartilage.size()[2:],
+                    mode="trilinear",
+                    align_corners=False,
                 )(phi_AB_vectorfield[:, :3])
                 sz = np.array(fat_phi.size())
                 spacing = 1.0 / (sz[2::] - 1)

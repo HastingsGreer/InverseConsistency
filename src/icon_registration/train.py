@@ -1,97 +1,70 @@
+import tqdm
+import footsteps
+
 import torch
+from torch.utils.tensorboard import SummaryWriter
+
+from .losses import ICONLoss, to_floats
 
 
-def train2d(net, optimizer, d1, d2, epochs=400):
-    batch_size = net.identityMap.shape[0]
+def write_stats(writer, stats: ICONLoss, ite):
+    for k, v in to_floats(stats)._asdict():
+        writer.add_scalar(k, v, ite)
+
+
+def train_batchfunction(
+    net, optimizer, make_batch, steps=100000, step_callback=(lambda net: None)
+):
+    """A training function intended for long running experiments, with tensorboard logging
+    and model checkpoints. Use for medical registration training
+    """
+    loss_curve = []
+    writer = SummaryWriter(
+        footsteps.output_dir + "/" + datetime.now().strftime("%Y%m%d-%H%M%S"),
+        flush_secs=30,
+    )
+    for iteration in range(0, steps):
+        optimizer.zero_grad()
+        moving_image, fixed_image = make_batch()
+        loss_object = net(moving_image, fixed_image)
+        loss = torch.mean(loss_object.all_loss)
+        loss.backward()
+
+        step_callback(net)
+
+        write_stats(writer, loss_object, iteration)
+        print(to_floats(loss_object))
+        optimizer.step()
+
+        if iteration % 300 == 0:
+            torch.save(
+                optimizer.state_dict(),
+                footsteps.output_dir + "knee_aligner_resi_opt" + str(iteration),
+            )
+            torch.save(
+                net.regis_net.state_dict(),
+                footsteps.output_dir + "knee_aligner_resi_net" + str(iteration),
+            )
+
+
+def train_datasets(net, optimizer, d1, d2, epochs=400):
+    """A training function for quick experiments"""
+    batch_size = net.identity_map.shape[0]
     loss_history = []
-    print("[", end="")
-    for epoch in range(epochs):
-        print("-", end="", flush=True)
-        if (epoch + 1) % 50 == 0:
-            print("]", end="\n[")
+    for epoch in tqdm.tqdm(range(epochs)):
         for A, B in list(zip(d1, d2)):
-            if A[0].size()[0] == batch_size:
+            if True:  # A[0].size()[0] == batch_size:
                 image_A = A[0].cuda()
                 image_B = B[0].cuda()
                 optimizer.zero_grad()
-                (
-                    loss,
-                    inverse_consistency_loss,
-                    similarity_loss,
-                    transform_magnitude,
-                    flips,
-                ) = net(image_A, image_B)
 
-                loss.backward()
+                loss_object = net(image_A, image_B)
+
+                loss_object.all_loss.backward()
                 optimizer.step()
-        du = (
-            (
-                net.phi_AB_vectorfield[:, :, 1:, :-1]
-                - net.phi_AB_vectorfield[:, :, :-1, :-1]
-            )
-            .detach()
-            .cpu()
-        )
-        dv = (
-            (
-                net.phi_AB_vectorfield[:, :, :-1, 1:]
-                - net.phi_AB_vectorfield[:, :, :-1, :-1]
-            )
-            .detach()
-            .cpu()
-        )
-        dA = du[:, 0] * dv[:, 1] - du[:, 1] * dv[:, 0]
 
-        loss_history.append(
-            [
-                inverse_consistency_loss.item(),
-                similarity_loss.item(),
-                transform_magnitude.item(),
-                torch.log(torch.sum(dA < 0) + 0.1),
-            ]
-        )
-    print("]")
+        loss_history.append(to_floats(loss_object))
     return loss_history
 
-def train1d(net, optimizer, d1, d2, epochs=400):
-    batch_size = net.identityMap.shape[0]
-    loss_history = []
-    print("[", end="")
-    for epoch in range(epochs):
-        print("-", end="", flush=True)
-        if (epoch + 1) % 50 == 0:
-            print("]", end="\n[")
-        for A, B in list(zip(d1, d2)):
-            if A[0].size()[0] == batch_size:
-                image_A = A[0].cuda()
-                image_B = B[0].cuda()
-                optimizer.zero_grad()
-                (
-                    loss,
-                    inverse_consistency_loss,
-                    similarity_loss,
-                    transform_magnitude,
-                    flips,
-                ) = net(image_A, image_B)
 
-                loss.backward()
-                optimizer.step()
-        du = (
-            (
-                net.phi_AB_vectorfield[:, :, 1:]
-                - net.phi_AB_vectorfield[:, :, :-1]
-            )
-            .detach()
-            .cpu()
-        )
-
-        loss_history.append(
-            [
-                inverse_consistency_loss.item(),
-                similarity_loss.item(),
-                transform_magnitude.item(),
-                torch.log(torch.sum(du < 0) + 0.1),
-            ]
-        )
-    print("]")
-    return loss_history
+train2d = train_datasets

@@ -1,68 +1,59 @@
-
 import torch
 from torch import nn
-#image_A, image_B = (x[0].cuda() for x in next(zip(d1_t, d2_t)))
+
+# image_A, image_B = (x[0].cuda() for x in next(zip(d1_t, d2_t)))
 class RegistrationTransformer(nn.Module):
     def __init__(self, size):
         self.size = size
         super(RegistrationTransformer, self).__init__()
-        
+
         feature_n = 120
-        self.position_embedding = nn.Parameter(
-            torch.randn((49, 1, feature_n)) / 10
-        )
-        
+        self.position_embedding = nn.Parameter(torch.randn((49, 1, feature_n)) / 10)
+
         self.embed = nn.Conv2d(
-                    1,
-                    feature_n,
-                    kernel_size=4,
-                    padding=0,
-                    stride=4,
-                ).cuda()
-        
+            1,
+            feature_n,
+            kernel_size=4,
+            padding=0,
+            stride=4,
+        ).cuda()
+
         self.decode = nn.ConvTranspose2d(
-                    feature_n,
-                    2,
-                    kernel_size=4,
-                    padding=0,
-                    stride=4,
-                ).cuda()
-        
-        #torch.nn.init.zeros_(self.decode.weight)
-        #torch.nn.init.zeros_(self.decode.bias)
+            feature_n,
+            2,
+            kernel_size=4,
+            padding=0,
+            stride=4,
+        ).cuda()
 
+        # torch.nn.init.zeros_(self.decode.weight)
+        # torch.nn.init.zeros_(self.decode.bias)
 
-
-        
         self.t = torch.nn.Transformer(d_model=120)
-        
-        
-        
-        
+
     def forward(self, x, y):
         x = self.embed_and_reshape(x)
         y = self.embed_and_reshape(y)
-        
+
         out = self.t(x, y)
         out = self.reshape_and_decode(out) / 20
-        
+
         return out
-        
-        
+
     def embed_and_reshape(self, a):
         a = self.embed(a)
         a = a.reshape((a.shape[0], a.shape[1], a.shape[2] * a.shape[3]))
         a = a.permute(2, 0, 1)
         a = a + self.position_embedding
         return a
-    
+
     def reshape_and_decode(self, seq):
         a = seq.permute(1, 2, 0)
         size = int(math.sqrt(a.shape[-1]))
         a = a.reshape(a.shape[0], a.shape[1], size, size)
         a = self.decode(a)
         return a
-    
+
 
 import icon_registration.data as data
 import icon_registration.networks as networks
@@ -79,7 +70,6 @@ import pickle
 
 import footsteps
 
-import argparse
 import math
 
 
@@ -106,7 +96,7 @@ net = inverseConsistentNet.InverseConsistentNet(
 )
 
 input_shape = next(iter(d1))[0].size()
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 net.cuda()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 net.train()
@@ -115,7 +105,7 @@ net.train()
 xs = []
 
 
-for _ in range(0,130):
+for _ in range(0, 130):
     y = np.array(train.train2d(net, optimizer, d1, d2, epochs=50))
     xs.append(y)
     x = np.concatenate(xs)

@@ -33,9 +33,8 @@ for tt in tqdm.tqdm(list(iter(train_paths))[:]):
 
     iA = image[None, None, :, :, :]
 
-    #iA = torch.nn.functional.avg_pool3d(iA, 2)
+    # iA = torch.nn.functional.avg_pool3d(iA, 2)
 
     ds.append(iA)
 
 torch.save(ds, "/playpen-ssd/tgreer/knees_fullsize")
-

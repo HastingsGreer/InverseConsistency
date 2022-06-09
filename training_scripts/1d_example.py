@@ -13,16 +13,13 @@ import os
 import pickle
 
 import footsteps
+
 footsteps.initialize(run_name="1dtest")
 
 batch_size = 128
 
-d1, d2 = data.get_dataset_1d(
-    "train", data_size=50, batch_size=batch_size
-)
-d1_t, d2_t = data.get_dataset_1d(
-    "test", data_size=50, batch_size=batch_size
-)
+d1, d2 = data.get_dataset_1d(data_size=50, batch_size=batch_size)
+d1_t, d2_t = data.get_dataset_1d(data_size=50, batch_size=batch_size)
 
 
 lmbda = 20
@@ -33,7 +30,7 @@ np.random.seed(1)
 print("=" * 50)
 net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.FunctionFromVectorField(networks.FCNet1D(size=50)),
-    # Our image similarity metric. The last channel of x and y is whether the value is interpolated or extrapolated, 
+    # Our image similarity metric. The last channel of x and y is whether the value is interpolated or extrapolated,
     # which is used by some metrics but not this one
     lambda x, y: torch.mean((x[:, :1] - y[:, :1]) ** 2),
     lmbda,
@@ -41,7 +38,7 @@ net = inverseConsistentNet.InverseConsistentNet(
 
 input_shape = next(iter(d1))[0].size()
 print(input_shape)
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 net.cuda()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 net.train()
@@ -71,8 +68,10 @@ for _ in range(40):
     image_A, image_B = (x[0].cuda() for x in next(zip(d1_t, d2_t)))
     net(image_A, image_B)
     for N in range(3):
+
         def plot(im):
             plt.plot(im[0].cpu().detach())
+
         plt.subplot(2, 2, 1)
         plt.title("image_A")
         plot(image_A[N])
@@ -89,7 +88,7 @@ for _ in range(40):
             footsteps.output_dir + f"epoch{_:03}" + "case" + str(N) + ".png",
         )
         plt.clf()
-        
+
 
 random.seed(1)
 torch.manual_seed(1)

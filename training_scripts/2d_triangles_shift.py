@@ -1,4 +1,3 @@
-
 import icon_registration.data as data
 import icon_registration.networks as networks
 import icon_registration.network_wrappers as network_wrappers
@@ -14,9 +13,6 @@ import pickle
 
 import footsteps
 
-import argparse
-
-parser = argparse.ArgumentParser()
 
 batch_size = 128
 
@@ -28,15 +24,15 @@ d1_t, d2_t = data.get_dataset_triangles(
 )
 
 
-lmbda = 2048
+lmbda = 3
 random.seed(1)
 torch.manual_seed(1)
 torch.cuda.manual_seed(1)
 np.random.seed(1)
 print("=" * 50)
-net = inverseConsistentNet.InverseConsistentNet(
+net = inverseConsistentNet.GradientICON(
     network_wrappers.DoubleNet(
-        network_wrappers.RandomShift(0.25),
+        network_wrappers.RandomShift(0.025),
         network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=2)),
     ),
     lambda x, y: torch.mean((x - y) ** 2),
@@ -44,15 +40,15 @@ net = inverseConsistentNet.InverseConsistentNet(
 )
 
 input_shape = next(iter(d1))[0].size()
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 net.cuda()
-optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(net.parameters(), lr=0.0001)
 net.train()
 
 
 xs = []
 for _ in range(40):
-    y = np.array(train.train2d(net, optimizer, d1, d2, epochs=50))
+    y = np.array(train.train2d(net, optimizer, d1, d2, epochs=5))
     xs.append(y)
     x = np.concatenate(xs)
     plt.title(

@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 import torch
 import numpy as np
@@ -36,7 +35,7 @@ net = inverseConsistentNet.InverseConsistentNet(
 )
 
 input_shape = next(iter(d1))[0].size()
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 # pretrained_weights = torch.load("results/affine_triangle_pretrain/epoch000case0.png")
 # pretrained_weights = OrderedDict(
 #    [

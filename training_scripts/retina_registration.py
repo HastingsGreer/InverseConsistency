@@ -13,17 +13,21 @@ footsteps.initialize(run_name="retina_experiment")
 
 
 def make_network():
-    inner_net = network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=2))
+    inner_net = network_wrappers.FunctionFromVectorField(
+        networks.tallUNet2(dimension=2)
+    )
 
     for _ in range(3):
-       inner_net = network_wrappers.DoubleNet(network_wrappers.DownsampleNet(inner_net, 2), network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=2)))
-    lmbda=.2
+        inner_net = network_wrappers.DoubleNet(
+            network_wrappers.DownsampleNet(inner_net, 2),
+            network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=2)),
+        )
+    lmbda = 0.2
     net = inverseConsistenNet.GradientICON(
-            inner_net, 
-            inverseConsistenNet.BlurredSSD(sigma=3),
-            lmbda
+        inner_net, inverseConsistenNet.BlurredSSD(sigma=3), lmbda
     )
     return net
+
 
 if __name__ == "__main__":
     ds1, ds2 = data.get_dataset_retina()
@@ -32,9 +36,9 @@ if __name__ == "__main__":
 
     input_shape = next(iter(ds1))[0].size()
 
-    next(iter(ds2)) # keep them synchonized
+    next(iter(ds2))  # keep them synchonized
 
-    network_wrappers.assignIdentityMap(net, input_shape)
+    net.assign_identity_map(input_shape)
     net.cuda()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 
@@ -49,13 +53,11 @@ if __name__ == "__main__":
 
     image_A, image_B = (x[0].cuda() for x in next(zip(ds1, ds2)))
     for N in range(3):
-      visualize.visualizeRegistration(
-          net,
-          image_A,
-          image_B,
-          N,
-          f"{footsteps.output_dir}test{N}.png",
-          linewidth=.25
-      )
-
-
+        visualize.visualizeRegistration(
+            net,
+            image_A,
+            image_B,
+            N,
+            f"{footsteps.output_dir}test{N}.png",
+            linewidth=0.25,
+        )

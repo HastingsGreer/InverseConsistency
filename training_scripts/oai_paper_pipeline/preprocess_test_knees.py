@@ -1,4 +1,3 @@
-
 import os
 
 
@@ -6,7 +5,6 @@ with open("/playpen/tgreer/splits/cross/full_resolution/test/pair_name_list.txt"
     test_pair_names = f.readlines()
 with open("/playpen/tgreer/splits/cross/full_resolution/test/pair_path_list.txt") as f:
     test_pair_paths = f.readlines()
-
 
 
 test_paths = set()
@@ -49,4 +47,3 @@ for tt in tqdm.tqdm(test_pair_paths):
     ds.append([iA, iB, cA, cB])
 
 torch.save(ds, "/playpen/tgreer/knees_test_set_hires")
-

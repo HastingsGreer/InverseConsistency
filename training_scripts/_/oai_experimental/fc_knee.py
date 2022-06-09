@@ -1,4 +1,3 @@
-
 import torch.nn.functional as F
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
@@ -18,14 +17,16 @@ GPUS = 1
 scale_down = [BATCH_SIZE, 1, 20 * SCALE, 48 * SCALE, 48 * SCALE]
 net = inverseConsistentNet.InverseConsistentNet(
     network_wrappers.DownsampleNet(
-        network_wrappers.FunctionFromVectorField(networks.FCNet3D(scale_down, bottleneck=512)),
+        network_wrappers.FunctionFromVectorField(
+            networks.FCNet3D(scale_down, bottleneck=512)
+        ),
         dimension=3,
     ),
     lambda x, y: torch.mean((x - y) ** 2),
     70,
 )
 
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 
 
 knees = torch.load("/playpen/tgreer/knees_big_train_set")
@@ -74,7 +75,8 @@ for _ in range(0, 100000):
         except:
             pass
         torch.save(
-            optimizer.state_dict(), footsteps.output_dir + "knee_aligner_resi_opt" + str(_)
+            optimizer.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_opt" + str(_),
         )
         torch.save(
             net.state_dict(), footsteps.output_dir + "knee_aligner_resi_net" + str(_)

@@ -1,17 +1,20 @@
 import matplotlib.pyplot as plt
-from .mermaidlite import compute_warped_image_multiNC
 import torch
+
+from .mermaidlite import compute_warped_image_multiNC
 
 
 def show_as_grid(phi, linewidth=1):
     data_size = phi.size()[-1]
     axes = plt.gca()
     plot_phi = data_size * phi[:, ::4, ::4].detach().cpu() - 0.5
-    #plot_phi = data_size * phi.detach().cpu() - 0.5
+    # plot_phi = data_size * phi.detach().cpu() - 0.5
     axes.set_xlim([-0.5, phi.size()[-2] - 0.5])
     axes.set_ylim([phi.size()[-1] - 0.5, -0.5])
     plt.plot(plot_phi[1], plot_phi[0], linewidth=linewidth)
-    plt.plot(plot_phi[1].transpose(0, 1), plot_phi[0].transpose(0, 1), linewidth=linewidth)
+    plt.plot(
+        plot_phi[1].transpose(0, 1), plot_phi[0].transpose(0, 1), linewidth=linewidth
+    )
 
 
 def visualizeRegistration(net, image_A, image_B, N, path, linewidth=1):
@@ -65,7 +68,8 @@ def visualizeRegistration(net, image_A, image_B, N, path, linewidth=1):
                 net.spacing,
                 1,
             )
-        )[N], linewidth=linewidth
+        )[N],
+        linewidth=linewidth,
     )
 
     plt.subplot(3, 2, 5)

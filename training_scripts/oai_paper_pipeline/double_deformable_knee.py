@@ -1,13 +1,17 @@
-
-import torch.nn.functional as F
-from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
-import torch
 import random
-import icon_registration.inverseConsistentNet as inverseConsistentNet
-import icon_registration.networks as networks
-import icon_registration.network_wrappers as network_wrappers
-import icon_registration.data as data
+
 import footsteps
+import torch
+import torch.nn.functional as F
+
+import icon_registration.data as data
+import icon_registration.inverseConsistentNet as inverseConsistentNet
+import icon_registration.network_wrappers as network_wrappers
+import icon_registration.networks as networks
+from icon_registration.mermaidlite import (
+    compute_warped_image_multiNC,
+    identity_map_multiN,
+)
 
 BATCH_SIZE = 32
 SCALE = 1  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
@@ -27,7 +31,7 @@ net = inverseConsistentNet.InverseConsistentNet(
     70,
 )
 
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 
 
 knees = torch.load("/playpen/tgreer/knees_big_train_set")
@@ -55,13 +59,15 @@ for _ in range(0, 100000):
         moving_image = make_batch()
         fixed_image = make_batch()
         loss, a, b, c, flips = net_par(moving_image, fixed_image)
-        loss = torch.mean(loss) 
+        loss = torch.mean(loss)
         loss.backward()
 
     if torch.mean(flips).cpu().item() > 25:
-        net.lmbda += .1
+        net.lmbda += 0.1
     print(f"FLIPS DETECTED. lambda = {net.lmbda}")
-    loss_curve.append([torch.mean(l.detach().cpu()).item() for l in (a, b, c)] + [flips, net.lmbda])
+    loss_curve.append(
+        [torch.mean(l.detach().cpu()).item() for l in (a, b, c)] + [flips, net.lmbda]
+    )
     print(loss_curve[-1])
     optimizer.step()
 
@@ -74,7 +80,8 @@ for _ in range(0, 100000):
         except:
             pass
         torch.save(
-            optimizer.state_dict(), footsteps.output_dir + "knee_aligner_resi_opt" + str(_)
+            optimizer.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_opt" + str(_),
         )
         torch.save(
             net.state_dict(), footsteps.output_dir + "knee_aligner_resi_net" + str(_)

@@ -2,10 +2,8 @@
 # that defines the functions compute_warped_image_multiNC
 # which we use for composing maps and identity_map_multiN which we use
 # to get an identity map.
-import torch
-from torch.autograd import Function
-from torch.nn import Module
 import numpy as np
+import torch
 
 
 def scale_map(map, sz, spacing):
@@ -37,7 +35,7 @@ def scale_map(map, sz, spacing):
     return map_scaled
 
 
-class STNFunction_ND_BCXYZ(Module):
+class STNFunction_ND_BCXYZ:
     """
     Spatial transform function for 1D, 2D, and 3D. In BCXYZ format (this IS the format used in the current toolbox).
     """
@@ -49,7 +47,6 @@ class STNFunction_ND_BCXYZ(Module):
         Constructor
         :param ndim: (int) spatial transformation of the transform
         """
-        super(STNFunction_ND_BCXYZ, self).__init__()
         self.spacing = spacing
         self.ndim = len(spacing)
         # zero_boundary = False
@@ -87,6 +84,9 @@ class STNFunction_ND_BCXYZ(Module):
             input2_ordered = torch.zeros_like(input2)
             input2_ordered[:, 0, ...] = input2[:, 1, ...]
             input2_ordered[:, 1, ...] = input2[:, 0, ...]
+
+            if input2_ordered.shape[0] == 1 and input1.shape[0] != 1:
+                input2_ordered = input2_ordered.expand(input1.shape[0], -1, -1, -1)
             output = torch.nn.functional.grid_sample(
                 input1,
                 input2_ordered.permute([0, 2, 3, 1]),
@@ -99,6 +99,8 @@ class STNFunction_ND_BCXYZ(Module):
             input2_ordered[:, 0, ...] = input2[:, 2, ...]
             input2_ordered[:, 1, ...] = input2[:, 1, ...]
             input2_ordered[:, 2, ...] = input2[:, 0, ...]
+            if input2_ordered.shape[0] == 1 and input1.shape[0] != 1:
+                input2_ordered = input2_ordered.expand(input1.shape[0], -1, -1, -1, -1)
             output = torch.nn.functional.grid_sample(
                 input1,
                 input2_ordered.permute([0, 2, 3, 4, 1]),
@@ -108,7 +110,7 @@ class STNFunction_ND_BCXYZ(Module):
             )
         return output
 
-    def forward(self, input1, input2):
+    def __call__(self, input1, input2):
         """
         Perform the actual spatial transform
         :param input1: image in BCXYZ format
@@ -127,7 +129,7 @@ class STNFunction_ND_BCXYZ(Module):
         return output
 
 
-class STN_ND_BCXYZ(Module):
+class STN_ND_BCXYZ:
     """
     Spatial transform code for nD spatial transoforms. Uses the BCXYZ image format.
     """
@@ -140,7 +142,6 @@ class STN_ND_BCXYZ(Module):
         use_01_input=True,
         use_compile_version=False,
     ):
-        super(STN_ND_BCXYZ, self).__init__()
         self.spacing = spacing
         """spatial dimension"""
         if use_compile_version:
@@ -158,7 +159,7 @@ class STN_ND_BCXYZ(Module):
 
         """spatial transform function"""
 
-    def forward(self, input1, input2):
+    def __call__(self, input1, input2):
         """
         Simply returns the transformed input
         :param input1: image in BCXYZ format
@@ -193,25 +194,25 @@ def compute_warped_image_multiNC(
         )
     else:
         raise ValueError("Images can only be warped in dimensions 1 to 3")
-        
-def _compute_warped_image_multiNC_1d(I0, phi, spacing, spline_order, zero_boundary=False, use_01_input=True):
+
+
+def _compute_warped_image_multiNC_1d(
+    I0, phi, spacing, spline_order, zero_boundary=False, use_01_input=True
+):
 
     if spline_order not in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
-        raise ValueError('Currently only orders 0 to 9 are supported')
+        raise ValueError("Currently only orders 0 to 9 are supported")
 
     if spline_order == 0:
-        stn = STN_ND_BCXYZ(spacing,
-                           zero_boundary,
-                           use_bilinear=False,
-                           use_01_input=use_01_input)
+        stn = STN_ND_BCXYZ(
+            spacing, zero_boundary, use_bilinear=False, use_01_input=use_01_input
+        )
     elif spline_order == 1:
-        stn = STN_ND_BCXYZ(spacing,
-                           zero_boundary,
-                           use_bilinear=True,
-                           use_01_input=use_01_input)
+        stn = STN_ND_BCXYZ(
+            spacing, zero_boundary, use_bilinear=True, use_01_input=use_01_input
+        )
     else:
-        stn = SplineInterpolation_ND_BCXYZ(spacing,
-                                           spline_order)
+        stn = SplineInterpolation_ND_BCXYZ(spacing, spline_order)
 
     I1_warped = stn(I0, phi)
 

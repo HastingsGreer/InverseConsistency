@@ -1,4 +1,3 @@
-
 import icon_registration.data as data
 import icon_registration.networks as networks
 import icon_registration.network_wrappers as network_wrappers
@@ -13,10 +12,6 @@ import os
 import pickle
 
 import footsteps
-
-import argparse
-
-parser = argparse.ArgumentParser()
 
 batch_size = 128
 
@@ -41,7 +36,7 @@ net = inverseConsistentNet.InverseConsistentNet(
 )
 
 input_shape = next(iter(d1))[0].size()
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 net.cuda()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.001)
 net.train()

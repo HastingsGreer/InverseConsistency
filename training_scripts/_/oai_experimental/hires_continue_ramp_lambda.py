@@ -1,4 +1,3 @@
-
 import torch.nn.functional as F
 from mermaidlite import compute_warped_image_multiNC, identity_map_multiN
 import torch
@@ -29,7 +28,7 @@ net = inverseConsistentNet.InverseConsistentNet(
     165000,
 )
 
-network_wrappers.assignIdentityMap(net, input_shape)
+net.assign_identity_map(input_shape)
 
 weights = torch.load("results/hires_ncc_70000_6/knee_aligner_resi_net4200")
 net.load_state_dict(weights)
@@ -80,7 +79,8 @@ for _ in range(0, 100000):
         except:
             pass
         torch.save(
-            optimizer.state_dict(), footsteps.output_dir + "knee_aligner_resi_opt" + str(_)
+            optimizer.state_dict(),
+            footsteps.output_dir + "knee_aligner_resi_opt" + str(_),
         )
         torch.save(
             net.state_dict(), footsteps.output_dir + "knee_aligner_resi_net" + str(_)
