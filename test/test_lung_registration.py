@@ -1,16 +1,14 @@
+import os
 import unittest
 
-import icon_registration
-
-
-import os
-
-# import mermaid
-# import mermaid.finite_differences as fdt
+import itk
 import numpy as np
 import torch
 import torch.nn.functional as F
-import itk
+import tqdm
+
+import icon_registration
+import icon_registration.pretrained_models
 
 COPD_spacing = {
     "copd1": [0.625, 0.625, 2.5],
@@ -39,7 +37,8 @@ def readPoint(f_path):
         count = len(content) - 1
 
         # Read the points
-        points = np.ndarray([count, 3], dtype=np.float32)
+        points = np.ndarray([count, 3], dtype=np.float64)
+
         for i in range(count):
             if content[i] == "":
                 break
@@ -68,35 +67,6 @@ def calc_warped_points(source_list_t, phi_t, dim, spacing, phi_spacing):
     )
 
     return warped_list_t
-
-
-def eval_with_file(
-    source_file,
-    target_file,
-    phi_file,
-    dim,
-    spacing,
-    origin,
-    phi_spacing,
-    plot_result=False,
-):
-    """
-    :param source_file: the path to the position of markers in source image.
-    :param target_file: the path to the position of markers in target image.
-    :param phi_file: the path to the displacement map (phi inverse). The basis is in source coordinate.
-    :param dim: voxel dimenstions.
-    :param spacing: image spacing.
-    :param plot_result: a bool value indicating whether to plot the result.
-    """
-
-    source_list = readPoint(source_file)
-    target_list = readPoint(target_file)
-    phi = np.expand_dims(np.load(phi_file), axis=0)
-
-    res, res_seperate = eval_with_data(
-        source_list, target_list, phi, dim, spacing, origin, phi_spacing, plot_result
-    )
-    return res, res_seperate
 
 
 def eval_with_data(source_list, target_list, phi, dim, spacing, origin, phi_spacing):
@@ -146,61 +116,6 @@ def eval_with_data(source_list, target_list, phi, dim, spacing, origin, phi_spac
     res = torch.mean(dist).item()
 
     return res, [dist_x, dist_y, dist_z]
-
-
-def create_identity(shape):
-    dim = len(shape)
-    identity = np.ndarray([dim] + shape)
-    if dim == 3:
-        x = np.linspace(0, 1, shape[0])
-        y = np.linspace(0, 1, shape[1])
-        z = np.linspace(0, 1, shape[2])
-        xv, yv, zv = np.meshgrid(x, y, z)
-
-        identity[0, :, :, :] = yv
-        identity[1, :, :, :] = xv
-        identity[2, :, :, :] = zv
-
-    return identity
-
-
-# def compute_jacobi_map(map, spacing, crop_boundary=True, use_01=False):
-#         """
-#         compute determinant jacobi on transformatiomm map,  the coordinate should be canonical.
-
-#         :param map: the transformation map
-#         :param crop_boundary: if crop the boundary, then jacobi analysis would only analysis on cropped map
-#         :param use_01: infer the input map is in[0,1]  else is in [-1,1]
-#         :return: the sum of absolute value of  negative determinant jacobi, the num of negative determinant jacobi voxels
-#         """
-#         if type(map) == torch.Tensor:
-#             map = map.detach().cpu().numpy()
-#         span = 1.0 if use_01 else 2.0
-#         spacing = spacing * span  # the disp coorindate is [-1,1]
-#         fd = fdt.FD_np(spacing)
-#         a = fd.dXc(map[:, 0])
-#         b = fd.dYc(map[:, 0])
-#         c = fd.dZc(map[:, 0])
-#         d = fd.dXc(map[:, 1])
-#         e = fd.dYc(map[:, 1])
-#         f = fd.dZc(map[:, 1])
-#         g = fd.dXc(map[:, 2])
-#         h = fd.dYc(map[:, 2])
-#         i = fd.dZc(map[:, 2])
-#         jacobi_det = a*(e*i - f*h) - b*(d*i - f*g) + c*(d*h - e*g)
-
-#         if crop_boundary:
-#             crop_range = 5
-#             jacobi_det_croped = jacobi_det[:, crop_range:-crop_range, crop_range:-crop_range, crop_range:-crop_range]
-#             jacobi_abs = - np.sum(jacobi_det_croped[jacobi_det_croped < 0.])
-#             jacobi_num = np.sum(jacobi_det_croped < 0.)
-#         else:
-#             jacobi_abs = - np.sum(jacobi_det[jacobi_det < 0.])
-#             jacobi_num = np.sum(jacobi_det < 0.)
-
-#         jacobi_abs_mean = jacobi_abs / map.shape[0]
-#         jacobi_num_mean = jacobi_num / map.shape[0]
-#         return jacobi_abs_mean, jacobi_num_mean
 
 
 def compute_dice(x, y):
@@ -255,57 +170,6 @@ def eval_copd_highres(seg_folder, case_id, phi, phi_inv, phi_spacing, origin, di
         result["mTRE_Y"] = mTRE_seperate[1]
         result["mTRE_Z"] = mTRE_seperate[2]
 
-        # jacob_mag, jacob_count = compute_jacobi_map(
-        #     phi,
-        #     1./(dim-1),
-        #     crop_boundary=True,
-        #     use_01=True
-        # )
-        # result['Jacob_mag'] = jacob_mag
-        # result['Jacob_net_count'] = jacob_count
-
-        if inv:
-            source_seg_file = (
-                f"{seg_folder}/{case_id}_highres_EXP_STD_COPD_label.nii.gz"
-            )
-            target_seg_file = (
-                f"{seg_folder}/{case_id}_highres_INSP_STD_COPD_label.nii.gz"
-            )
-        else:
-            source_seg_file = (
-                f"{seg_folder}/{case_id}_highres_INSP_STD_COPD_label.nii.gz"
-            )
-            target_seg_file = (
-                f"{seg_folder}/{case_id}_highres_EXP_STD_COPD_label.nii.gz"
-            )
-        source_seg = (
-            torch.tensor(np.asarray(itk.imread(source_seg_file)))
-            .float()
-            .unsqueeze(0)
-            .unsqueeze(0)
-        )
-        target_seg = (
-            torch.tensor(np.asarray(itk.imread(target_seg_file)))
-            .float()
-            .unsqueeze(0)
-            .unsqueeze(0)
-        )
-
-        source_seg[source_seg > 0] = 1
-        target_seg[target_seg > 0] = 1
-
-        phi = torch.from_numpy(phi).float() * 2.0 - 1.0
-        warped_seg = F.grid_sample(
-            source_seg,
-            phi.flip([1]).permute([0, 2, 3, 4, 1]),
-            padding_mode="zeros",
-            mode="nearest",
-            align_corners=True,
-        )
-        target_seg = F.interpolate(target_seg, size=warped_seg.shape[2:])
-        dice = compute_dice(warped_seg.numpy(), target_seg)
-        result["dice"] = dice
-
         return result
 
     results = {}
@@ -322,8 +186,6 @@ def eval_copd_highres(seg_folder, case_id, phi, phi_inv, phi_spacing, origin, di
 class TestLungRegistration(unittest.TestCase):
     def test_lung_registration(self):
         print("lung gradICON")
-
-        import icon_registration.pretrained_models
 
         net = icon_registration.pretrained_models.LungCT_registration_model(
             pretrained=True
@@ -352,9 +214,6 @@ class TestLungRegistration(unittest.TestCase):
             img = itk.imread(path)
             return torch.tensor(np.asarray(img)), np.flipud(list(img.GetOrigin()))
 
-        import itk
-        import tqdm
-
         dirlab = []
         dirlab_seg = []
         dirlab_origin = []
@@ -374,38 +233,25 @@ class TestLungRegistration(unittest.TestCase):
             dirlab_seg.append((process(seg_insp, True), process(seg_exp, True)))
             dirlab_origin.append(origin)
 
-        def make_batch(dataset, dataset_seg, GPUS, BATCH_SIZE):
+        def make_batch(dataset, dataset_seg):
             image_A = torch.cat([p[0] for p in dataset]).cuda()
             image_B = torch.cat([p[1] for p in dataset]).cuda()
 
             image_A_seg = torch.cat([p[0] for p in dataset_seg]).cuda()
             image_B_seg = torch.cat([p[1] for p in dataset_seg]).cuda()
-
-            # Permute the axis to make it align with training data
-            image_A = image_A
-            image_B = image_B
-            image_A_seg = image_A_seg
-            image_B_seg = image_B_seg
             return image_A, image_B, image_A_seg, image_B_seg
-            # return image_A * image_A_seg, image_B * image_B_seg, image_A_seg, image_B_seg
 
         net.cuda()
-        0
 
-        BATCH_SIZE = 1
-        GPUS = 1
-        train_A, train_B, train_A_seg, train_B_seg = make_batch(
-            dirlab, dirlab_seg, GPUS, BATCH_SIZE
-        )
+        train_A, train_B, train_A_seg, train_B_seg = make_batch(dirlab, dirlab_seg)
 
-        ite = int((train_A.shape[0] - 1) / BATCH_SIZE) + 1
         phis = []
         phis_inv = []
         warped_A = []
-        for i in range(ite):
-            s, e = i * BATCH_SIZE, (i + 1) * BATCH_SIZE
+        for i in range(train_A.shape[0]):
             with torch.no_grad():
-                print(net(train_A[s:e], train_B[s:e]))
+                print(net(train_A[i : i + 1], train_B[i : i + 1]))
+
             phis.append((net.phi_AB_vectorfield.detach() * 2.0 - 1.0))
             phis_inv.append((net.phi_BA_vectorfield.detach() * 2.0 - 1.0))
             warped_A.append(net.warped_image_A[:, 0:1].detach())
@@ -436,33 +282,13 @@ class TestLungRegistration(unittest.TestCase):
                 results.append(result)
         results = np.array(results)
 
-        results_str = f"mTRE: {results[:,0].mean()}, mTRE_X: {results[:,1].mean()}, mTRE_Y: {results[:,2].mean()}, mTRE_Z: {results[:,3].mean()}, DICE: {results[:,4].mean()}"
+        results_str = f"mTRE: {results[:,0].mean()}, mTRE_X: {results[:,1].mean()}, mTRE_Y: {results[:,2].mean()}, mTRE_Z: {results[:,3].mean()}"
         print(results_str)
         results_inv = np.array(results_inv)
-        results_inv_str = f"mTRE: {results_inv[:,0].mean()}, mTRE_X: {results_inv[:,1].mean()}, mTRE_Y: {results_inv[:,2].mean()}, mTRE_Z: {results_inv[:,3].mean()}, DICE: {results_inv[:,4].mean()}"
+        results_inv_str = f"mTRE: {results_inv[:,0].mean()}, mTRE_X: {results_inv[:,1].mean()}, mTRE_Y: {results_inv[:,2].mean()}, mTRE_Z: {results_inv[:,3].mean()}"
         print(results_inv_str)
 
-        import os
-
-        def compute_dice(x, y):
-            eps = 1e-11
-            y_loc = set(np.where(y.flatten() == 1)[0])
-            x_loc = set(np.where(x.flatten() == 1)[0])
-            # iou
-            intersection = set.intersection(x_loc, y_loc)
-            # recall
-            len_intersection = len(intersection)
-            tp = float(len_intersection)
-            fn = float(len(y_loc) - len_intersection)
-            fp = float(len(x_loc) - len_intersection)
-
-            if len(y_loc) != 0 or len(x_loc) != 0:
-                return 2 * tp / (2 * tp + fn + fp + eps)
-
-            return 0.0
-
         # Compute Dice
-        import torch.nn.functional as F
 
         warped_train_A_seg = F.grid_sample(
             train_A_seg.float(),
