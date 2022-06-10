@@ -207,7 +207,7 @@ class UNet2(nn.Module):
         #            self.residues.append(
         #                Residual(up_channels_out[depth])
         #            )
-        self.lastConv = self.Conv(18, dimension, kernel_size=3, padding=1)
+        self.lastConv = self.Conv(input_channels + up_channels_out[0], dimension, kernel_size=3, padding=1)
         torch.nn.init.zeros_(self.lastConv.weight)
         torch.nn.init.zeros_(self.lastConv.bias)
 
