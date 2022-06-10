@@ -55,7 +55,7 @@ class TestItkRegistration(unittest.TestCase):
         )
 
         phi_AB, phi_BA = icon_registration.itk_wrapper.register_pair(
-            model, image_insp_preprocessed, image_exp_preprocessed
+            model, image_insp_preprocessed, image_exp_preprocessed, finetune_steps=None
         )
 
         assert isinstance(phi_AB, itk.CompositeTransform)

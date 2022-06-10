@@ -5,9 +5,20 @@ import torch.nn.functional as F
 
 from icon_registration import config
 
+def finetune_execute(model, image_A, image_B, steps):
+    state_dict = model.state_dict()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.00002)
+    for _ in range(steps):
+        optimizer.zero_grad()
+        loss_tuple = model(image_A, image_B)
+        loss_tuple[0].backward()
+        optimizer.step()
+    with torch.no_grad():
+        model(image_A, image_B)
+    model.load_state_dict(state_dict)
 
 def register_pair(
-    model, image_A, image_B
+    model, image_A, image_B, finetune_steps=None
 ) -> "(itk.CompositeTransform, itk.CompositeTransform)":
 
     assert isinstance(image_A, itk.Image)
@@ -33,9 +44,11 @@ def register_pair(
     B_resized = F.interpolate(
         B_trch, size=shape[2:], mode="trilinear", align_corners=False
     )
-
-    with torch.no_grad():
-        model(A_resized, B_resized)
+    if finetune_steps == None: 
+        with torch.no_grad():
+            model(A_resized, B_resized)
+    else:
+       finetune_execute(model, A_resized, B_resized, finetune_steps) 
 
     # phi_AB and phi_BA are [1, 3, H, W, D] pytorch tensors representing the forward and backward
     # maps computed by the model
