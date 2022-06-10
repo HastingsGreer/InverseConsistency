@@ -1,8 +1,6 @@
 import tqdm
-import footsteps
 
 import torch
-from torch.utils.tensorboard import SummaryWriter
 
 from .losses import ICONLoss, to_floats
 
@@ -18,6 +16,10 @@ def train_batchfunction(
     """A training function intended for long running experiments, with tensorboard logging
     and model checkpoints. Use for medical registration training
     """
+    import footsteps
+    from torch.utils.tensorboard import SummaryWriter
+
+
     loss_curve = []
     writer = SummaryWriter(
         footsteps.output_dir + "/" + datetime.now().strftime("%Y%m%d-%H%M%S"),
