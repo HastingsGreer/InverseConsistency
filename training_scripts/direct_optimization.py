@@ -7,6 +7,10 @@ from icon_registration import data
 
 
 class DirectVectorNet(icon_registration.RegistrationModule):
+    def __init__(self, noise_scale=0.0001):
+        super().__init__()
+        self.noise_scale = noise_scale
+
     def assign_identity_map(self, input_shape):
         super().assign_identity_map(input_shape)
         self.register_parameter(
@@ -14,7 +18,7 @@ class DirectVectorNet(icon_registration.RegistrationModule):
         )
 
     def forward(self, image_A, image_B):
-        return self.displacement_field + 0.0001 * torch.randn(
+        return self.displacement_field + self.noise_scale * torch.randn(
             self.displacement_field.shape, device="cuda"
         )
 
@@ -96,7 +100,18 @@ import icon_registration.visualize
 
 for i in range(15):
 
-    icon_registration.train.train_batchfunction(net, optimizer, make_batch, steps=1000)
+    def reduce_noise_scale(net: torch.nn.Module):
+        if hasattr(net, "noise_scale"):
+            net.noise_scale = net.noise_scale * 0.999
+        for child in net.children():
+            reduce_noise_scale(child)
+
+    icon_registration.train.train_batchfunction(
+        net,
+        optimizer,
+        make_batch,
+        steps=100,  # step_callback=reduce_noise_scale
+    )
     icon_registration.visualize.visualizeRegistration(
         net, image_A, image_B, 0, footsteps.output_dir + f"{i}.png"
     )
