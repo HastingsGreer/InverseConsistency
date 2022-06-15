@@ -6,14 +6,26 @@ import torch.nn.functional as F
 from icon_registration import config
 
 
+def finetune_execute(model, image_A, image_B, steps):
+    state_dict = model.state_dict()
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.00002)
+    for _ in range(steps):
+        optimizer.zero_grad()
+        loss_tuple = model(image_A, image_B)
+        loss_tuple[0].backward()
+        optimizer.step()
+    with torch.no_grad():
+        model(image_A, image_B)
+    model.load_state_dict(state_dict)
+
+
 def register_pair(
-    model, image_A, image_B
+    model, image_A, image_B, finetune_steps=None
 ) -> "(itk.CompositeTransform, itk.CompositeTransform)":
 
     assert isinstance(image_A, itk.Image)
     assert isinstance(image_B, itk.Image)
 
-    model.adjust_batch_size(1)
     # send model to cpu or gpu depending on config- auto detects capability
     model.to(config.device)
 
@@ -26,7 +38,7 @@ def register_pair(
     shape = model.identity_map.shape
 
     # Here we resize the input images to the shape expected by the neural network. This affects the
-    # pixel stride as well as the magnitude of the displacement vectors of the resulting 
+    # pixel stride as well as the magnitude of the displacement vectors of the resulting
     # displacement field, which create_itk_transform will have to compensate for.
     A_resized = F.interpolate(
         A_trch, size=shape[2:], mode="trilinear", align_corners=False
@@ -34,9 +46,11 @@ def register_pair(
     B_resized = F.interpolate(
         B_trch, size=shape[2:], mode="trilinear", align_corners=False
     )
-
-    with torch.no_grad():
-        model(A_resized, B_resized)
+    if finetune_steps == None:
+        with torch.no_grad():
+            model(A_resized, B_resized)
+    else:
+        finetune_execute(model, A_resized, B_resized, finetune_steps)
 
     # phi_AB and phi_BA are [1, 3, H, W, D] pytorch tensors representing the forward and backward
     # maps computed by the model

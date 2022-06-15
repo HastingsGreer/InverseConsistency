@@ -1,6 +1,4 @@
 import tqdm
-import footsteps
-from datetime import datetime
 
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -19,6 +17,10 @@ def train_batchfunction(
     """A training function intended for long running experiments, with tensorboard logging
     and model checkpoints. Use for medical registration training
     """
+    import footsteps
+    from torch.utils.tensorboard import SummaryWriter
+    from datetime import datetime
+
     loss_curve = []
     writer = SummaryWriter(
         footsteps.output_dir + "/" + datetime.now().strftime("%Y%m%d-%H%M%S"),
@@ -54,7 +56,7 @@ def train_datasets(net, optimizer, d1, d2, epochs=400):
     loss_history = []
     for epoch in tqdm.tqdm(range(epochs)):
         for A, B in list(zip(d1, d2)):
-            if A[0].size()[0] == batch_size:
+            if True:  # A[0].size()[0] == batch_size:
                 image_A = A[0].cuda()
                 image_B = B[0].cuda()
                 optimizer.zero_grad()
