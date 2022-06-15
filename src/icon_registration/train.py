@@ -1,5 +1,6 @@
 import tqdm
 import footsteps
+from datetime import datetime
 
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -8,7 +9,7 @@ from .losses import ICONLoss, to_floats
 
 
 def write_stats(writer, stats: ICONLoss, ite):
-    for k, v in to_floats(stats)._asdict():
+    for k, v in to_floats(stats)._asdict().items():
         writer.add_scalar(k, v, ite)
 
 
@@ -32,8 +33,8 @@ def train_batchfunction(
 
         step_callback(net)
 
-        write_stats(writer, loss_object, iteration)
         print(to_floats(loss_object))
+        write_stats(writer, loss_object, iteration)
         optimizer.step()
 
         if iteration % 300 == 0:
