@@ -1,6 +1,7 @@
-import tqdm
+from datetime import datetime
 
 import torch
+import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
 from .losses import ICONLoss, to_floats
@@ -12,14 +13,21 @@ def write_stats(writer, stats: ICONLoss, ite):
 
 
 def train_batchfunction(
-    net, optimizer, make_batch, steps=100000, step_callback=(lambda net: None)
+    net,
+    optimizer,
+    make_batch,
+    steps=100000,
+    step_callback=(lambda net: None),
+    unwrapped_net=None,
 ):
     """A training function intended for long running experiments, with tensorboard logging
     and model checkpoints. Use for medical registration training
     """
     import footsteps
     from torch.utils.tensorboard import SummaryWriter
-    from datetime import datetime
+
+    if unwrapped_net is None:
+        unwrapped_net = net
 
     loss_curve = []
     writer = SummaryWriter(
@@ -33,7 +41,7 @@ def train_batchfunction(
         loss = torch.mean(loss_object.all_loss)
         loss.backward()
 
-        step_callback(net)
+        step_callback(unwrapped_net)
 
         print(to_floats(loss_object))
         write_stats(writer, loss_object, iteration)
@@ -45,7 +53,7 @@ def train_batchfunction(
                 footsteps.output_dir + "knee_aligner_resi_opt" + str(iteration),
             )
             torch.save(
-                net.regis_net.state_dict(),
+                unwrapped_net.regis_net.state_dict(),
                 footsteps.output_dir + "knee_aligner_resi_net" + str(iteration),
             )
 
