@@ -48,7 +48,7 @@ if __name__ == "__main__":
         net_par = hires_net.cuda()
     else:
         net_par = torch.nn.DataParallel(hires_net).cuda()
-    optimizer = torch.optim.Adam(net_par.parameter())
+    optimizer = torch.optim.Adam(net_par.parameters(), lr=0.00005)
 
     net_par.train()
 
