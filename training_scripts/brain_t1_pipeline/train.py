@@ -2,7 +2,6 @@ import random
 
 import footsteps
 import icon_registration as icon
-import icon_registration.data as data
 import icon_registration.networks as networks
 import torch
 
