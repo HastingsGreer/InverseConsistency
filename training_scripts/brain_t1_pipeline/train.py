@@ -1,19 +1,11 @@
 import random
 
 import footsteps
-import icon_registration
+import icon_registration as icon
 import icon_registration.data as data
-import icon_registration.inverseConsistentNet as inverseConsistentNet
-import icon_registration.losses as losses
-import icon_registration.network_wrappers as network_wrappers
 import icon_registration.networks as networks
-import icon_registration.train as train
 import torch
-import torch.nn.functional as F
-from icon_registration.mermaidlite import (
-    compute_warped_image_multiNC,
-    identity_map_multiN,
-)
+
 
 BATCH_SIZE = 8
 input_shape = [BATCH_SIZE, 1, 130, 155, 130]
@@ -22,20 +14,20 @@ GPUS = 4
 
 
 def make_network():
-    phi = network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3))
-    psi = network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3))
+    phi = icon.FunctionFromVectorField(networks.tallUNet2(dimension=3))
+    psi = icon.FunctionFromVectorField(networks.tallUNet2(dimension=3))
 
-    hires_net = inverseConsistentNet.GradientICON(
-        network_wrappers.DoubleNet(
-            network_wrappers.DownsampleNet(
-                network_wrappers.DoubleNet(phi, psi), dimension=3
+    hires_net = icon.GradientICON(
+        icon.TwoStepRegistration(
+            icon.DownsampleRegistration(
+                icon.TwoStepRegistration(phi, psi), dimension=3
             ),
-            network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
+            icon.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
         ),
-        losses.LNCC(sigma=5),
+        icon.LNCC(sigma=5),
         .7,
     )
-    network_wrappers.assignIdentityMap(hires_net, input_shape)
+    hires_net.assign_identity_map(input_shape)
     return hires_net
 
 
@@ -57,9 +49,7 @@ if __name__ == "__main__":
         net_par = hires_net.cuda()
     else:
         net_par = torch.nn.DataParallel(hires_net).cuda()
-    optimizer = torch.optim.Adam(
-        (p for p in net_par.parameters() if p.requires_grad), lr=0.00005
-    )
+    optimizer = torch.optim.Adam(net_par.parameter())
 
     net_par.train()
 
