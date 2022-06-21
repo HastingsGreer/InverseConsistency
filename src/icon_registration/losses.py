@@ -244,7 +244,7 @@ def ncc(image_A, image_B):
     return 1 - res
 
 
-def gaussian_blur(tensor, kernel_size, sigma):
+def gaussian_blur(tensor, kernel_size, sigma, padding="same"):
     kernel1d = F_t._get_gaussian_kernel1d(kernel_size=kernel_size, sigma=sigma).to(
         tensor.device, dtype=tensor.dtype
     )
@@ -281,6 +281,43 @@ class LNCC:
                 * (self.blur(J * J) - self.blur(J) ** 2 + 0.00001)
             )
         )
+
+
+class LNCCOnlyInterpolated:
+    def __init__(self, sigma):
+        self.sigma = sigma
+
+    def blur(self, tensor):
+        return gaussian_blur(tensor, self.sigma * 4 + 1, self.sigma)
+
+    def __call__(self, image_A, image_B):
+
+        I = image_A[:, :1]
+        J = image_B[:, :1]
+        lncc_everywhere = 1 - (
+            self.blur(I * J) - (self.blur(I) * self.blur(J))
+        ) / torch.sqrt(
+            (self.blur(I * I) - self.blur(I) ** 2 + 0.00001)
+            * (self.blur(J * J) - self.blur(J) ** 2 + 0.00001)
+        )
+
+        with torch.no_grad():
+            A_inbounds = image_A[:, 1:]
+
+            inbounds_mask = self.blur(A_inbounds) > .999
+
+        if len(image_A.shape) - 2 == 3:
+            dimensions_to_sum_over = [2, 3, 4]
+        elif len(image_A.shape) - 2 == 2:
+            dimensions_to_sum_over = [2, 3]
+        elif len(image_A.shape) - 2 == 1:
+            dimensions_to_sum_over = [2]
+
+        lncc_loss = torch.sum(
+            inbounds_mask * lncc_everywhere, dimensions_to_sum_over
+        ) / torch.sum(inbounds_mask, dimensions_to_sum_over)
+
+        return torch.mean(lncc_loss)
 
 
 class BlurredSSD:

@@ -1,5 +1,6 @@
 from icon_registration.losses import (
     LNCC,
+    LNCCOnlyInterpolated,
     BlurredSSD,
     GradientICON,
     InverseConsistentNet,
