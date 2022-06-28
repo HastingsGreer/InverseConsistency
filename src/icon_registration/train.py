@@ -50,11 +50,11 @@ def train_batchfunction(
         if iteration % 300 == 0:
             torch.save(
                 optimizer.state_dict(),
-                footsteps.output_dir + "knee_aligner_resi_opt" + str(iteration),
+                footsteps.output_dir + "optimizer_weights_" + str(iteration),
             )
             torch.save(
                 unwrapped_net.regis_net.state_dict(),
-                footsteps.output_dir + "knee_aligner_resi_net" + str(iteration),
+                footsteps.output_dir + "network_weights_" + str(iteration),
             )
 
 
