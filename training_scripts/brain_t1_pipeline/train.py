@@ -52,4 +52,4 @@ if __name__ == "__main__":
 
     net_par.train()
 
-    icon_registration.train_batchfunction(net_par, optimizer, lambda: (make_batch(), make_batch()), unwrapped_net=hires_net)
+    icon.train_batchfunction(net_par, optimizer, lambda: (make_batch(), make_batch()), unwrapped_net=hires_net)
