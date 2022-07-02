@@ -3,6 +3,7 @@ from collections import namedtuple
 import matplotlib
 import torch
 import torchvision.transforms.functional_tensor as F_t
+import torch.nn.functional as F
 
 from icon_registration import config, network_wrappers
 
@@ -329,6 +330,40 @@ class BlurredSSD:
 
     def __call__(self, image_A, image_B):
         return torch.mean((self.blur(image_A[:, :1]) - self.blur(image_B[:, :1])) ** 2)
+
+class AdaptiveNCC:
+    def __init__(self, level=4, threshold=0.1, gamma=1.5, sigma=2):
+        self.level = level
+        self.threshold = threshold
+        self.gamma = gamma
+        self.sigma = sigma
+
+    def blur(self, tensor):
+        return gaussian_blur(tensor, self.sigma * 2 + 1, self.sigma)
+
+    def __call__(self, image_A, image_B):
+
+        def _nccBeforeMean(image_A, image_B):
+            A = normalize(image_A[:, :1])
+            B = normalize(image_B)
+            res = torch.mean(A * B, dim=(1,2,3,4))
+            return 1 - res
+
+        sims = [_nccBeforeMean(image_A, image_B)]
+        for i in range(self.level):
+            if i == 0:
+                sims.append(_nccBeforeMean(self.blur(image_A), self.blur(image_B)))
+            else:
+                sims.append(_nccBeforeMean(self.blur(F.avg_pool3d(image_A, 2**i)), self.blur(F.avg_pool3d(image_B, 2**i))))
+
+        sim_loss = sims[0] + 0
+        lamb_ = 1.
+        for i in range(1, len(sims)):
+            lamb = torch.clamp(sims[i].detach()/(self.threshold/(self.gamma**(len(sims)-i))), 0, 1)
+            sim_loss = lamb * sims[i] + (1-lamb) * sim_loss
+            lamb_ *= (1-lamb)
+    
+        return torch.mean(sim_loss)
 
 
 def ssd(image_A, image_B):
