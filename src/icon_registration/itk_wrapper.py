@@ -80,7 +80,7 @@ def create_itk_transform(phi, ident, image_A, image_B) -> "itk.CompositeTransfor
 
     for _ in network_shape_list:
         scale = scale[:, None]
-    disp *= scale
+    disp *= scale - 1
 
     # disp is a shape [3, H, W, D] tensor with vector components in the order [vi, vj, vk]
     disp_itk_format = (
