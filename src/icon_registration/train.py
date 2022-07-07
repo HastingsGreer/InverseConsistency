@@ -2,7 +2,6 @@ from datetime import datetime
 
 import torch
 import tqdm
-from torch.utils.tensorboard import SummaryWriter
 
 from .losses import ICONLoss, to_floats
 
