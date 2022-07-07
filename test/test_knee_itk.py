@@ -103,6 +103,10 @@ class TestItkRegistration(unittest.TestCase):
 
         itk_img = itk.image_from_array(img[0, 0])
 
+        sp = itk.Vector[itk.D, 2]((4.2, 6.9))
+
+        itk_img.SetSpacing(sp)
+
         phi = icon_registration.itk_wrapper.create_itk_transform(
             deformation + warper.identity_map, warper.identity_map, itk_img, itk_img
         )
