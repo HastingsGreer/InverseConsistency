@@ -123,11 +123,11 @@ class GradientICON(network_wrappers.RegistrationModule):
 
     def compute_gradient_icon_loss(self, phi_AB, phi_BA):
         Iepsilon = (
-            self.identity_map
+                self.identity_map
             + torch.randn(*self.identity_map.shape).to(config.device)
             * 1
             / self.identity_map.shape[-1]
-        )
+        )#[:, :, ::2, ::2, ::2]
 
         # compute squared Frobenius of Jacobian of icon error
 
@@ -166,8 +166,6 @@ class GradientICON(network_wrappers.RegistrationModule):
         return inverse_consistency_loss
 
     def compute_similarity_measure(self, phi_AB, phi_BA, image_A, image_B):
-        self.phi_AB_vectorfield = phi_AB(self.identity_map)
-        self.phi_BA_vectorfield = phi_BA(self.identity_map)
 
         # tag images during warping so that the similarity measure
         # can use information about whether a sample is interpolated
@@ -201,8 +199,17 @@ class GradientICON(network_wrappers.RegistrationModule):
         # Must be set at beginning of forward b/c not preserved by .cuda() etc
         self.identity_map.isIdentity = True
 
-        self.phi_AB = self.regis_net(image_A, image_B)
-        self.phi_BA = self.regis_net(image_B, image_A)
+        phi_AB = self.regis_net(image_A, image_B)
+        phi_BA = self.regis_net(image_B, image_A)
+
+        self.phi_AB_vectorfield = phi_AB(self.identity_map)
+        self.phi_BA_vectorfield = phi_BA(self.identity_map)
+
+        #self.phi_AB = self.as_function(self.phi_AB_vectorfield)
+        #self.phi_BA = self.as_function(self.phi_BA_vectorfield)
+
+        self.phi_AB = phi_AB
+        self.phi_BA = phi_BA
 
         similarity_loss = self.compute_similarity_measure(
             self.phi_AB, self.phi_BA, image_A, image_B
@@ -214,15 +221,15 @@ class GradientICON(network_wrappers.RegistrationModule):
 
         all_loss = self.lmbda * inverse_consistency_loss + similarity_loss
 
-        transform_magnitude = torch.mean(
-            (self.identity_map - self.phi_AB_vectorfield) ** 2
-        )
+        transform_magnitude = 0#torch.mean(
+        #    (self.identity_map - self.phi_AB_vectorfield) ** 2
+        #)
         return ICONLoss(
             all_loss,
             inverse_consistency_loss,
             similarity_loss,
             transform_magnitude,
-            flips(self.phi_BA_vectorfield),
+            0#flips(self.phi_BA_vectorfield),
         )
 
 
