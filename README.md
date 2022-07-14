@@ -12,6 +12,10 @@ This is the official repository for
 Hastings Greer, Roland Kwitt, Francois-Xavier Vialard, Marc Niethammer.  
 _ICCV 2021_ https://arxiv.org/abs/2105.04459
 
+**GradICON: Approximate Diffeomorphisms via Gradient Inverse Consistency.**
+Lin Tian, Hastings Greer, Francois-Xavier Vialard, Roland Kwitt, Raúl San José Estépar, Marc Niethammer.
+_Arxiv preprint_ https://arxiv.org/abs/2206.05897
+
 ## Cite this work
 ```
 @InProceedings{Greer_2021_ICCV,
