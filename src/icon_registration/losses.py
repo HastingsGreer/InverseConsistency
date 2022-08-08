@@ -1,4 +1,6 @@
 from collections import namedtuple
+from distutils.util import subst_vars
+from re import I
 
 import matplotlib
 import torch
@@ -8,15 +10,6 @@ import torch.nn.functional as F
 from icon_registration import config, network_wrappers
 
 from .mermaidlite import compute_warped_image_multiNC
-
-
-def to_floats(stats):
-    out = []
-    for v in stats:
-        if isinstance(v, torch.Tensor):
-            v = torch.mean(v).cpu().item()
-        out.append(v)
-    return ICONLoss(*out)
 
 
 ICONLoss = namedtuple(
@@ -77,14 +70,14 @@ class InverseConsistentNet(network_wrappers.RegistrationModule):
             1,
         )
 
-        similarity_loss = self.similarity(
-            self.warped_image_A, image_B
-        ) + self.similarity(self.warped_image_B, image_A)
+        similarity_loss = (
+            self.similarity(self.warped_image_A, image_B)
+            + self.similarity(self.warped_image_B, image_A)
+        ) / 2
 
         Iepsilon = (
             self.identity_map
             + torch.randn(*self.identity_map.shape).to(config.device)
-            * 1
             / self.identity_map.shape[-1]
         )
 
@@ -126,7 +119,6 @@ class GradientICON(network_wrappers.RegistrationModule):
         Iepsilon = (
             self.identity_map
             + torch.randn(*self.identity_map.shape).to(config.device)
-            * 1
             / self.identity_map.shape[-1]
         )
 
@@ -226,6 +218,112 @@ class GradientICON(network_wrappers.RegistrationModule):
             flips(self.phi_BA_vectorfield),
         )
 
+class GradientICONSparse(network_wrappers.RegistrationModule):
+    """
+    Compute the gradient icon loss on a random subset of all pixels
+    """
+    def __init__(self, network, similarity, lmbda):
+        super().__init__()
+
+        self.regis_net = network
+        self.lmbda = lmbda
+        self.similarity = similarity
+
+    def subsample(self, tensor):
+        dimension = len(tensor.shape) - 2
+        if dimension == 3:
+            return tensor[:, :, ::2, ::2, ::2]
+        elif dimension == 2:
+            return tensor[:, :, ::2, ::2]
+        else:
+            return tensor[:, :, ::2]
+    def subsample_shape(self, shape):
+        dimension = len(shape) - 2
+        if dimension == 3:
+            return (shape[0], shape[1], shape[2] // 2, shape[3] // 2, shape[4] // 2)
+        elif dimension == 2:
+            return (shape[0], shape[1], shape[2] // 2, shape[3] // 2)
+        else:
+            return (shape[0], shape[1], shape[2] // 2)
+
+    def create_Iepsilon(self):
+        Iepsilon = (
+            self.subsample(self.identity_map)
+            + torch.randn(self.subsample_shape(self.identity_map.shape), device=config.device)
+            / (self.subsample_shape(self.identity_map.shape)[2])
+        )
+        return Iepsilon
+    def compute_gradient_icon_loss(self, phi_AB, phi_BA):
+        
+        Iepsilon = self.create_Iepsilon()
+
+        
+        # compute squared Frobenius of Jacobian of icon error
+
+        direction_losses = []
+
+        approximate_Iepsilon = phi_AB(phi_BA(Iepsilon))
+
+        inverse_consistency_error = Iepsilon - approximate_Iepsilon
+
+        delta = 0.001
+
+        if len(self.identity_map.shape) == 4:
+            dx = torch.Tensor([[[[delta]], [[0.0]]]]).to(config.device)
+            dy = torch.Tensor([[[[0.0]], [[delta]]]]).to(config.device)
+            direction_vectors = (dx, dy)
+
+        elif len(self.identity_map.shape) == 5:
+            dx = torch.Tensor([[[[[delta]]], [[[0.0]]], [[[0.0]]]]]).to(config.device)
+            dy = torch.Tensor([[[[[0.0]]], [[[delta]]], [[[0.0]]]]]).to(config.device)
+            dz = torch.Tensor([[[[0.0]]], [[[0.0]]], [[[delta]]]]).to(config.device)
+            direction_vectors = (dx, dy, dz)
+        elif len(self.identity_map.shape) == 3:
+            dx = torch.Tensor([[[delta]]]).to(config.device)
+            direction_vectors = (dx,)
+
+        for d in direction_vectors:
+            approximate_Iepsilon_d = phi_AB(phi_BA(Iepsilon + d))
+            inverse_consistency_error_d = Iepsilon + d - approximate_Iepsilon_d
+            grad_d_icon_error = (
+                inverse_consistency_error - inverse_consistency_error_d
+            ) / delta
+            direction_losses.append(torch.mean(grad_d_icon_error**2))
+
+        inverse_consistency_loss = sum(direction_losses)
+
+        return inverse_consistency_loss
+
+    def compute_similarity_measure(self, phi_AB, phi_BA, image_A, image_B):
+
+        Iepsilon = self.create_Iepsilon()
+        self.phi_AB_vectorfield = phi_AB(Iepsilon)
+        self.phi_BA_vectorfield = phi_BA(Iepsilon)
+
+        # tag images during warping so that the similarity measure
+        # can use information about whether a sample is interpolated
+        # or extrapolated
+
+        inbounds_tag = torch.zeros(tuple(image_A.shape), device=image_A.device)
+        if len(self.input_shape) - 2 == 3:
+            inbounds_tag[:, :, 1:-1, 1:-1, 1:-1] = 1.0
+        elif len(self.input_shape) - 2 == 2:
+            inbounds_tag[:, :, 1:-1, 1:-1] = 1.0
+        else:
+            inbounds_tag[:, :, 1:-1] = 1.0
+
+        self.warped_image_A = self.as_function(
+            torch.cat([image_A, inbounds_tag], axis=1)
+        )(self.phi_AB_vectorfield)
+        self.warped_image_B = self.as_function(
+            torch.cat([image_B, inbounds_tag], axis=1)
+        )(self.phi_BA_vectorfield)
+        similarity_loss = self.similarity(
+            self.warped_image_A, self.as_function(image_B)(Iepsilon)
+        ) + self.similarity(self.warped_image_B, self.as_function(image_A)(Iepsilon))
+        return similarity_loss
+
+    def forward(self, image_A, image_B):
 
 def normalize(image):
     dimension = len(image.shape) - 2
@@ -404,3 +502,12 @@ def flips(phi):
         return torch.sum(du < 0) / phi.shape[0]
     else:
         raise ValueError()
+
+
+def to_floats(stats):
+    out = []
+    for v in stats:
+        if isinstance(v, torch.Tensor):
+            v = torch.mean(v).cpu().item()
+        out.append(v)
+    return ICONLoss(*out)
