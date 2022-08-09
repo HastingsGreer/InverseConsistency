@@ -70,6 +70,9 @@ class TestItkRegistration(unittest.TestCase):
             output_direction=image_exp_preprocessed.GetDirection(),
             output_origin=image_exp_preprocessed.GetOrigin(),
         )
+        difference = np.mean((np.array(warped_image_insp_preprocessed) - np.array(image_exp_preprocessed))**2)
+
+        print("Lung itk difference:", difference)
 
         # log some images to show the registration
         import os

@@ -18,7 +18,7 @@ class TestItkRegistration(unittest.TestCase):
 
         icon_registration.test_utils.download_test_data()
 
-        model = icon_registration.pretrained_models.OAI_knees_registration_model(
+        model = icon_registration.pretrained_models.OAI_knees_gradICON_model(
             pretrained=True
         )
 
@@ -70,6 +70,10 @@ class TestItkRegistration(unittest.TestCase):
         plt.imshow(np.array(warped_image_A)[40])
         plt.savefig(footsteps.output_dir + "warped.png")
         plt.clf()
+
+        difference = np.mean((np.array(warped_image_A) - np.array(image_B))**2)
+
+        print("Knee itk difference:", difference)
 
         reference = np.load(icon_registration.test_utils.TEST_DATA_DIR / "warped.npy")
 
