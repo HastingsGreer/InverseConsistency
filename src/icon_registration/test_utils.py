@@ -39,6 +39,7 @@ def read_copd_pointset(f_path):
     :param f_path: the path to the file containing the position of points from copdgene dataset.
     Points are deliminated by '\n' and X,Y,Z of each point are deliminated by '\t'.
     :return: numpy array of points in physical coordinates
+
     """
     spacing = COPD_spacing[f_path.split("/")[-1].split("_")[0]]
     spacing = np.expand_dims(spacing, 0)

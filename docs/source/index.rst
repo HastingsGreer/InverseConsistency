@@ -9,7 +9,7 @@ Welcome to ICON's documentation!
 .. toctree::
    :maxdepth: 2
 
-   introduction
+   register_fives 
    registration_modules
    modules
 

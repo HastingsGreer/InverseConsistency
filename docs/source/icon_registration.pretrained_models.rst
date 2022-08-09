@@ -12,6 +12,14 @@ icon\_registration.pretrained\_models.OAI\_knees module
    :undoc-members:
    :show-inheritance:
 
+icon\_registration.pretrained\_models.lung_ct module
+-------------------------------------------------------
+
+.. automodule:: icon_registration.pretrained_models.lung_ct
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
