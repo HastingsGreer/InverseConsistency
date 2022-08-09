@@ -5,7 +5,7 @@
 
 [<img src="https://github.com/uncbiag/ICON/actions/workflows/test-action.yml/badge.svg">](https://github.com/uncbiag/ICON/actions)
 [<img src="https://img.shields.io/pypi/v/icon_registration.svg?color=blue">](https://pypi.org/project/icon-registration)
-[<img src="https://readthedocs.org/projects/icon/badge/?version=master>](https://icon.readthedocs.io/en/master/)
+[<img src="https://readthedocs.org/projects/icon/badge/?version=master">](https://icon.readthedocs.io/en/master/)
 
 
 This is the official repository for  
