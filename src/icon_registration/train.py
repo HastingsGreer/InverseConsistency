@@ -4,6 +4,7 @@ import torch
 import tqdm
 
 from .losses import ICONLoss, to_floats
+from .config import device
 
 
 def write_stats(writer, stats: ICONLoss, ite):
