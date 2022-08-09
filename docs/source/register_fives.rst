@@ -77,8 +77,9 @@ All that remains is to train the network!
 
    net.train()
    net.to(device)
+   
    optim = torch.optim.Adam(net.parameters(), lr=0.001)
-   curves = icon.train_datasets(net, optim, ds, ds, epochs=5)
+   curves = icon.train_datasets(net, optim, ds, ds, epochs=3)
    plt.clf()
    plt.plot(np.array(curves)[:, :3])
 
@@ -105,6 +106,7 @@ All that remains is to train the network!
    plt.contour(torchvision.utils.make_grid(net.phi_AB_vectorfield[:6], nrow=3)[1].cpu().detach())
    plt.subplot(2, 2, 4)
    show(net.warped_image_A - image_B)
+   plt.tight_layout()
 
 
 
