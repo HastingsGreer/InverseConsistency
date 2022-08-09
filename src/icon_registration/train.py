@@ -64,8 +64,8 @@ def train_datasets(net, optimizer, d1, d2, epochs=400):
     for epoch in tqdm.tqdm(range(epochs)):
         for A, B in list(zip(d1, d2)):
             if True:  # A[0].size()[0] == batch_size:
-                image_A = A[0].cuda()
-                image_B = B[0].cuda()
+                image_A = A[0].to(device)
+                image_B = B[0].to(device)
                 optimizer.zero_grad()
 
                 loss_object = net(image_A, image_B)
