@@ -21,7 +21,9 @@ Next, create a git repo and import the code we need from `icon`.
    import icon_registration as icon
    import icon_registration.data 
    import icon_registration.networks as networks
+   from icon_registration.config import device
 
+   import numpy as np
    import torch
    import torchvision.utils
 
@@ -68,12 +70,42 @@ Notably, as this walks the tree, children of :mod:`icon_registration.network_wra
 
 All that remains is to train the network!
 
-.. code:: python
+.. plot::
+   :include-source:
+   :context:
+   
 
    net.train()
-   net.cuda()
+   net.to(device)
    optim = torch.optim.Adam(net.parameters(), lr=0.001)
-   icon.train_datasets(net, optim, ds, ds, epochs=12)
+   curves = icon.train_datasets(net, optim, ds, ds, epochs=5)
+   plt.clf()
+   plt.plot(np.array(curves)[:, :3])
+
+.. plot::
+   :include-source:
+   :context:
+
+   plt.clf()
+
+   def show(tensor):
+       plt.imshow(torchvision.utils.make_grid(tensor[:6], nrow=3)[0].cpu().detach())
+       plt.xticks([])
+       plt.yticks([])
+   image_A = next(iter(ds))[0].to(device)
+   image_B = next(iter(ds))[0].to(device)
+   net(image_A, image_B)
+   plt.subplot(2, 2, 1)
+   show(image_A)
+   plt.subplot(2, 2, 2)
+   show(image_B)
+   plt.subplot(2, 2, 3)
+   show(net.warped_image_A)
+   plt.contour(torchvision.utils.make_grid(net.phi_AB_vectorfield[:6], nrow=3)[0].cpu().detach())
+   plt.contour(torchvision.utils.make_grid(net.phi_AB_vectorfield[:6], nrow=3)[1].cpu().detach())
+   plt.subplot(2, 2, 4)
+   show(net.warped_image_A - image_B)
+
 
 
 
