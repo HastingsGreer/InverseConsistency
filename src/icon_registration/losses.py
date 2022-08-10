@@ -83,7 +83,7 @@ class InverseConsistentNet(network_wrappers.RegistrationModule):
 
         Iepsilon = (
             self.identity_map
-            + torch.randn(*self.identity_map.shape).to(config.device)
+            + torch.randn(*self.identity_map.shape).to(image_A.device)
             * 1
             / self.identity_map.shape[-1]
         )
@@ -125,7 +125,7 @@ class GradientICON(network_wrappers.RegistrationModule):
     def compute_gradient_icon_loss(self, phi_AB, phi_BA):
         Iepsilon = (
             self.identity_map
-            + torch.randn(*self.identity_map.shape).to(config.device)
+            + torch.randn(*self.identity_map.shape).to(self.identity_map.device)
             * 1
             / self.identity_map.shape[-1]
         )
@@ -141,17 +141,23 @@ class GradientICON(network_wrappers.RegistrationModule):
         delta = 0.001
 
         if len(self.identity_map.shape) == 4:
-            dx = torch.Tensor([[[[delta]], [[0.0]]]]).to(config.device)
-            dy = torch.Tensor([[[[0.0]], [[delta]]]]).to(config.device)
+            dx = torch.Tensor([[[[delta]], [[0.0]]]]).to(self.identity_map.device)
+            dy = torch.Tensor([[[[0.0]], [[delta]]]]).to(self.identity_map.device)
             direction_vectors = (dx, dy)
 
         elif len(self.identity_map.shape) == 5:
-            dx = torch.Tensor([[[[[delta]]], [[[0.0]]], [[[0.0]]]]]).to(config.device)
-            dy = torch.Tensor([[[[[0.0]]], [[[delta]]], [[[0.0]]]]]).to(config.device)
-            dz = torch.Tensor([[[[0.0]]], [[[0.0]]], [[[delta]]]]).to(config.device)
+            dx = torch.Tensor([[[[[delta]]], [[[0.0]]], [[[0.0]]]]]).to(
+                self.identity_map.device
+            )
+            dy = torch.Tensor([[[[[0.0]]], [[[delta]]], [[[0.0]]]]]).to(
+                self.identity_map.device
+            )
+            dz = torch.Tensor([[[[0.0]]], [[[0.0]]], [[[delta]]]]).to(
+                self.identity_map.device
+            )
             direction_vectors = (dx, dy, dz)
         elif len(self.identity_map.shape) == 3:
-            dx = torch.Tensor([[[delta]]]).to(config.device)
+            dx = torch.Tensor([[[delta]]]).to(self.identity_map.device)
             direction_vectors = (dx,)
 
         for d in direction_vectors:
@@ -305,7 +311,7 @@ class LNCCOnlyInterpolated:
         with torch.no_grad():
             A_inbounds = image_A[:, 1:]
 
-            inbounds_mask = self.blur(A_inbounds) > .999
+            inbounds_mask = self.blur(A_inbounds) > 0.999
 
         if len(image_A.shape) - 2 == 3:
             dimensions_to_sum_over = [2, 3, 4]
@@ -331,6 +337,7 @@ class BlurredSSD:
     def __call__(self, image_A, image_B):
         return torch.mean((self.blur(image_A[:, :1]) - self.blur(image_B[:, :1])) ** 2)
 
+
 class AdaptiveNCC:
     def __init__(self, level=4, threshold=0.1, gamma=1.5, sigma=2):
         self.level = level
@@ -342,11 +349,10 @@ class AdaptiveNCC:
         return gaussian_blur(tensor, self.sigma * 2 + 1, self.sigma)
 
     def __call__(self, image_A, image_B):
-
         def _nccBeforeMean(image_A, image_B):
             A = normalize(image_A[:, :1])
             B = normalize(image_B)
-            res = torch.mean(A * B, dim=(1,2,3,4))
+            res = torch.mean(A * B, dim=(1, 2, 3, 4))
             return 1 - res
 
         sims = [_nccBeforeMean(image_A, image_B)]
@@ -354,15 +360,24 @@ class AdaptiveNCC:
             if i == 0:
                 sims.append(_nccBeforeMean(self.blur(image_A), self.blur(image_B)))
             else:
-                sims.append(_nccBeforeMean(self.blur(F.avg_pool3d(image_A, 2**i)), self.blur(F.avg_pool3d(image_B, 2**i))))
+                sims.append(
+                    _nccBeforeMean(
+                        self.blur(F.avg_pool3d(image_A, 2**i)),
+                        self.blur(F.avg_pool3d(image_B, 2**i)),
+                    )
+                )
 
         sim_loss = sims[0] + 0
-        lamb_ = 1.
+        lamb_ = 1.0
         for i in range(1, len(sims)):
-            lamb = torch.clamp(sims[i].detach()/(self.threshold/(self.gamma**(len(sims)-i))), 0, 1)
-            sim_loss = lamb * sims[i] + (1-lamb) * sim_loss
-            lamb_ *= (1-lamb)
-    
+            lamb = torch.clamp(
+                sims[i].detach() / (self.threshold / (self.gamma ** (len(sims) - i))),
+                0,
+                1,
+            )
+            sim_loss = lamb * sims[i] + (1 - lamb) * sim_loss
+            lamb_ *= 1 - lamb
+
         return torch.mean(sim_loss)
 
 
