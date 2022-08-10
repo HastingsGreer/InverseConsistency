@@ -13,13 +13,18 @@ The second channel is 1 if the intensity at that voxel is interpolated, or zero 
 
 We will implement a simple absolute difference similarity metric
 
-.. code:: python
+.. plot::
+   :context:
+   :include-source:
+   :nofigs:
 
-  def absolute_similarity(image_A, image_B):
-  	# since we are not using the interpolation information, we strip it off before computing similarity.
-  	image_A, image_B = image_A[:, 0], image_B[:, 0]
-  
-  	return torch.mean(torch.abs(image_A - image_B))
+   import torch
+
+   def absolute_similarity(image_A, image_B):
+        # since we are not using the interpolation information, we strip it off before computing similarity.
+       image_A, image_B = image_A[:, 0], image_B[:, 0]
+
+       return torch.mean(torch.abs(image_A - image_B))
 
 Writing a RegistrationModule 
 -----------------------------
@@ -58,51 +63,35 @@ When we construct our `FunctionFromStationaryVelocityField` object, we will
 pass in a pytorch module `net` that is responsible for generating the velocity
 field from the input images. This way, it is easy experiment with different architectures.
 
-..
-        Object oriented stationary velocity field
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Let's make a simple implementation of a stationary velocity field, by starting at the identity map, and then iterating
 
-        .. code:: python
+.. math::
 
-          class SVFTransform:
-                  def __init__(self, velocity_field, spacing, n_steps=16):
-                          self.n_steps = n_steps
-                          self.spacing = spacing
-                          self.velocity_delta = velocity_field / n_steps
-                  def __call__(self, coordinate_tensor):
-                          for _ in range(16):
-                                  coordinate_tensor = coordinate_tensor + compute_warped_image_multiNC(
-                                          self.velocity_delta, coordinate_tensor, self.spacing, 1)
-                          return coordinate_tensor
-          
-          class FunctionFromStationaryVelocityField(icon_registration.RegistrationModule):
-                  def __init__(self, net, n_steps=16):
-                          super().__init__()
-                          self.net = net
-                          self.n_steps = n_steps
-          
-                  def forward(self, x, y):
-                          velocity_field = self.net(x, y)
-                          return SVFTransform(velocity_field, self.spacing, self.n_steps)
+   x := x + \frac{1}{N} v(x)
 
+Here the utility function :func:`icon_registration.network_wrappers.RegistrationModule.as_function` is useful for reinterpreting a tensor (in this case a velocity field) as a function :math:`v`  with the domain of coordinates.
 
 Stationary velocity field
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code:: python
+.. plot::
+   :context:
+   :include-source:
+   :nofigs:
 
-  class FunctionFromStationaryVelocityField(icon_registration.RegistrationModule):
+   import icon_registration as icon
+
+   class FunctionFromStationaryVelocityField(icon.RegistrationModule):
       def __init__(self, net, n_steps=16):
           super().__init__()
           self.net = net
           self.n_steps = n_steps
   
-      def forward(self, x, y):
-          velocityfield_delta = self.net(x, y) / self.n_steps
+      def forward(self, image_A, image_B):
+          velocityfield_delta = self.net(image_A, image_B) / self.n_steps
           def transform(coordinate_tensor):
               for _ in range(self.n_steps):
-                coordinate_tensor = input_ + compute_warped_image_multiNC( 
-                  velocityfield_delta, coordinate_tensor, self.spacing, 1)
+                coordinate_tensor = coordinate_tensor + self.as_function(velocityfield_delta)(coordinate_tensor)
               return coordinate_tensor
           return transform
 
@@ -112,8 +101,13 @@ Building a registration network
 These components can now be mixed and matched with existing :mod:`icon_registration` components. For example, if we want to perform a two step registration, with coarse affine registration followed by fine registration using our custom stationary velocity field, and we want to use our custom absolute difference similarity measure, we write
 
 
-.. code:: python
+.. plot::
+   :context:
+   :include-source:
+   :nofigs:
    
+   from icon_registration import networks
+
    registration_network = icon.GradientICON(
        icon.TwoStepRegistration(
            icon.FunctionFromMatrix(networks.ConvolutionalMatrixNet(dimension=2)),
@@ -125,3 +119,11 @@ These components can now be mixed and matched with existing :mod:`icon_registrat
        lmbda=.4
    )
        
+
+.. plot::
+   :context:
+   :nofigs: 
+
+   registration_network.assign_identity_map([1, 1, 12, 12])
+
+   registration_network(torch.zeros((1, 1, 12, 12)), torch.zeros((1, 1, 12, 12)))

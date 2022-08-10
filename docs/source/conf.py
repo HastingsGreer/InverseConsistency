@@ -40,6 +40,8 @@ extensions = [
     "matplotlib.sphinxext.plot_directive",
 ]
 
+plot_html_show_source_link = False
+
 import inspect
 
 
