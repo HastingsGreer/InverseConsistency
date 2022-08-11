@@ -12,7 +12,7 @@ Welcome to ICON's documentation!
    register_fives 
    medical_training
    registration_modules
-   modules
+   icon_registration
 
 Indices and tables
 ==================

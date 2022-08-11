@@ -83,6 +83,8 @@ All that remains is to train the network!
    plt.clf()
    plt.plot(np.array(curves)[:, :3])
 
+This training is cheap to run, taking about 1 minute on a GPU, or 10 minutes on CPU: In fact, we train the network on readthedocs' servers to generate the following figures:
+
 .. plot::
    :include-source:
    :context:

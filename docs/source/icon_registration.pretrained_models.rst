@@ -1,10 +1,8 @@
-icon\_registration.pretrained\_models package
+icon\_registration.pretrained\_models 
 =============================================
 
-Submodules
-----------
 
-icon\_registration.pretrained\_models.OAI\_knees module
+icon\_registration.pretrained\_models.OAI\_knees
 -------------------------------------------------------
 
 .. automodule:: icon_registration.pretrained_models.OAI_knees
@@ -12,7 +10,7 @@ icon\_registration.pretrained\_models.OAI\_knees module
    :undoc-members:
    :show-inheritance:
 
-icon\_registration.pretrained\_models.lung_ct module
+icon\_registration.pretrained\_models.lung_ct
 -------------------------------------------------------
 
 .. automodule:: icon_registration.pretrained_models.lung_ct
@@ -20,10 +18,3 @@ icon\_registration.pretrained\_models.lung_ct module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: icon_registration.pretrained_models
-   :members:
-   :undoc-members:
-   :show-inheritance:

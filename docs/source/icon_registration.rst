@@ -1,4 +1,4 @@
-icon\_registration package
+API reference
 ==========================
 
 Subpackages
@@ -12,7 +12,7 @@ Subpackages
 Submodules
 ----------
 
-icon\_registration.data module
+icon\_registration.data
 ------------------------------
 
 .. automodule:: icon_registration.data
@@ -20,7 +20,7 @@ icon\_registration.data module
    :undoc-members:
    :show-inheritance:
 
-icon\_registration.itk\_wrapper module
+icon\_registration.itk\_wrapper
 --------------------------------------
 
 .. automodule:: icon_registration.itk_wrapper
@@ -28,7 +28,7 @@ icon\_registration.itk\_wrapper module
    :undoc-members:
    :show-inheritance:
 
-icon\_registration.losses module
+icon\_registration.losses
 --------------------------------
 
 .. automodule:: icon_registration.losses
@@ -36,7 +36,7 @@ icon\_registration.losses module
    :undoc-members:
    :show-inheritance:
 
-icon\_registration.monai_wrapper module
+icon\_registration.monai_wrapper
 ---------------------------------------
 
 .. automodule:: icon_registration.monai_wrapper
@@ -44,7 +44,7 @@ icon\_registration.monai_wrapper module
    :undoc-members:
    :show-inheritance:
 
-icon\_registration.network\_wrappers module
+icon\_registration.network\_wrappers
 -------------------------------------------
 
 .. automodule:: icon_registration.network_wrappers
@@ -52,7 +52,7 @@ icon\_registration.network\_wrappers module
    :undoc-members:
    :show-inheritance:
 
-icon\_registration.networks module
+icon\_registration.networks
 ----------------------------------
 
 .. automodule:: icon_registration.networks
@@ -60,7 +60,7 @@ icon\_registration.networks module
    :undoc-members:
    :show-inheritance:
 
-icon\_registration.test\_utils module
+icon\_registration.test\_utils
 -------------------------------------
 
 .. automodule:: icon_registration.test_utils
@@ -68,7 +68,7 @@ icon\_registration.test\_utils module
    :undoc-members:
    :show-inheritance:
 
-icon\_registration.train module
+icon\_registration.train
 -------------------------------
 
 .. automodule:: icon_registration.train
@@ -76,7 +76,7 @@ icon\_registration.train module
    :undoc-members:
    :show-inheritance:
 
-icon\_registration.visualize module
+icon\_registration.visualize
 -----------------------------------
 
 .. automodule:: icon_registration.visualize
@@ -84,10 +84,3 @@ icon\_registration.visualize module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
-
-.. automodule:: icon_registration
-   :members:
-   :undoc-members:
-   :show-inheritance:

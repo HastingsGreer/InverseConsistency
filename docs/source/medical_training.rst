@@ -4,7 +4,7 @@ Training on a medical dataset
 
 While we can learn to register 2-D images in a few minutes even on cpu, training for registering 3-D volumes is a more serious endeavor, especially at high resolutions. For that reason, we recommend: 
 
-- Preprocessing all your data in a seperate script and storing it as a pytorch tensor to an ssd local to the gpus. Once this is done, 
+- Preprocessing all your data in a seperate script and storing it as a :func:`torch.load` / :func:`torch.save` file. This makes loading your dataset fast for iterating changes to your training script, but also prevents you from being bottlenecked by the disk during training.
 
 - Recording all hyperparameters assosciated with each training run so that you can replicate it- this is super important if you are investing hours or days into a training run, and super easy with :mod:`footsteps`
 
@@ -50,6 +50,8 @@ This is the script that you most likely need to modify for your own machine and 
 Training the Model
 ==================
 
+Once the data is preprocessed, we train a network to register it. In this example we are doing inter-subject brain registration, so we can just compile batches by sampling random pairs from the dataset. We can use the exact same network architecture from the previous fives example, just setting dimension to 3.
+
 .. code-block:: python
 
         import random
@@ -60,29 +62,28 @@ Training the Model
         import torch
 
 
-        BATCH_SIZE = 8
         input_shape = [1, 1, 130, 155, 130]
 
-        GPUS = 4
-
-
         def make_network():
-            phi = icon.FunctionFromVectorField(networks.tallUNet2(dimension=3))
-            psi = icon.FunctionFromVectorField(networks.tallUNet2(dimension=3))
+            inner_net = icon.FunctionFromVectorField(networks.tallUNet2(dimension=2))
 
-            hires_net = icon.GradientICON(
-                icon.TwoStepRegistration(
-                    icon.DownsampleRegistration(
-                        icon.TwoStepRegistration(phi, psi), dimension=3
-                    ),
-                    icon.FunctionFromVectorField(networks.tallUNet2(dimension=3)),
-                ),
-                icon.LNCC(sigma=5),
-                .7,
-            )
-            hires_net.assign_identity_map(input_shape)
-            return hires_net
+            for _ in range(3):
+                 inner_net = icon.TwoStepRegistration(
+                     icon.DownsampleRegistration(inner_net, dimension=2),
+                     icon.FunctionFromVectorField(networks.tallUNet2(dimension=2))
+                 )
 
+            net = icon.GradientICON(inner_net, icon.LNCC(sigma=4), lmbda=.5)
+            net.assign_identity_map(input_shape)
+            return net
+
+We define a custom function for creating and preparing batches of images. Feel free to do this with a torch :class:`torch.Dataset`, but I am more confident about predicting the performance of proceedural code for this task.
+We'll load 
+
+.. code-block:: python
+
+        BATCH_SIZE = 8
+        GPUS = 4
 
         def make_batch():
             image = torch.cat([random.choice(brains) for _ in range(GPUS * BATCH_SIZE)])
@@ -90,6 +91,9 @@ Training the Model
             image = image / torch.max(image)
             return image
 
+Then, use the function :func:`icon_registration.train.train_batchfunction` to fire away! 
+
+.. code-block:: python
 
         if __name__ == "__main__":
             footsteps.initialize()
