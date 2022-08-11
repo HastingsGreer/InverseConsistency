@@ -41,6 +41,7 @@ extensions = [
 ]
 
 plot_html_show_source_link = False
+autodoc_inherit_docstrings = False
 
 import inspect
 

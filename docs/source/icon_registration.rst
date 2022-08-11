@@ -36,10 +36,10 @@ icon\_registration.losses module
    :undoc-members:
    :show-inheritance:
 
-icon\_registration.mermaidlite module
--------------------------------------
+icon\_registration.monai_wrapper module
+---------------------------------------
 
-.. automodule:: icon_registration.mermaidlite
+.. automodule:: icon_registration.monai_wrapper
    :members:
    :undoc-members:
    :show-inheritance:

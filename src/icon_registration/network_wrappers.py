@@ -15,7 +15,7 @@ class RegistrationModule(nn.Module):
 
     RegistrationModule provides a method as_function that turns a tensor
     representing an image into a python function mapping a tensor of coordinates
-    into a tensor of intensities R^N -> R.
+    into a tensor of intensities :math:`\mathbb{R}^N \rightarrow \mathbb{R}` .
     Mathematically, this is what an image is anyway.
 
     After this class is constructed, but before it is used, you _must_ call
@@ -27,7 +27,8 @@ class RegistrationModule(nn.Module):
 
     ie
 
-    $$ I^A \circ \Phi^{AB} \simeq I^B $$
+    .. math::
+        I^A \circ \Phi^{AB} \simeq I^B
 
     In particular, self.as_function(image_A)(phi_AB(self.identity_map)) ~= image_B
     """
@@ -77,6 +78,23 @@ class RegistrationModule(nn.Module):
         shape = self.input_shape
         shape[0] = size
         self.assign_identity_map(shape)
+
+    def forward(image_A, image_B):
+        """Register a pair of images:
+        return a python function that warps a tensor of coordinates such that
+
+        .. code-block:: python
+
+            self.as_function(image_A)(phi_AB(self.identity_map)) ~= image_B
+
+        .. math::
+            I^A \circ \Phi^{AB} \simeq I^B
+
+        :param image_A: the moving image
+        :param image_B: the fixed image
+        :return: :math:`\Phi^{AB}`
+        """
+        raise NotImplementedError()
 
 
 class FunctionFromVectorField(RegistrationModule):

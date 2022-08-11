@@ -10,6 +10,7 @@ Welcome to ICON's documentation!
    :maxdepth: 2
 
    register_fives 
+   medical_training
    registration_modules
    modules
 
