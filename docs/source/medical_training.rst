@@ -78,7 +78,6 @@ Once the data is preprocessed, we train a network to register it. In this exampl
             return net
 
 We define a custom function for creating and preparing batches of images. Feel free to do this with a torch :class:`torch.Dataset`, but I am more confident about predicting the performance of proceedural code for this task.
-We'll load 
 
 .. code-block:: python
 
@@ -91,7 +90,7 @@ We'll load
             image = image / torch.max(image)
             return image
 
-Then, use the function :func:`icon_registration.train.train_batchfunction` to fire away! 
+Then, use the function :func:`icon_registration.train.train_batchfunction` to commence training.
 
 .. code-block:: python
 

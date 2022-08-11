@@ -2,13 +2,21 @@ import icon_registration
 import torch
 
 
-class MonaiNetWrap(torch.nn.Module):
+class ConcatInputs(torch.nn.Module):
     def __init__(self, net):
         super().__init__()
         self.net = net
 
     def forward(self, image_A, image_B):
         return self.net(torch.cat([image_A, image_B], axis=1))
+
+class FirstChannelInputs(torch.nn.Module):
+    def __init__(self, net):
+        super().__init__()
+        self.net = net
+
+    def forward(self, image_A, image_B):
+        return self.net(image_A[:, :1], image_B[:, :1])
 
 
 def make_ddf(module: icon_registration.RegistrationModule, image_A, image_B):

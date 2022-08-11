@@ -12,6 +12,8 @@ Welcome to ICON's documentation!
    register_fives 
    medical_training
    registration_modules
+   itk_wrapper
+   monai_wrapper
    icon_registration
 
 Indices and tables
