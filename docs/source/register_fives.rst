@@ -79,7 +79,7 @@ All that remains is to train the network!
    net.to(device)
    
    optim = torch.optim.Adam(net.parameters(), lr=0.001)
-#   curves = icon.train_datasets(net, optim, ds, ds, epochs=5)
+   curves = icon.train_datasets(net, optim, ds, ds, epochs=5)
    plt.clf()
    plt.plot(np.array(curves)[:, :3])
 
