@@ -10,11 +10,10 @@ build:
   os: ubuntu-20.04
   tools:
     python: "3.9"
-    # You can also specify other tool versions:
-    # nodejs: "16"
-    # rust: "1.55"
-    # golang: "1.17"
 
+  jobs:
+    post_install:
+      - pip install monai
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
    configuration: docs/source/conf.py

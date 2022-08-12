@@ -180,7 +180,7 @@ Next, we train our hybrid model using the MONAI idiom
     show(model.warped_image_A - image_B)
     plt.tight_layout()
 
-Finally, let's visualize some registrations! To get a ddf compatible with :mod:`monai`'s Warp layer, use :function:`icon_registration.monai_wrapper.make_ddf`
+Finally, let's visualize some registrations! To get a ddf compatible with :mod:`monai`'s Warp layer, use :func:`icon_registration.monai_wrapper.make_ddf`
 
 .. plot::
     :include-source:
