@@ -70,6 +70,9 @@ def linkcode_resolve(domain, info):
         number,
     )
 
+def setup(app):
+    app.add_js_file("live.js")
+
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

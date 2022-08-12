@@ -19,6 +19,7 @@ MONAI and ICON are already almost compatible in this regard. The differences are
 
    import monai
    import icon_registration as icon
+   from icon_registration.config import device
    import icon_registration.monai_wrapper
    import torch
 
@@ -70,10 +71,9 @@ ICON losses assume that the first channel is intensity, and the second channel i
     )
 
     model.assign_identity_map([1, 1, 64, 64])
-    model.cuda()
+    model.to(device)
     model.train()
 
-    device="cuda"
     optimizer = torch.optim.Adam(model.parameters(), 1e-3)
 
 Using an ICON RegistrationModule with MONAI
