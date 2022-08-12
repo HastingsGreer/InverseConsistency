@@ -180,45 +180,47 @@ Next, we train our hybrid model using the MONAI idiom
     show(model.warped_image_A - image_B)
     plt.tight_layout()
 
+Finally, let's visualize some registrations! To get a ddf compatible with :mod:`monai`'s Warp layer, use :function:`icon_registration.monai_wrapper.make_ddf`
+
 .. plot::
-	:include-source:
-	:context:
+    :include-source:
+    :context:
 
     warp_layer = Warp("bilinear", "border").to(device)
-	val_ds = CacheDataset(data=training_datadict[2000:2500], transform=train_transforms,
-						  cache_rate=1.0, num_workers=0)
-	val_loader_fixed = DataLoader(val_ds, batch_size=16, num_workers=0)
-	val_loader_moving = DataLoader(val_ds, batch_size=16, num_workers=0)
-	for fixed, moving in zip(train_loader_fixed,train_loader_moving):
-		moving = moving["image"].to(device)
-		fixed = fixed["image"].to(device)
-		ddf = icon_registration.monai_wrapper.make_ddf(
+    val_ds = CacheDataset(data=training_datadict[2000:2500], transform=train_transforms,
+                          cache_rate=1.0, num_workers=0)
+    val_loader_fixed = DataLoader(val_ds, batch_size=16, num_workers=0)
+    val_loader_moving = DataLoader(val_ds, batch_size=16, num_workers=0)
+    for fixed, moving in zip(train_loader_fixed,train_loader_moving):
+        moving = moving["image"].to(device)
+        fixed = fixed["image"].to(device)
+        ddf = icon_registration.monai_wrapper.make_ddf(
             model,
             moving, 
             fixed)
-		pred_image = warp_layer(moving, ddf)
-		break
+        pred_image = warp_layer(moving, ddf)
+        break
 
-	fixed_image = fixed.detach().cpu().numpy()[:, 0]
-	moving_image = moving.detach().cpu().numpy()[:, 0]
-	pred_image = pred_image.detach().cpu().numpy()[:, 0]
-	batch_size = 5
-	plt.subplots(batch_size, 3, figsize=(8, 10))
-	for b in range(batch_size):
-		# moving image
-		plt.subplot(batch_size, 3, b * 3 + 1)
-		plt.axis('off')
-		plt.title("moving image")
-		plt.imshow(moving_image[b], cmap="gray")
-		# fixed image
-		plt.subplot(batch_size, 3, b * 3 + 2)
-		plt.axis('off')
-		plt.title("fixed image")
-		plt.imshow(fixed_image[b], cmap="gray")
-		# warped moving
-		plt.subplot(batch_size, 3, b * 3 + 3)
-		plt.axis('off')
-		plt.title("predicted image")
-		plt.imshow(pred_image[b], cmap="gray")
-	plt.axis('off')
-	plt.show()
+    fixed_image = fixed.detach().cpu().numpy()[:, 0]
+    moving_image = moving.detach().cpu().numpy()[:, 0]
+    pred_image = pred_image.detach().cpu().numpy()[:, 0]
+    batch_size = 5
+    plt.subplots(batch_size, 3, figsize=(8, 10))
+    for b in range(batch_size):
+        # moving image
+        plt.subplot(batch_size, 3, b * 3 + 1)
+        plt.axis('off')
+        plt.title("moving image")
+        plt.imshow(moving_image[b], cmap="gray")
+        # fixed image
+        plt.subplot(batch_size, 3, b * 3 + 2)
+        plt.axis('off')
+        plt.title("fixed image")
+        plt.imshow(fixed_image[b], cmap="gray")
+        # warped moving
+        plt.subplot(batch_size, 3, b * 3 + 3)
+        plt.axis('off')
+        plt.title("predicted image")
+        plt.imshow(pred_image[b], cmap="gray")
+    plt.axis('off')
+    plt.show()

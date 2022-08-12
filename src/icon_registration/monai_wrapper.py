@@ -31,7 +31,7 @@ def make_ddf(module: icon_registration.RegistrationModule, image_A, image_B):
         
     network_shape_list = list(module.identity_map.shape[2:])
 
-    scale = torch.Tensor(network_shape_list)
+    scale = torch.Tensor(network_shape_list).to(module.identity_map.device)
 
     for _ in network_shape_list:
         scale = scale[:, None]
