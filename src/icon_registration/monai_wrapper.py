@@ -37,3 +37,4 @@ def make_ddf(module: icon_registration.RegistrationModule, image_A, image_B):
         scale = scale[:, None]
     scale = scale[None, :]
     field_spacing_1 = scale * field_0_1
+    return field_spacing_1
