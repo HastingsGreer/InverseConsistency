@@ -15,6 +15,12 @@ Next, create a git repo and import the code we need from `icon`.
 
 .. plot::
    :context:
+   :nofigs:
+
+   plt.clf()
+
+.. plot::
+   :context:
    :include-source:
    :nofigs:
 

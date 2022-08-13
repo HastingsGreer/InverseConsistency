@@ -94,13 +94,20 @@ Setup
        )[140]
    )
    plt.colorbar()
-   plt.show()
+
+.. plot::
+   :context:
+   :include-source:
+
    plt.clf()
    plt.imshow(np.array(warped_image_insp_preprocessed)[140])
    plt.colorbar()
-   plt.show()
-   plt.clf()
+
+.. plot::
+   :context:
+   :include-source:
    
+   plt.clf()
    plt.imshow(
        np.array(warped_image_insp_preprocessed)[140]
        - np.array(image_exp_preprocessed)[140]
@@ -138,10 +145,18 @@ To move physical points, use phi_BA.TransformPoint
 
    scatxy(insp_points)
    scatxy(exp_points)
-   plt.show()
-   plt.clf()
 
+.. plot::
+   :context:
+   :include-source:
+
+   plt.clf()
    scatxy(warped_insp_points)
    scatxy(exp_points)
-   plt.show()
 
+
+.. plot::
+   :nofigs:
+   :context:
+
+   plt.clf()

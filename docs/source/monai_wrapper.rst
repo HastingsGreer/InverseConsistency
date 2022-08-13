@@ -121,7 +121,6 @@ First, let's load a MONAI dataset
     plt.figure("check", (6, 6))
     plt.title("fixed_image")
     plt.imshow(fixed_image, cmap="gray")
-    plt.show()
 
 Next, we train our hybrid model using the MONAI idiom
 
@@ -243,7 +242,6 @@ Finally, let's visualize some registrations! To get a ddf compatible with :mod:`
         plt.title("predicted image")
         plt.imshow(pred_image[b], cmap="gray")
     plt.axis('off')
-    plt.show()
 
 
 .. figure:: _static/monai_wrapper-7_01.png

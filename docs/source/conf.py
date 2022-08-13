@@ -71,7 +71,8 @@ def linkcode_resolve(domain, info):
     )
 
 def setup(app):
-    app.add_js_file("live.js")
+    if not ("READTHEDOCS" in os.environ):
+        app.add_js_file("live.js")
 
 
 # Add any paths that contain templates here, relative to this directory.
