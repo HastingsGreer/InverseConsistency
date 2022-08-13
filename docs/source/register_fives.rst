@@ -17,7 +17,7 @@ Next, create a git repo and import the code we need from `icon`.
    :context:
    :nofigs:
 
-   plt.clf()
+   plt.close()
 
 .. plot::
    :context:
@@ -86,7 +86,7 @@ All that remains is to train the network!
    
    optim = torch.optim.Adam(net.parameters(), lr=0.001)
    curves = icon.train_datasets(net, optim, ds, ds, epochs=5)
-   plt.clf()
+   plt.close()
    plt.plot(np.array(curves)[:, :3])
 
 This training is cheap to run, taking about 1 minute on a GPU, or 10 minutes on CPU: In fact, we train the network on readthedocs' servers to generate the following figures:
@@ -95,7 +95,7 @@ This training is cheap to run, taking about 1 minute on a GPU, or 10 minutes on 
    :include-source:
    :context:
 
-   plt.clf()
+   plt.close()
 
    def show(tensor):
        plt.imshow(torchvision.utils.make_grid(tensor[:6], nrow=3)[0].cpu().detach())

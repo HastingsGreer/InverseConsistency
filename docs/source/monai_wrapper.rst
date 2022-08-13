@@ -163,7 +163,7 @@ Next, we train our hybrid model using the MONAI idiom
 
        epoch_loss /= step
        epoch_loss_values.append(epoch_loss)
-   plt.clf()
+   plt.close()
    plt.plot(epoch_loss_values)
 
 .. figure:: _static/monai_wrapper-6.png
@@ -199,7 +199,7 @@ Finally, let's visualize some registrations! To get a ddf compatible with :mod:`
    :nofigs:
    :context:
 
-   plt.clf()
+   plt.close()
 
 .. plot::
     :include-source:

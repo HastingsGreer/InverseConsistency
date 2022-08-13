@@ -99,7 +99,7 @@ Setup
    :context:
    :include-source:
 
-   plt.clf()
+   plt.close()
    plt.imshow(np.array(warped_image_insp_preprocessed)[140])
    plt.colorbar()
 
@@ -107,7 +107,7 @@ Setup
    :context:
    :include-source:
    
-   plt.clf()
+   plt.close()
    plt.imshow(
        np.array(warped_image_insp_preprocessed)[140]
        - np.array(image_exp_preprocessed)[140]
@@ -139,7 +139,7 @@ To move physical points, use phi_BA.TransformPoint
        warped_insp_points.append(py)
    warped_insp_points = np.array(warped_insp_points)
 
-   plt.clf()
+   plt.close()
    def scatxy(pts):
       plt.scatter(pts[:, 0], pts[:, 1])
 
@@ -150,7 +150,7 @@ To move physical points, use phi_BA.TransformPoint
    :context:
    :include-source:
 
-   plt.clf()
+   plt.close()
    scatxy(warped_insp_points)
    scatxy(exp_points)
 
@@ -159,4 +159,4 @@ To move physical points, use phi_BA.TransformPoint
    :nofigs:
    :context:
 
-   plt.clf()
+   plt.close()
