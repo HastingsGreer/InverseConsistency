@@ -98,6 +98,7 @@ First, let's load a MONAI dataset
     import os
     import tempfile
 
+    max_epochs = 200
     root_dir = tempfile.mkdtemp()
     train_data = MedNISTDataset(root_dir=root_dir, section="training", download=True, transform=None)
     training_datadict = [
@@ -124,6 +125,17 @@ First, let's load a MONAI dataset
 
 Next, we train our hybrid model using the MONAI idiom
 
+
+.. plot::
+   :context:
+   :nofigs:
+
+   max_epochs=1
+
+   import os
+   if "READTHEDOCS" in os.environ:
+       del model
+
 .. plot::
    :context:
    :include-source:
@@ -133,7 +145,6 @@ Next, we train our hybrid model using the MONAI idiom
    train_loader_fixed = DataLoader(train_ds, batch_size=16, shuffle=True, num_workers=2)
    train_loader_moving = DataLoader(train_ds, batch_size=16, shuffle=True, num_workers=2)
 
-   max_epochs = 200
    epoch_loss_values = []
 
    for epoch in range(max_epochs):
@@ -155,6 +166,9 @@ Next, we train our hybrid model using the MONAI idiom
        epoch_loss_values.append(epoch_loss)
    plt.clf()
    plt.plot(epoch_loss_values)
+
+.. figure:: _static/monai_wrapper-6.png
+   :align: center
 
 
 .. 
@@ -181,6 +195,12 @@ Next, we train our hybrid model using the MONAI idiom
     plt.tight_layout()
 
 Finally, let's visualize some registrations! To get a ddf compatible with :mod:`monai`'s Warp layer, use :func:`icon_registration.monai_wrapper.make_ddf`
+
+.. plot:: 
+   :nofigs:
+   :context:
+
+   plt.clf()
 
 .. plot::
     :include-source:
@@ -224,3 +244,7 @@ Finally, let's visualize some registrations! To get a ddf compatible with :mod:`
         plt.imshow(pred_image[b], cmap="gray")
     plt.axis('off')
     plt.show()
+
+
+.. figure:: _static/monai_wrapper-7_01.png
+   :align: center
