@@ -16,7 +16,7 @@ def download_test_data():
             "61d3a99d4acac99f429277d7",
             str(TEST_DATA_DIR),
         ],
-        stdout=sys.stdout,
+        #stdout=sys.stdout,
     )
 
 
@@ -35,9 +35,10 @@ COPD_spacing = {
 
 
 def read_copd_pointset(f_path):
-    """
-    :param f_path: the path to the file containing the position of points from copdgene dataset.
-    Points are deliminated by '\n' and X,Y,Z of each point are deliminated by '\t'.
+    """Points are deliminated by '\n' and X,Y,Z of each point are deliminated by '\t'.
+
+    :param f_path: the path to the file containing
+        the position of points from copdgene dataset.
     :return: numpy array of points in physical coordinates
     """
     spacing = COPD_spacing[f_path.split("/")[-1].split("_")[0]]

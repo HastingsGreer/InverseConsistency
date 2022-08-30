@@ -29,3 +29,9 @@ jobs:
     - name: GPU test with unittest
       run: |
         python -m unittest discover
+    - name: Build docs
+      working-directory: docs
+      run: |
+        pip install sphinx sphinx-rtd-theme monai
+        make clean
+        make html SPHINXOPTS="-W --keep-going" 

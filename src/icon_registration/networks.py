@@ -207,7 +207,9 @@ class UNet2(nn.Module):
         #            self.residues.append(
         #                Residual(up_channels_out[depth])
         #            )
-        self.lastConv = self.Conv(input_channels + up_channels_out[0], dimension, kernel_size=3, padding=1)
+        self.lastConv = self.Conv(
+            input_channels + up_channels_out[0], dimension, kernel_size=3, padding=1
+        )
         torch.nn.init.zeros_(self.lastConv.weight)
         torch.nn.init.zeros_(self.lastConv.bias)
 
@@ -605,26 +607,24 @@ class DenseMatrixNet(nn.Module):
                 [
                     x,
                     torch.Tensor([[[0, 0, 0, 1]]])
-                    .to(config.device)
+                    .to(x.device)
                     .expand(x.shape[0], -1, -1),
                 ],
                 1,
             )
             x = x + torch.Tensor(
                 [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
-            ).to(config.device)
+            ).to(x.device)
         elif self.dimension == 2:
             x = torch.reshape(x, (-1, 2, 3))
             x = torch.cat(
                 [
                     x,
-                    torch.Tensor([[[0, 0, 1]]])
-                    .to(config.device)
-                    .expand(x.shape[0], -1, -1),
+                    torch.Tensor([[[0, 0, 1]]]).to(x.device).expand(x.shape[0], -1, -1),
                 ],
                 1,
             )
-            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).to(config.device)
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).to(x.device)
         else:
             raise ArgumentError()
         return x
@@ -674,44 +674,42 @@ class ConvolutionalMatrixNet(nn.Module):
                 [
                     x,
                     torch.Tensor([[[0, 0, 0, 1]]])
-                    .to(config.device)
+                    .to(x.device)
                     .expand(x.shape[0], -1, -1),
                 ],
                 1,
             )
             x = x + torch.Tensor(
                 [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
-            ).to(config.device)
+            ).to(x.device)
             x = torch.matmul(
                 torch.Tensor(
                     [[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 0.5], [0, 0, 0, 1]]
-                ).to(config.device),
+                ).to(x.device),
                 x,
             )
             x = torch.matmul(
                 x,
                 torch.Tensor(
                     [[1, 0, 0, -0.5], [0, 1, 0, -0.5], [0, 0, 1, -0.5], [0, 0, 0, 1]]
-                ).to(config.device),
+                ).to(x.device),
             )
         elif self.dimension == 2:
             x = torch.reshape(x, (-1, 2, 3))
             x = torch.cat(
                 [
                     x,
-                    torch.Tensor([[[0, 0, 1]]])
-                    .to(config.device)
-                    .expand(x.shape[0], -1, -1),
+                    torch.Tensor([[[0, 0, 1]]]).to(x.device).expand(x.shape[0], -1, -1),
                 ],
                 1,
             )
-            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).to(config.device)
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).to(x.device)
             x = torch.matmul(
-                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).to(config.device), x
+                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).to(x.device), x
             )
             x = torch.matmul(
                 x,
-                torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).to(config.device),
+                torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).to(x.device),
             )
         else:
             raise ArgumentError()
@@ -761,44 +759,42 @@ class StumpyConvolutionalMatrixNet(nn.Module):
                 [
                     x,
                     torch.Tensor([[[0, 0, 0, 1]]])
-                    .to(config.device)
+                    .to(x.device)
                     .expand(x.shape[0], -1, -1),
                 ],
                 1,
             )
             x = x + torch.Tensor(
                 [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]
-            ).to(config.device)
+            ).to(x.device)
             x = torch.matmul(
                 torch.Tensor(
                     [[1, 0, 0, 0.5], [0, 1, 0, 0.5], [0, 0, 1, 0.5], [0, 0, 0, 1]]
-                ).to(config.device),
+                ).to(x.device),
                 x,
             )
             x = torch.matmul(
                 x,
                 torch.Tensor(
                     [[1, 0, 0, -0.5], [0, 1, 0, -0.5], [0, 0, 1, -0.5], [0, 0, 0, 1]]
-                ).to(config.device),
+                ).to(x.device),
             )
         elif self.dimension == 2:
             x = torch.reshape(x, (-1, 2, 3))
             x = torch.cat(
                 [
                     x,
-                    torch.Tensor([[[0, 0, 1]]])
-                    .to(config.device)
-                    .expand(x.shape[0], -1, -1),
+                    torch.Tensor([[[0, 0, 1]]]).to(x.device).expand(x.shape[0], -1, -1),
                 ],
                 1,
             )
-            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).to(config.device)
+            x = x + torch.Tensor([[1, 0, 0], [0, 1, 0], [0, 0, 0]]).to(x.device)
             x = torch.matmul(
-                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).to(config.device), x
+                torch.Tensor([[1, 0, 0.5], [0, 1, 0.5], [0, 0, 1]]).to(x.device), x
             )
             x = torch.matmul(
                 x,
-                torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).to(config.device),
+                torch.Tensor([[1, 0, -0.5], [0, 1, -0.5], [0, 0, 1]]).to(x.device),
             )
         else:
             raise ArgumentError()
