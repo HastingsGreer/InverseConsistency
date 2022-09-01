@@ -36,7 +36,6 @@ def OAI_knees_registration_model(pretrained=True):
     SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
     input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
-    fourth_net.assign_identity_map(input_shape)
 
     if pretrained:
         from os.path import exists
@@ -49,7 +48,7 @@ def OAI_knees_registration_model(pretrained=True):
             os.makedirs("network_weights", exist_ok=True)
 
             urllib.request.urlretrieve(
-                "https://github.com/HastingsGreer/InverseConsistency/releases/download/pretrained_oai_model/knee_aligner_resi_net99900",
+                "https://github.com/uncbiag/ICON/releases/download/pretrained_oai_model/OAI_knees_ICON_model.pth",
                 "network_weights/pretrained_OAI_model",
             )
 
@@ -57,6 +56,8 @@ def OAI_knees_registration_model(pretrained=True):
             "network_weights/pretrained_OAI_model", map_location=torch.device("cpu")
         )
         fourth_net.load_state_dict(trained_weights, strict=False)
+
+    fourth_net.assign_identity_map(input_shape)
 
     net = fourth_net
     net.to(config.device)
@@ -89,7 +90,6 @@ def OAI_knees_gradICON_model(pretrained=True):
     SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
     input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
-    third_net.assign_identity_map(input_shape)
 
     if pretrained:
 
@@ -101,7 +101,7 @@ def OAI_knees_gradICON_model(pretrained=True):
             import urllib.request
 
             urllib.request.urlretrieve(
-                "https://github.com/HastingsGreer/InverseConsistency/releases/download/gradicon_pretrained_oai_model/gradICON_oai_halfres_weights",
+                "https://github.com/uncbiag/ICON/releases/download/pretrained_oai_model/OAI_knees_GradICON_model.pth",
                 "network_weights/gradICON_oai_halfres_weights",
             )
 
@@ -109,7 +109,9 @@ def OAI_knees_gradICON_model(pretrained=True):
             "network_weights/gradICON_oai_halfres_weights",
             map_location=torch.device("cpu"),
         )
-        third_net.regis_net.load_state_dict(trained_weights, strict=False)
+        third_net.regis_net.load_state_dict(trained_weights)
+
+    third_net.assign_identity_map(input_shape)
 
     net = third_net
     net.to(config.device)
