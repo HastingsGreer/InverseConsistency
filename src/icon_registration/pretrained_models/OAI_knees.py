@@ -36,27 +36,24 @@ def OAI_knees_registration_model(pretrained=True):
     SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
     input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
-    fourth_net.assign_identity_map(input_shape)
-
     if pretrained:
-        from os.path import exists
-
-        if not exists("network_weights/pretrained_OAI_model"):
-            print("Downloading pretrained model (1.2 GB)")
+        weights_location = "network_weights/pretrained_OAI_model_compact"
+        if not exists(weights_location):
+            print("Downloading pretrained model (500 Mb)")
             import urllib.request
             import os
 
             os.makedirs("network_weights", exist_ok=True)
 
             urllib.request.urlretrieve(
-                "https://github.com/HastingsGreer/InverseConsistency/releases/download/pretrained_oai_model/knee_aligner_resi_net99900",
-                "network_weights/pretrained_OAI_model",
+                "https://github.com/uncbiag/ICON/releases/download/pretrained_oai_model/OAI_knees_ICON_model.pth",
+                weights_location,
             )
 
-        trained_weights = torch.load(
-            "network_weights/pretrained_OAI_model", map_location=torch.device("cpu")
-        )
-        fourth_net.load_state_dict(trained_weights, strict=False)
+        trained_weights = torch.load(weights_location, map_location=torch.device("cpu"))
+        fourth_net.load_state_dict(trained_weights)
+
+    fourth_net.assign_identity_map(input_shape)
 
     net = fourth_net
     net.to(config.device)
@@ -89,27 +86,28 @@ def OAI_knees_gradICON_model(pretrained=True):
     SCALE = 2  # 1 IS QUARTER RES, 2 IS HALF RES, 4 IS FULL RES
     input_shape = [BATCH_SIZE, 1, 40 * SCALE, 96 * SCALE, 96 * SCALE]
 
-    third_net.assign_identity_map(input_shape)
-
     if pretrained:
+        weights_location = "network_weights/gradICON_oai_halfres_weights_compact"
 
-        if not exists("network_weights/gradICON_oai_halfres_weights"):
-            print("Downloading pretrained model (1.2 GB)")
+        if not exists(weights_location):
+            print("Downloading pretrained model (500 Mb)")
             import os
 
             os.makedirs("network_weights", exist_ok=True)
             import urllib.request
 
             urllib.request.urlretrieve(
-                "https://github.com/HastingsGreer/InverseConsistency/releases/download/gradicon_pretrained_oai_model/gradICON_oai_halfres_weights",
-                "network_weights/gradICON_oai_halfres_weights",
+                "https://github.com/uncbiag/ICON/releases/download/pretrained_oai_model/OAI_knees_GradICON_model.pth",
+                weights_location,
             )
 
         trained_weights = torch.load(
-            "network_weights/gradICON_oai_halfres_weights",
+            weights_location,
             map_location=torch.device("cpu"),
         )
-        third_net.regis_net.load_state_dict(trained_weights, strict=False)
+        third_net.load_state_dict(trained_weights)
+
+    third_net.assign_identity_map(input_shape)
 
     net = third_net
     net.to(config.device)
