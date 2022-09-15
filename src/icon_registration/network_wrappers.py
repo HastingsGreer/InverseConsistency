@@ -109,15 +109,10 @@ class FunctionFromVectorField(RegistrationModule):
         self.net = net
 
     def forward(self, image_A, image_B):
-        vectorfield_phi = self.net(image_A, image_B)
+        displacement_vector_grid = self.net(image_A, image_B)
 
         def ret(input_):
-            if hasattr(input_, "isIdentity") and vectorfield_phi.shape == input_.shape:
-                return input_ + vectorfield_phi
-            else:
-                return input_ + compute_warped_image_multiNC(
-                    vectorfield_phi, input_, self.spacing, 1
-                )
+            return input_ + self.as_function(displacement_vector_grid)(input_)
 
         return ret
 
