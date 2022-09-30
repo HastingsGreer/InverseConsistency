@@ -109,12 +109,29 @@ class FunctionFromVectorField(RegistrationModule):
         self.net = net
 
     def forward(self, image_A, image_B):
-        displacement_vector_grid = self.net(image_A, image_B)
+        displacement_field = self.as_function(self.net(image_A, image_B))
 
         def ret(input_):
-            return input_ + self.as_function(displacement_vector_grid)(input_)
+            return input_ + displacement_field(input_)
 
         return ret
+    
+class SquaringVelocityField(icon.RegistrationModule):
+   def __init__(self, net):
+       super().__init__()
+       self.net = net
+       self.n_steps = 256
+
+   def forward(self, image_A, image_B):
+       velocityfield_delta = self.net(image_A, image_B) / self.n_steps
+
+       for _ in range(8):
+         velocityfield_delta = velocityfield_delta + self.as_function(
+             velocityfield_delta)(velocityfield_delta + self.identity_map)
+       def transform(coordinate_tensor):
+           coordinate_tensor = coordinate_tensor + self.as_function(velocityfield_delta)(coordinate_tensor)
+           return coordinate_tensor
+       return transform
 
 
 def multiply_matrix_vectorfield(matrix, vectorfield):
