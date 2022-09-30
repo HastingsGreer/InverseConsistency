@@ -201,15 +201,13 @@ class TwoStepRegistration(RegistrationModule):
         self.netPsi = netPsi
 
     def forward(self, image_A, image_B):
-        # Tag for optimization. Must be set at the beginning of forward because it is not preserved by .to(config.device)
-        self.identity_map.isIdentity = True
         phi = self.netPhi(image_A, image_B)
-        phi_vectorfield = phi(self.identity_map)
-        self.image_A_comp_phi = self.as_function(image_A)(phi_vectorfield)
-        psi = self.netPsi(self.image_A_comp_phi, image_B)
-
-        ret = lambda input_: phi(psi(input_))
-        return ret
+        psi = self.netPsi(
+            self.as_function(image_A)(phi(self.identity_map)), 
+            image_B
+        )
+        return lambda input_: phi(psi(input_))
+        
 
 
 class DownsampleRegistration(RegistrationModule):
