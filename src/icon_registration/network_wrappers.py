@@ -116,7 +116,7 @@ class FunctionFromVectorField(RegistrationModule):
 
         return ret
     
-class SquaringVelocityField(icon.RegistrationModule):
+class SquaringVelocityField(RegistrationModule):
    def __init__(self, net):
        super().__init__()
        self.net = net
