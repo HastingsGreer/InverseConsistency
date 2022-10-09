@@ -49,6 +49,8 @@ import inspect
 def line_number(info):
     if "ICONLoss" in info["fullname"]:
         return 22
+    if "BendingLoss" in info["fullname"]:
+        return 235
     mod = icon_registration
     for elem in info["module"].split(".")[1:]:
         mod = getattr(mod, elem)
