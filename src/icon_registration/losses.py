@@ -233,13 +233,12 @@ class GradientICON(network_wrappers.RegistrationModule):
         )
     
 BendingLoss = namedtuple(
-    "ICONLoss",
+    "BendingLoss",
     "all_loss bending_energy_loss similarity_loss transform_magnitude flips",
 )
     
 class BendingEnergyNet(network_wrappers.RegistrationModule):
     def __init__(self, network, similarity, lmbda):
-
         super().__init__()
 
         self.regis_net = network
