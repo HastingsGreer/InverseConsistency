@@ -47,6 +47,7 @@ import inspect
 
 
 def line_number(info):
+    # linkcode gets angry about namedtuple lol
     if "ICONLoss" in info["fullname"]:
         return 22
     if "BendingLoss" in info["fullname"]:
