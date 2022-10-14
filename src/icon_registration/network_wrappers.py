@@ -109,9 +109,12 @@ class FunctionFromVectorField(RegistrationModule):
         self.net = net
 
     def forward(self, image_A, image_B):
-        displacement_field = self.as_function(self.net(image_A, image_B))
+        tensor_of_displacements = self.net(image_A, image_B)
+        displacement_field = self.as_function(tensor_of_displacements)
 
         def ret(input_):
+            if hasattr(input_, "isIdentity") and input_.shape == tensor_of_displacements.shape
+                return input_ + tensor_of_displacements
             return input_ + displacement_field(input_)
 
         return ret
@@ -201,6 +204,11 @@ class TwoStepRegistration(RegistrationModule):
         self.netPsi = netPsi
 
     def forward(self, image_A, image_B):
+        
+        # Tag for shortcutting hack. Must be set at the beginning of 
+        # forward because it is not preserved by .to(config.device)
+        self.identity_map.isIdentity = True
+            
         phi = self.netPhi(image_A, image_B)
         psi = self.netPsi(
             self.as_function(image_A)(phi(self.identity_map)), 
