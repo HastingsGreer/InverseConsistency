@@ -81,7 +81,7 @@ class RegistrationModule(nn.Module):
 
     def forward(image_A, image_B):
         """Register a pair of images:
-        return a python function that warps a tensor of coordinates such that
+        return a python function phi_AB that warps a tensor of coordinates such that
 
         .. code-block:: python
 
@@ -112,12 +112,12 @@ class FunctionFromVectorField(RegistrationModule):
         tensor_of_displacements = self.net(image_A, image_B)
         displacement_field = self.as_function(tensor_of_displacements)
 
-        def ret(input_):
-            if hasattr(input_, "isIdentity") and input_.shape == tensor_of_displacements.shape:
-                return input_ + tensor_of_displacements
-            return input_ + displacement_field(input_)
+        def transform(coordinates):
+            if hasattr(coordinates, "isIdentity") and coordinates.shape == tensor_of_displacements.shape:
+                return coordinates + tensor_of_displacements
+            return coordinates + displacement_field(coordinates)
 
-        return ret
+        return transform
     
 class SquaringVelocityField(RegistrationModule):
    def __init__(self, net):
@@ -160,15 +160,15 @@ class FunctionFromMatrix(RegistrationModule):
     def forward(self, image_A, image_B):
         matrix_phi = self.net(image_A, image_B)
 
-        def ret(input_):
-            shape = list(input_.shape)
+        def transform(tensor_of_coordinates):
+            shape = list(tensor_of_coordinates.shape)
             shape[1] = 1
-            input_homogeneous = torch.cat(
-                [input_, torch.ones(shape, device=input_.device)], axis=1
+            coordinates_homogeneous = torch.cat(
+                [tensor_of_coordinates, torch.ones(shape, device=input_.device)], axis=1
             )
-            return multiply_matrix_vectorfield(matrix_phi, input_homogeneous)[:, :-1]
+            return multiply_matrix_vectorfield(matrix_phi, coordinates_homogeneous)[:, :-1]
 
-        return ret
+        return transform
 
 
 class RandomShift(RegistrationModule):
@@ -214,7 +214,7 @@ class TwoStepRegistration(RegistrationModule):
             self.as_function(image_A)(phi(self.identity_map)), 
             image_B
         )
-        return lambda input_: phi(psi(input_))
+        return lambda tensor_of_coordinates: phi(psi(tensor_of_coordinates))
         
 
 
