@@ -113,7 +113,7 @@ class FunctionFromVectorField(RegistrationModule):
         displacement_field = self.as_function(tensor_of_displacements)
 
         def ret(input_):
-            if hasattr(input_, "isIdentity") and input_.shape == tensor_of_displacements.shape
+            if hasattr(input_, "isIdentity") and input_.shape == tensor_of_displacements.shape:
                 return input_ + tensor_of_displacements
             return input_ + displacement_field(input_)
 
