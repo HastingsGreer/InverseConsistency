@@ -164,7 +164,7 @@ class FunctionFromMatrix(RegistrationModule):
             shape = list(tensor_of_coordinates.shape)
             shape[1] = 1
             coordinates_homogeneous = torch.cat(
-                [tensor_of_coordinates, torch.ones(shape, device=input_.device)], axis=1
+                [tensor_of_coordinates, torch.ones(shape, device=tensor_of_coordinates.device)], axis=1
             )
             return multiply_matrix_vectorfield(matrix_phi, coordinates_homogeneous)[:, :-1]
 
