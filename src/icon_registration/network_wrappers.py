@@ -109,15 +109,8 @@ class FunctionFromVectorField(RegistrationModule):
         self.net = net
 
     def forward(self, image_A, image_B):
-        tensor_of_displacements = self.net(image_A, image_B)
-        displacement_field = self.as_function(tensor_of_displacements)
-
-        def transform(coordinates):
-            if hasattr(coordinates, "isIdentity") and coordinates.shape == tensor_of_displacements.shape:
-                return coordinates + tensor_of_displacements
-            return coordinates + displacement_field(coordinates)
-
-        return transform
+        displacement_field = self.as_function(self.net(image_A, image_B))
+        return lambda coordinates: coordinates + displacement_field(coordinates)
     
 class SquaringVelocityField(RegistrationModule):
    def __init__(self, net):
