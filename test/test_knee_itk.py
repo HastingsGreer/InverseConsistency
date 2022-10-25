@@ -112,6 +112,7 @@ class TestItkRegistration(unittest.TestCase):
         )
 
         interpolator = itk.LinearInterpolateImageFunction.New(itk_img)
+        
         warped_image_A = itk.resample_image_filter(
             itk_img,
             transform=phi,
