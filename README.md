@@ -29,6 +29,7 @@ _Arxiv preprint_ https://arxiv.org/abs/2206.05897
     pages     = {3396-3405}
 }
 ```
+<!---
 ```
 @article{Tian_2022_arXiv,
   title={GradICON: Approximate Diffeomorphisms via Gradient Inverse Consistency},
@@ -37,7 +38,7 @@ _Arxiv preprint_ https://arxiv.org/abs/2206.05897
   year={2022}
 }
 ```
-
+--->
 
 ## Video Presentation
 
