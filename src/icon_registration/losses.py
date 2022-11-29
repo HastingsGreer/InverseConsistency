@@ -231,7 +231,170 @@ class GradientICON(network_wrappers.RegistrationModule):
             transform_magnitude,
             flips(self.phi_BA_vectorfield),
         )
+    
+BendingLoss = namedtuple(
+    "BendingLoss",
+    "all_loss bending_energy_loss similarity_loss transform_magnitude flips",
+)
+    
+class BendingEnergyNet(network_wrappers.RegistrationModule):
+    def __init__(self, network, similarity, lmbda):
+        super().__init__()
 
+        self.regis_net = network
+        self.lmbda = lmbda
+        self.similarity = similarity
+
+    def compute_bending_energy_loss(self, phi_AB_vectorfield):
+        # dxdx = [f[x+h, y] + f[x-h, y] - 2 * f[x, y]]/(h**2)
+        # dxdy = [f[x+h, y+h] + f[x-h, y-h] - f[x+h, y-h] - f[x-h, y+h]]/(4*h**2)
+        # BE_2d = |dxdx| + |dydy| + 2 * |dxdy|
+        # psudo code: BE_2d = [torch.mean(dxdx**2) + torch.mean(dydy**2) + 2 * torch.mean(dxdy**2)]/4.0  
+        # BE_3d = |dxdx| + |dydy| + |dzdz| + 2 * |dxdy| + 2 * |dydz| + 2 * |dxdz|
+        
+        if len(self.identity_map.shape) == 3:
+            dxdx = (phi_AB_vectorfield[:, :, 2:] 
+                - 2*phi_AB_vectorfield[:, :, 1:-1]
+                + phi_AB_vectorfield[:, :, :-2]) / self.spacing[0]**2
+            bending_energy = torch.mean((dxdx)**2)
+            
+        elif len(self.identity_map.shape) == 4:
+            dxdx = (phi_AB_vectorfield[:, :, 2:] 
+                - 2*phi_AB_vectorfield[:, :, 1:-1]
+                + phi_AB_vectorfield[:, :, :-2]) / self.spacing[0]**2
+            dydy = (phi_AB_vectorfield[:, :, :, 2:] 
+                - 2*phi_AB_vectorfield[:, :, :, 1:-1]
+                + phi_AB_vectorfield[:, :, :, :-2]) / self.spacing[1]**2
+            dxdy = (phi_AB_vectorfield[:, :, 2:, 2:] 
+                + phi_AB_vectorfield[:, :, :-2, :-2] 
+                - phi_AB_vectorfield[:, :, 2:, :-2]
+                - phi_AB_vectorfield[:, :, :-2, 2:]) / (4.0*self.spacing[0]*self.spacing[1])
+            bending_energy = (torch.mean(dxdx**2) + torch.mean(dydy**2) + 2*torch.mean(dxdy**2)) / 4.0
+        elif len(self.identity_map.shape) == 5:
+            dxdx = (phi_AB_vectorfield[:, :, 2:] 
+                - 2*phi_AB_vectorfield[:, :, 1:-1]
+                + phi_AB_vectorfield[:, :, :-2]) / self.spacing[0]**2
+            dydy = (phi_AB_vectorfield[:, :, :, 2:] 
+                - 2*phi_AB_vectorfield[:, :, :, 1:-1]
+                + phi_AB_vectorfield[:, :, :, :-2]) / self.spacing[1]**2
+            dzdz = (phi_AB_vectorfield[:, :, :, :, 2:] 
+                - 2*phi_AB_vectorfield[:, :, :, :, 1:-1]
+                + phi_AB_vectorfield[:, :, :, :, :-2]) / self.spacing[2]**2
+            dxdy = (phi_AB_vectorfield[:, :, 2:, 2:] 
+                + phi_AB_vectorfield[:, :, :-2, :-2] 
+                - phi_AB_vectorfield[:, :, 2:, :-2]
+                - phi_AB_vectorfield[:, :, :-2, 2:]) / (4.0*self.spacing[0]*self.spacing[1])
+            dydz = (phi_AB_vectorfield[:, :, :, 2:, 2:] 
+                + phi_AB_vectorfield[:, :, :, :-2, :-2] 
+                - phi_AB_vectorfield[:, :, :, 2:, :-2]
+                - phi_AB_vectorfield[:, :, :, :-2, 2:]) / (4.0*self.spacing[1]*self.spacing[2])
+            dxdz = (phi_AB_vectorfield[:, :, 2:, :, 2:] 
+                + phi_AB_vectorfield[:, :, :-2, :, :-2] 
+                - phi_AB_vectorfield[:, :, 2:, :, :-2]
+                - phi_AB_vectorfield[:, :, :-2, :, 2:]) / (4.0*self.spacing[0]*self.spacing[2])
+
+            bending_energy = ((dxdx**2).mean() + (dydy**2).mean() + (dzdz**2).mean() 
+                    + 2.*(dxdy**2).mean() + 2.*(dydz**2).mean() + 2.*(dxdz**2).mean()) / 9.0
+        
+
+        return bending_energy
+
+    def compute_similarity_measure(self, phi_AB_vectorfield, image_A, image_B):
+
+        # tag images during warping so that the similarity measure
+        # can use information about whether a sample is interpolated
+        # or extrapolated
+
+        inbounds_tag = torch.zeros(tuple(image_A.shape), device=image_A.device)
+        if len(self.input_shape) - 2 == 3:
+            inbounds_tag[:, :, 1:-1, 1:-1, 1:-1] = 1.0
+        elif len(self.input_shape) - 2 == 2:
+            inbounds_tag[:, :, 1:-1, 1:-1] = 1.0
+        else:
+            inbounds_tag[:, :, 1:-1] = 1.0
+
+        self.warped_image_A = self.as_function(
+            torch.cat([image_A, inbounds_tag], axis=1)
+        )(phi_AB_vectorfield)
+        
+        similarity_loss = self.similarity(
+            self.warped_image_A, image_B
+        )
+        return similarity_loss
+
+    def forward(self, image_A, image_B) -> ICONLoss:
+
+        assert self.identity_map.shape[2:] == image_A.shape[2:]
+        assert self.identity_map.shape[2:] == image_B.shape[2:]
+
+        # Tag used elsewhere for optimization.
+        # Must be set at beginning of forward b/c not preserved by .cuda() etc
+        self.identity_map.isIdentity = True
+
+        self.phi_AB = self.regis_net(image_A, image_B)
+        self.phi_AB_vectorfield = self.phi_AB(self.identity_map)
+        
+        similarity_loss = 2 * self.compute_similarity_measure(
+            self.phi_AB_vectorfield, image_A, image_B
+        )
+
+        bending_energy_loss = self.compute_bending_energy_loss(
+            self.phi_AB_vectorfield
+        )
+
+        all_loss = self.lmbda * bending_energy_loss + similarity_loss
+
+        transform_magnitude = torch.mean(
+            (self.identity_map - self.phi_AB_vectorfield) ** 2
+        )
+        return BendingLoss(
+            all_loss,
+            bending_energy_loss,
+            similarity_loss,
+            transform_magnitude,
+            flips(self.phi_AB_vectorfield),
+        )
+
+    def prepare_for_viz(self, image_A, image_B):
+        self.phi_AB = self.regis_net(image_A, image_B)
+        self.phi_AB_vectorfield = self.phi_AB(self.identity_map)
+        self.phi_BA = self.regis_net(image_B, image_A)
+        self.phi_BA_vectorfield = self.phi_BA(self.identity_map)
+
+        self.warped_image_A = self.as_function(image_A)(self.phi_AB_vectorfield)
+        self.warped_image_B = self.as_function(image_B)(self.phi_BA_vectorfield)
+
+class DiffusionRegularizedNet(BendingEnergyNet):
+    def compute_bending_energy_loss(self, phi_AB_vectorfield):
+        phi_AB_vectorfield = self.identity_map - phi_AB_vectorfield
+        if len(self.identity_map.shape) == 3:
+            bending_energy = torch.mean((
+                - phi_AB_vectorfield[:, :, 1:]
+                + phi_AB_vectorfield[:, :, 1:-1]
+            )**2)
+
+        elif len(self.identity_map.shape) == 4:
+            bending_energy = torch.mean((
+                - phi_AB_vectorfield[:, :, 1:]
+                + phi_AB_vectorfield[:, :, :-1]
+            )**2) + torch.mean((
+                - phi_AB_vectorfield[:, :, :, 1:]
+                + phi_AB_vectorfield[:, :, :, :-1]
+            )**2)
+        elif len(self.identity_map.shape) == 5:
+            bending_energy = torch.mean((
+                - phi_AB_vectorfield[:, :, 1:]
+                + phi_AB_vectorfield[:, :, :-1]
+            )**2) + torch.mean((
+                - phi_AB_vectorfield[:, :, :, 1:]
+                + phi_AB_vectorfield[:, :, :, :-1]
+            )**2) + torch.mean((
+                - phi_AB_vectorfield[:, :, :, :, 1:]
+                + phi_AB_vectorfield[:, :, :, :, :-1]
+            )**2)
+
+
+        return bending_energy * self.identity_map.shape[2] **2
 
 def normalize(image):
     dimension = len(image.shape) - 2
@@ -401,21 +564,30 @@ def ssd_only_interpolated(image_A, image_B):
     return torch.mean(ssds)
 
 
-def flips(phi):
+def flips(phi, in_percentage=False):
     if len(phi.size()) == 5:
-        a = phi[:, :, 1:, 1:, 1:] - phi[:, :, :-1, 1:, 1:]
-        b = phi[:, :, 1:, 1:, 1:] - phi[:, :, 1:, :-1, 1:]
-        c = phi[:, :, 1:, 1:, 1:] - phi[:, :, 1:, 1:, :-1]
+        a = (phi[:, :, 1:, 1:, 1:] - phi[:, :, :-1, 1:, 1:]).detach()
+        b = (phi[:, :, 1:, 1:, 1:] - phi[:, :, 1:, :-1, 1:]).detach()
+        c = (phi[:, :, 1:, 1:, 1:] - phi[:, :, 1:, 1:, :-1]).detach()
 
         dV = torch.sum(torch.cross(a, b, 1) * c, axis=1, keepdims=True)
-        return torch.sum(dV < 0) / phi.shape[0]
+        if in_percentage:
+            return torch.mean((dV < 0).float()) * 100.
+        else:
+            return torch.sum(dV < 0) / phi.shape[0]
     elif len(phi.size()) == 4:
-        du = (phi[:, :, 1:, :-1] - phi[:, :, :-1, :-1]).detach().cpu()
-        dv = (phi[:, :, :-1, 1:] - phi[:, :, :-1, :-1]).detach().cpu()
+        du = (phi[:, :, 1:, :-1] - phi[:, :, :-1, :-1]).detach()
+        dv = (phi[:, :, :-1, 1:] - phi[:, :, :-1, :-1]).detach()
         dA = du[:, 0] * dv[:, 1] - du[:, 1] * dv[:, 0]
-        return torch.sum(dA < 0) / phi.shape[0]
+        if in_percentage:
+            return torch.mean((dA < 0).float()) * 100.
+        else:
+            return torch.sum(dA < 0) / phi.shape[0]
     elif len(phi.size()) == 3:
-        du = (phi[:, :, 1:] - phi[:, :, :-1]).detach().cpu()
-        return torch.sum(du < 0) / phi.shape[0]
+        du = (phi[:, :, 1:] - phi[:, :, :-1]).detach()
+        if in_percentage:
+            return torch.mean((du < 0).float()) * 100.
+        else:
+            return torch.sum(du < 0) / phi.shape[0]
     else:
         raise ValueError()
