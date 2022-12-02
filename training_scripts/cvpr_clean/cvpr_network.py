@@ -124,6 +124,90 @@ class GradientICONSparse(network_wrappers.RegistrationModule):
             icon.losses.flips(self.phi_BA_vectorfield),
         )
 
+class GradientICONGrid(network_wrappers.RegistrationModule):
+
+    def __init__(self, network, similarity, lmbda):
+        super().__init__()
+
+        self.regis_net = network
+        self.lmbda = lmbda
+        self.similarity = similarity
+
+    def compute_gradient_norm(self, composition):
+        composition = self.identity_map - composition
+        if len(self.identity_map.shape) == 3:
+            gradient_norm = torch.mean((
+                - composition[:, :, 1:]
+                + composition[:, :, 1:-1]
+            )**2)
+
+        elif len(self.identity_map.shape) == 4:
+            gradient_norm = torch.mean((
+                - composition[:, :, 1:]
+                + composition[:, :, :-1]
+            )**2) + torch.mean((
+                - composition[:, :, :, 1:]
+                + composition[:, :, :, :-1]
+            )**2)
+        elif len(self.identity_map.shape) == 5:
+            gradient_norm = torch.mean((
+                - composition[:, :, 1:]
+                + composition[:, :, :-1]
+            )**2) + torch.mean((
+                - composition[:, :, :, 1:]
+                + composition[:, :, :, :-1]
+            )**2) + torch.mean((
+                - composition[:, :, :, :, 1:]
+                + composition[:, :, :, :, :-1]
+            )**2)
+
+
+        return gradient_norm * self.identity_map.shape[2] **2
+
+    def forward(self, image_A, image_B) -> icon.losses.ICONLoss:
+
+        assert self.identity_map.shape[2:] == image_A.shape[2:]
+        assert self.identity_map.shape[2:] == image_B.shape[2:]
+
+        # Tag used elsewhere for optimization.
+        # Must be set at beginning of forward b/c not preserved by .cuda() etc
+        self.identity_map.isIdentity = True
+
+        self.phi_AB = self.regis_net(image_A, image_B)
+        self.phi_AB_vectorfield = self.phi_AB(self.identity_map)
+        self.phi_BA = self.regis_net(image_B, image_A)
+
+        composition = self.phi_BA(self.phi_AB_vectorfield)
+        
+        similarity_loss = 2 * self.compute_similarity_measure(
+            self.phi_AB_vectorfield, image_A, image_B
+        )
+
+        consistency_loss = self.compute_gradient_norm(composition)
+
+        all_loss = self.lmbda * consistency_loss + similarity_loss
+
+        transform_magnitude = torch.mean(
+            (self.identity_map - self.phi_AB_vectorfield) ** 2
+        )
+        return icon.losses.ICONLoss(
+            all_loss,
+            consistency_loss,
+            similarity_loss,
+            transform_magnitude,
+            icon.losses.flips(self.phi_AB_vectorfield),
+        )
+
+    def prepare_for_viz(self, image_A, image_B):
+        self.phi_AB = self.regis_net(image_A, image_B)
+        self.phi_AB_vectorfield = self.phi_AB(self.identity_map)
+        self.phi_BA = self.regis_net(image_B, image_A)
+        self.phi_BA_vectorfield = self.phi_BA(self.identity_map)
+
+        self.warped_image_A = self.as_function(image_A)(self.phi_AB_vectorfield)
+        self.warped_image_B = self.as_function(image_B)(self.phi_BA_vectorfield)
+
+
 
 def make_network(input_shape, include_last_step=False, lmbda=1.5, loss_fn=icon.LNCC(sigma=5), framework='gradICON'):
     dimension = len(input_shape) - 2
@@ -192,3 +276,5 @@ def train_two_stage(input_shape, batch_function, GPUS, ITERATIONS_PER_STEP, BATC
                 net_2.regis_net.state_dict(),
                 footsteps.output_dir + "Step_2_final.trch",
             )
+
+def 
