@@ -11,3 +11,5 @@ build/
 src/icon_registration.egg-info/
 pretrained_OAI_model
 test_files/*
+docs/source/files
+*env*
