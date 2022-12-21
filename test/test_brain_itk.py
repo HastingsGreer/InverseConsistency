@@ -66,14 +66,14 @@ class TestItkRegistration(unittest.TestCase):
         plt.savefig(footsteps.output_dir + "warped.png")
         plt.clf()
 
-        reference = np.load(icon_registration.test_utils.TEST_DATA_DIR / "brain_test_data/2_and_8_warped.npy")
-        
+
+        reference = np.load(icon_registration.test_utils.TEST_DATA_DIR / "brain_test_data/2_and_8_warped_itkfix.npy")       
 
         np.save(
-            footsteps.output_dir + "warped.npy",
+            footsteps.output_dir + "warped_brain.npy",
             itk.array_from_image(warped_image_A)[40],
         )
 
         self.assertLess(
-            np.mean(np.abs(reference - itk.array_from_image(warped_image_A))), 1e-5
+            np.mean(np.abs(reference - itk.array_from_image(warped_image_A)[40])), 1e-5
         )
