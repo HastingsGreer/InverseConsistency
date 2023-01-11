@@ -7,6 +7,9 @@ from icon_registration.losses import (
     gaussian_blur,
     ssd_only_interpolated,
     ssd,
+    SSDOnlyInterpolated,
+    SSD,
+    NCC
 )
 from icon_registration.network_wrappers import (
     DownsampleRegistration,
