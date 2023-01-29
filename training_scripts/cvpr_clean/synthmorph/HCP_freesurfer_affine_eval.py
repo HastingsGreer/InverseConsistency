@@ -2,6 +2,7 @@ import os
 import random
 
 import footsteps
+footsteps.initialize(output_root="evaluation_results/")
 import nibabel as nib
 import numpy as np
 import tensorflow as tf
@@ -15,8 +16,7 @@ from HCP_synthmorph_helper import net_to_vox, transform, read_affine
 # This script borrows some functions from https://github.com/freesurfer/freesurfer/blob/a810044ae08a24402436c1d43472b3b3df06592a/mri_synthmorph/mri_synthmorph
 
 if __name__ == "__main__":
-    footsteps.initialize(output_root="evaluation_results/")
-
+    
     prealign_folder = "/playpen-raid2/lin.tian/projects/icon_lung/ICON/training_scripts/cvpr_clean/evaluation_results/synthmorph_preprocessed"
     ref_path = "/playpen-raid2/lin.tian/projects/icon_lung/ICON/training_scripts/cvpr_clean/ref.nii.gz"
     ref = vxm.py.utils.load_volfile(ref_path, add_batch_axis = True, add_feat_axis = True)
