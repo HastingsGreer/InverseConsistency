@@ -2,7 +2,6 @@ from collections import namedtuple
 
 import matplotlib
 import torch
-import torchvision.transforms.functional_tensor as F_t
 import torch.nn.functional as F
 
 from icon_registration import config, network_wrappers
@@ -428,9 +427,16 @@ class NCC(SimilarityBase):
         res = torch.mean(A * B)
         return 1 - res
 
+# torch removed this function from torchvision.functional_tensor, so we are vendoring it.
+def _get_gaussian_kernel1d(kernel_size, sigma):
+    ksize_half = (kernel_size - 1) * 0.5
+    x = torch.linspace(-ksize_half, ksize_half, steps=kernel_size)
+    pdf = torch.exp(-0.5 * (x / sigma).pow(2))
+    kernel1d = pdf / pdf.sum()
+    return kernel1d
 
 def gaussian_blur(tensor, kernel_size, sigma, padding="same"):
-    kernel1d = F_t._get_gaussian_kernel1d(kernel_size=kernel_size, sigma=sigma).to(
+    kernel1d = _get_gaussian_kernel1d(kernel_size=kernel_size, sigma=sigma).to(
         tensor.device, dtype=tensor.dtype
     )
     out = tensor
