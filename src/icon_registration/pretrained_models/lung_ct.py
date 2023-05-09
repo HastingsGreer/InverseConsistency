@@ -8,18 +8,26 @@ from .. import losses, network_wrappers, networks
 
 def make_network():
     dimension = 3
-    inner_net = network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=dimension))
+    inner_net = network_wrappers.FunctionFromVectorField(
+        networks.tallUNet2(dimension=dimension))
 
     for _ in range(2):
         inner_net = network_wrappers.TwoStepRegistration(
-            network_wrappers.DownsampleRegistration(inner_net, dimension=dimension),
-            network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=dimension))
-        )
-    inner_net = network_wrappers.TwoStepRegistration(inner_net, network_wrappers.FunctionFromVectorField(networks.tallUNet2(dimension=dimension)))
+            network_wrappers.DownsampleRegistration(inner_net,
+                                                    dimension=dimension),
+            network_wrappers.FunctionFromVectorField(
+                networks.tallUNet2(dimension=dimension)))
+    inner_net = network_wrappers.TwoStepRegistration(
+        inner_net,
+        network_wrappers.FunctionFromVectorField(
+            networks.tallUNet2(dimension=dimension)))
 
-    net = losses.GradientICON(inner_net, similarity=losses.LNCC(sigma=5), lmbda=1.5)
+    net = losses.GradientICON(inner_net,
+                              similarity=losses.LNCC(sigma=5),
+                              lmbda=1.5)
 
     return net
+
 
 def init_network(task, pretrained=True):
     if task == "lung":
@@ -44,10 +52,12 @@ def init_network(task, pretrained=True):
             print("Downloading pretrained model")
             import urllib.request
             import os
+            download_path = "https://github.com/uncbiag/ICON/releases/download"
+            download_path = f"{download_path}/pretrained_models_v1.0.0"
 
             os.makedirs(weights_location, exist_ok=True)
             urllib.request.urlretrieve(
-                f"https://github.com/uncbiag/ICON/releases/download/pretrained_models_v1.0.0/{task}_model_weights_step_2.trch",
+                f"{download_path}/{task}_model_weights_step_2.trch",
                 f"{weights_location}/{task}_model_weights.trch",
             )
 
@@ -63,28 +73,25 @@ def init_network(task, pretrained=True):
     return net
 
 
-def lung_network_preprocess(
-    image: "itk.Image", segmentation: "itk.Image"
-) -> "itk.Image":
+def lung_network_preprocess(image: "itk.Image",
+                            segmentation: "itk.Image") -> "itk.Image":
 
     image = itk.clamp_image_filter(image, Bounds=(-1000, 0))
-    cast_filter = itk.CastImageFilter[itk.Image[itk.SS, 3], itk.Image[itk.F, 3]].New()
+    cast_filter = itk.CastImageFilter[type(image), itk.Image.F3].New()
     cast_filter.SetInput(image)
     cast_filter.Update()
     image = cast_filter.GetOutput()
 
-    segmentation_cast_filter = itk.CastImageFilter[
-        itk.Image[itk.SI, 3], itk.Image[itk.F, 3]
-    ].New()
+    segmentation_cast_filter = itk.CastImageFilter[type(segmentation),
+                                                   itk.Image.F3].New()
     segmentation_cast_filter.SetInput(segmentation)
     segmentation_cast_filter.Update()
     segmentation = segmentation_cast_filter.GetOutput()
 
     image = itk.shift_scale_image_filter(image, shift=1000, scale=1 / 1000)
 
-    mask_filter = itk.MultiplyImageFilter[
-        itk.Image[itk.F, 3], itk.Image[itk.F, 3], itk.Image[itk.F, 3]
-    ].New()
+    mask_filter = itk.MultiplyImageFilter[itk.Image.F3, itk.Image.F3,
+                                          itk.Image.F3].New()
 
     mask_filter.SetInput1(image)
     mask_filter.SetInput2(segmentation)
