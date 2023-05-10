@@ -347,7 +347,7 @@ class GradientICONSparse(network_wrappers.RegistrationModule):
         transform_magnitude = torch.mean(
             (self.identity_map - self.phi_AB_vectorfield) ** 2
         )
-        return icon.losses.ICONLoss(
+        return ICONLoss(
             all_loss,
             inverse_consistency_loss,
             similarity_loss,
