@@ -1,3 +1,5 @@
+import copy
+
 import itk
 import numpy as np
 import torch
@@ -8,7 +10,7 @@ from icon_registration.losses import to_floats
 
 
 def finetune_execute(model, image_A, image_B, steps):
-    state_dict = model.state_dict()
+    state_dict = copy.deepcopy(model.state_dict())
     optimizer = torch.optim.Adam(model.parameters(), lr=0.00002)
     for _ in range(steps):
         optimizer.zero_grad()
