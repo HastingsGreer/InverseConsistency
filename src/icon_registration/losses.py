@@ -352,7 +352,7 @@ class GradientICONSparse(network_wrappers.RegistrationModule):
             inverse_consistency_loss,
             similarity_loss,
             transform_magnitude,
-            icon.losses.flips(self.phi_BA_vectorfield),
+            flips(self.phi_BA_vectorfield),
         )
     
 BendingLoss = namedtuple(
