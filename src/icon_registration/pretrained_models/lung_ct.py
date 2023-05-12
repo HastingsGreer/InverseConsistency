@@ -22,7 +22,7 @@ def make_network():
         network_wrappers.FunctionFromVectorField(
             networks.tallUNet2(dimension=dimension)))
 
-    net = losses.GradientICON(inner_net,
+    net = losses.GradientICONSparse(inner_net,
                               similarity=losses.LNCC(sigma=5),
                               lmbda=1.5)
 
